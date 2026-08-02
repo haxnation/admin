@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HaxNation API Documentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-darker: #020617;
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.5);
+            --secondary: #8b5cf6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --code-bg: #0f111a;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-darker);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Background Elements */
+        .bg-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            animation: float 20s infinite alternate;
+        }
+        
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: rgba(59, 130, 246, 0.15);
+            top: -100px;
+            left: -100px;
+        }
+        
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: rgba(139, 92, 246, 0.15);
+            bottom: -200px;
+            right: -100px;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo::before {
+            content: '';
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 6px;
+        }
+
+        .nav-group {
+            margin-bottom: 2rem;
+        }
+
+        .nav-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .nav-links {
+            list-style: none;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 0.5rem 0.75rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 0.375rem;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-link:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(4px);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+            background: rgba(59, 130, 246, 0.1);
+            font-weight: 500;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 3rem 4rem;
+            max-width: 1000px;
+        }
+
+        .section {
+            margin-bottom: 5rem;
+            animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .section:nth-child(2) { animation-delay: 0.1s; }
+        .section:nth-child(3) { animation-delay: 0.2s; }
+        .section:nth-child(4) { animation-delay: 0.3s; }
+        .section:nth-child(5) { animation-delay: 0.4s; }
+        .section:nth-child(6) { animation-delay: 0.5s; }
+
+        @keyframes fadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            margin-top: 3rem;
+        }
+        
+        h3 {
+            font-size: 1.25rem;
+            margin: 1.5rem 0 1rem;
+            color: #e2e8f0;
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+            color: var(--text-muted);
+            font-size: 1.05rem;
+        }
+
+        /* Glass Cards */
+        .card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2), 0 0 15px var(--primary-glow);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        /* Endpoint Badge */
+        .endpoint {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--glass-border);
+        }
+
+        .method {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            letter-spacing: 0.05em;
+        }
+        
+        .method.get {
+            background: var(--success);
+        }
+
+        .path {
+            font-family: 'Fira Code', monospace;
+            color: #e2e8f0;
+            font-size: 1rem;
+        }
+
+        /* Code Blocks */
+        .code-window {
+            background: var(--code-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+            border: 1px solid #1e293b;
+            position: relative;
+        }
+
+        .code-header {
+            background: #1e293b;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .dot.r { background: #ef4444; }
+        .dot.y { background: #f59e0b; }
+        .dot.g { background: #10b981; }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .copy-btn:hover {
+            color: var(--text-main);
+        }
+
+        pre {
+            padding: 1.5rem;
+            overflow-x: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #e2e8f0;
+        }
+
+        /* Syntax Highlighting */
+        .string { color: #a78bfa; }
+        .number { color: #fb923c; }
+        .boolean { color: #f472b6; }
+        .null { color: #94a3b8; }
+        .key { color: #60a5fa; }
+
+        /* Tables */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            font-size: 0.95rem;
+        }
+
+        td code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85em;
+            color: #93c5fd;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge.required {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .badge.optional {
+            background: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar { width: 240px; }
+            .main-content { margin-left: 240px; padding: 2rem; }
+        }
+        
+        @media (max-width: 768px) {
+            .layout { flex-direction: column; }
+            .sidebar { 
+                position: relative; 
+                width: 100%; 
+                height: auto; 
+                padding: 1.5rem; 
+                border-right: none;
+                border-bottom: 1px solid var(--glass-border);
+            }
+            .main-content { margin-left: 0; padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="logo">HaxNation API</div>
+            
+            <div class="nav-group">
+                <div class="nav-title">Getting Started</div>
+                <ul class="nav-links">
+                    <li><a href="#introduction" class="nav-link active">Introduction</a></li>
+                    <li><a href="#authentication" class="nav-link">Authentication</a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-group">
+                <div class="nav-title">Certificate API (B2B)</div>
+                <ul class="nav-links">
+                    <li><a href="#generate-certificate" class="nav-link">Generate Certificate</a></li>
+                </ul>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-title">Events API (Public)</div>
+                <ul class="nav-links">
+                    <li><a href="#list-events" class="nav-link">List Events</a></li>
+                    <li><a href="#get-event" class="nav-link">Get Event Details</a></li>
+                    <li><a href="#verify-certificate" class="nav-link">Verify Certificate</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <section id="introduction" class="section">
+                <h1>HaxNation API Integration</h1>
+                <p>Welcome to the HaxNation API documentation. Our seamless and secure API empowers developers to integrate certificate generation and event discovery natively into their own platforms. Using an approved B2B Community account, you can instantly render high-quality, verifiable certificates based on custom templates.</p>
+                <div class="card">
+                    <h3>Base URL</h3>
+                    <p>All API requests should be made to the following base URLs based on the resource type.</p>
+                    <div class="code-window">
+                        <div class="code-header">
+                            <span>Admin/B2B Endpoints</span>
+                        </div>
+                        <pre><code>https://api.haxnation.com/public/v1</code></pre>
+                    </div>
+                    <div class="code-window">
+                        <div class="code-header">
+                            <span>Public Event Endpoints</span>
+                        </div>
+                        <pre><code>https://api.haxnation.com/api/events</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <section id="authentication" class="section">
+                <h2>Authentication</h2>
+                <p>The HaxNation API utilizes API Keys for authorization. While internal platforms use session cookies, any third-party domain calling <b>any</b> of our endpoints (including Public Event endpoints) MUST provide an API Key.</p>
+                
+                <div class="card">
+                    <h3>Making Authenticated Requests</h3>
+                    <p>You must pass your API key via the <code>X-API-KEY</code> HTTP header in all requests made from external domains.</p>
+                    <div class="code-window">
+                        <div class="code-header">
+                            <div class="window-controls">
+                                <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+                            </div>
+                            <span>Headers</span>
+                        </div>
+                        <pre><code>X-API-KEY: HAX_abcdef1234567890abcdef...
+Content-Type: application/json</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <section id="generate-certificate" class="section">
+                <h2>Generate Certificate</h2>
+                <p>Dynamically generates a custom certificate based on the active template configured for the API Client. This endpoint consumes 1 credit per successful generation.</p>
+                
+                <div class="card">
+                    <div class="endpoint">
+                        <span class="method">POST</span>
+                        <span class="path">/public/v1/certificates/generate</span>
+                    </div>
+
+                    <h3>Request Body</h3>
+                    <p>The payload must be a JSON object containing a <code>data</code> property. The keys inside <code>data</code> should exactly match the variable placeholders defined in your certificate template.</p>
+                    
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>data</code> <span class="badge required">Required</span></td>
+                                    <td>Object</td>
+                                    <td>A key-value mapping of the template variables to their respective dynamic values.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="code-window">
+                        <div class="code-header">
+                            <div class="window-controls">
+                                <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+                            </div>
+                            <div>
+                                <span>Example Request</span>
+                                <button class="copy-btn" onclick="copyCode(this, 'req1')">Copy</button>
+                            </div>
+                        </div>
+                        <pre id="req1"><code>{
+  <span class="key">"data"</span>: {
+    <span class="key">"Name"</span>: <span class="string">"Jane Doe"</span>,
+    <span class="key">"Course"</span>: <span class="string">"Advanced AI Integration"</span>,
+    <span class="key">"Date"</span>: <span class="string">"October 24, 2026"</span>
+  }
+}</code></pre>
+                    </div>
+
+                    <h3>Responses</h3>
+                    <p>The endpoint returns a JSON payload containing the generated certificate as a Base64 data URL upon success.</p>
+                    
+                    <div class="code-window">
+                        <div class="code-header">
+                            <span>200 OK - Success</span>
+                        </div>
+                        <pre><code>{
+  <span class="key">"success"</span>: <span class="boolean">true</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"dataUrl"</span>: <span class="string">"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB..."</span>
+  }
+}</code></pre>
+                    </div>
+
+                    <div class="code-window">
+                        <div class="code-header">
+                            <span>402 Payment Required - Insufficient Credits</span>
+                        </div>
+                        <pre><code>{
+  <span class="key">"success"</span>: <span class="boolean">false</span>,
+  <span class="key">"message"</span>: <span class="string">"Insufficient credits"</span>
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <section id="list-events" class="section">
+                <h2>List Events</h2>
+                <p>Retrieves a list of public events available on HaxNation. You can filter the events by a specific community ID.</p>
+                
+                <div class="card">
+                    <div class="endpoint">
+                        <span class="method get">GET</span>
+                        <span class="path">/api/events/</span>
+                    </div>
+
+                    <h3>Query Parameters</h3>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>communityId</code> <span class="badge optional">Optional</span></td>
+                                    <td>String</td>
+                                    <td>Filter the event list to show only events belonging to this specific community.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3>Response</h3>
+                    <div class="code-window">
+                        <div class="code-header">
+                            <span>200 OK - Success</span>
+                        </div>
+                        <pre><code>{
+  <span class="key">"success"</span>: <span class="boolean">true</span>,
+  <span class="key">"data"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"12345"</span>,
+      <span class="key">"title"</span>: <span class="string">"Summer Hackathon 2026"</span>,
+      <span class="key">"status"</span>: <span class="string">"PUBLISHED"</span>,
+      <span class="key">"location"</span>: <span class="string">"Virtual"</span>
+    }
+  ]
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <section id="get-event" class="section">
+                <h2>Get Event Details</h2>
+                <p>Retrieves detailed metadata for a specific event by its ID or slug.</p>
+                
+                <div class="card">
+                    <div class="endpoint">
+                        <span class="method get">GET</span>
+                        <span class="path">/api/events/{id}</span>
+                    </div>
+
+                    <h3>Path Parameters</h3>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>id</code> <span class="badge required">Required</span></td>
+                                    <td>String</td>
+                                    <td>The unique ID or slug of the event.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3>Response</h3>
+                    <div class="code-window">
+                        <div class="code-header">
+                            <span>200 OK - Success</span>
+                        </div>
+                        <pre><code>{
+  <span class="key">"success"</span>: <span class="boolean">true</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"id"</span>: <span class="string">"12345"</span>,
+    <span class="key">"title"</span>: <span class="string">"Summer Hackathon 2026"</span>,
+    <span class="key">"description"</span>: <span class="string">"Join us for an amazing hackathon..."</span>,
+    <span class="key">"settings"</span>: {
+      <span class="key">"isCertificateOnly"</span>: <span class="boolean">false</span>
+    }
+  }
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <section id="verify-certificate" class="section">
+                <h2>Verify Certificate</h2>
+                <p>Public endpoint to verify the authenticity of a certificate issued by HaxNation. You can embed this functionality into your own application to let users check if a certificate is valid.</p>
+                
+                <div class="card">
+                    <div class="endpoint">
+                        <span class="method get">GET</span>
+                        <span class="path">/api/events/certificate/verify/{certId}</span>
+                    </div>
+
+                    <h3>Path Parameters</h3>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>certId</code> <span class="badge required">Required</span></td>
+                                    <td>String</td>
+                                    <td>The unique certificate ID to verify.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3>Response</h3>
+                    <p>Returns the certificate metadata along with verification status.</p>
+                    
+                    <div class="code-window">
+                        <div class="code-header">
+                            <span>200 OK - Success</span>
+                        </div>
+                        <pre><code>{
+  <span class="key">"success"</span>: <span class="boolean">true</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"message"</span>: <span class="string">"Certificate Verified"</span>,
+    <span class="key">"owner"</span>: <span class="string">"Jane Doe"</span>,
+    <span class="key">"event"</span>: <span class="string">"Summer Hackathon 2026"</span>,
+    <span class="key">"isOwner"</span>: <span class="boolean">false</span>,
+    <span class="key">"eventId"</span>: <span class="string">"12345"</span>
+  }
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Smooth scrolling & active link updating
+        const sections = document.querySelectorAll('.section');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 150) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // Copy code functionality
+        function copyCode(btn, elementId) {
+            const el = document.getElementById(elementId);
+            const text = el.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!`;
+                btn.style.color = '#10b981';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.color = '';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

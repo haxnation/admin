@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HaxNation Admin Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="js/aws-intercept.js"></script>
+    <style>
+        .loader { border-top-color: #3498db; -webkit-animation: spinner 1.5s linear infinite; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800 font-sans">
+    
+    <nav class="bg-slate-900 text-white p-4 sticky top-0 z-50 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-6">
+                <a href="#/dashboard" class="text-xl font-bold tracking-tight">HaxNation <span class="text-blue-400">Admin</span></a>
+                <a href="#/minigames" class="text-sm text-gray-300 hover:text-white transition hidden md:block" id="nav-minigames">Mini-Games</a>
+                <a href="#/b2b-admin" class="text-sm text-gray-300 hover:text-white transition hidden md:block" id="nav-b2b-admin">B2B Admin</a>
+                <a href="api-docs.html" target="_blank" class="text-sm text-gray-300 hover:text-white transition hidden md:block" id="nav-api-docs">API Docs</a>
+            </div>
+            <div id="nav-user" class="flex gap-4 items-center hidden">
+                <span id="user-name" class="text-sm opacity-80">Loading...</span>
+                <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-xs px-3 py-1.5 rounded transition">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div id="app" class="container mx-auto p-6">
+        <div class="flex justify-center mt-20"><div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12"></div></div>
+    </div>
+
+    <div id="modals"></div>
+
+    <script src="js/CertificateGenerator.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
