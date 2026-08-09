@@ -1,8 +1,11 @@
-const CACHE_NAME = 'haxnation-cache-v1';
+const CACHE_NAME = 'haxnation-cache-v2';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/logo.png'
+  '/logo.png',
+  '/favicons/site.webmanifest',
+  '/favicons/android-chrome-192x192.png',
+  '/favicons/android-chrome-512x512.png'
 ];
 
 self.addEventListener('install', event => {
