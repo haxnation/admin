@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HaxNation Admin Portal</title>
+    <title>Haxnation Admin Portal</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
+    <link rel="manifest" href="/favicons/site.webmanifest">
+    <link rel="shortcut icon" href="/favicons/favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
@@ -20,7 +25,7 @@
     <nav class="bg-slate-900 text-white p-4 sticky top-0 z-50 shadow-md">
         <div class="container mx-auto flex justify-between items-center">
             <div class="flex items-center gap-6">
-                <a href="#/dashboard" class="text-xl font-bold tracking-tight">HaxNation <span class="text-blue-400">Admin</span></a>
+                <a href="#/dashboard" class="text-xl font-bold tracking-tight"><img src="/logo.png" alt="Haxnation Admin" class="h-8 w-auto"></a>
                 <a href="#/minigames" class="text-sm text-gray-300 hover:text-white transition hidden md:block" id="nav-minigames">Mini-Games</a>
                 <a href="#/b2b-admin" class="text-sm text-gray-300 hover:text-white transition hidden md:block" id="nav-b2b-admin">B2B Admin</a>
                 <a href="api-docs.html" target="_blank" class="text-sm text-gray-300 hover:text-white transition hidden md:block" id="nav-api-docs">API Docs</a>
@@ -40,5 +45,59 @@
 
     <script src="js/CertificateGenerator.js"></script>
     <script type="module" src="js/app.js"></script>
+
+<!-- PWA Install Prompt & Service Worker -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').then(reg => {
+                console.log('SW registered!', reg);
+            }).catch(err => console.log('SW registration failed', err));
+        });
+    }
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        showPwaToast();
+    });
+
+    function showPwaToast() {
+        if (document.getElementById('pwa-install-toast')) return;
+        
+        const toastHtml = `
+            <div id="pwa-install-toast" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 99999; background: #fff; border: 2px solid #0b0b0b; box-shadow: 4px 4px 0 0 #0b0b0b; padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 90vw; width: 350px; font-family: 'JetBrains Mono', monospace, sans-serif;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <img src="/logo.png" alt="Logo" style="width: 32px; height: 32px; object-fit: contain;">
+                    <div>
+                        <h4 style="margin: 0; font-size: 14px; font-weight: bold; color: #0b0b0b;">Install Haxnation Admin</h4>
+                        <p style="margin: 4px 0 0; font-size: 11px; color: #666;">Add to Home Screen</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button id="btn-pwa-dismiss" style="background: transparent; border: none; font-size: 20px; cursor: pointer; color: #666;">&times;</button>
+                    <button id="btn-pwa-install" style="background: #5ce1e6; color: #0b0b0b; border: 2px solid #0b0b0b; padding: 6px 12px; font-weight: bold; font-size: 12px; cursor: pointer; box-shadow: 2px 2px 0 0 #0b0b0b;">Install</button>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', toastHtml);
+
+        document.getElementById('btn-pwa-dismiss').addEventListener('click', () => {
+            document.getElementById('pwa-install-toast').remove();
+        });
+
+        document.getElementById('btn-pwa-install').addEventListener('click', async () => {
+            document.getElementById('pwa-install-toast').remove();
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response: ${outcome}`);
+                deferredPrompt = null;
+            }
+        });
+    }
+</script>
+
 </body>
 </html>
