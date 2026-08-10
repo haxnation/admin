@@ -1,4 +1,4 @@
-const CACHE_NAME = 'haxnation-cache-v2';
+const CACHE_NAME = 'haxnation-cache-v3';
 const urlsToCache = [
   '/',
   '/index.html',
