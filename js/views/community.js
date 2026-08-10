@@ -1,4 +1,5 @@
 import { api, modalTemplate } from '../utils.js';
+import { currentUser } from '../auth.js';
 
 export async function renderCommunity(id) {
     document.getElementById('app').innerHTML = '<div class="text-center mt-10">Loading Community...</div>';
