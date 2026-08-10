@@ -15,7 +15,7 @@ export async function checkAuth() {
 
 
 export async function login() {
-    const currentPath = window.location.pathname + window.location.search;
+    const currentPath = window.location.hash || '#/';
     const res = await api(`/auth/login?returnTo=${encodeURIComponent(currentPath)}`);
     if (res && res.url) window.location.href = res.url;
 }

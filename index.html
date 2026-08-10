@@ -67,8 +67,8 @@
         if (document.getElementById('pwa-toast')) return;
         
         const toastHtml = `
-            <div id="pwa-toast" style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 999999; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 90vw; max-width: 384px; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-                <button onclick="document.getElementById('pwa-toast').remove()" style="position: absolute; top: 8px; right: 8px; background: transparent; border: none; font-size: 16px; cursor: pointer; color: #9ca3af; padding: 4px; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%;">&times;</button>
+            <div id="pwa-toast" style="position: fixed; bottom: 24px; left: 50%; transform: translate(-50%, 150%); opacity: 0; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 999999; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 90vw; max-width: 384px; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+                <button onclick="document.getElementById('pwa-toast').style.transform = 'translate(-50%, 150%)'; document.getElementById('pwa-toast').style.opacity = '0'; setTimeout(() => document.getElementById('pwa-toast').remove(), 500)" style="position: absolute; top: 8px; right: 8px; background: transparent; border: none; font-size: 16px; cursor: pointer; color: #9ca3af; padding: 4px; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%;">&times;</button>
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <img src="/logo.png" alt="Logo" style="width: 40px; height: 40px; object-fit: contain; flex-shrink: 0;">
                     <div style="display: flex; flex-direction: column;">
@@ -80,6 +80,17 @@
             </div>
         `;
         document.body.insertAdjacentHTML('beforeend', toastHtml);
+
+        // Trigger reflow and then apply slide-up animation
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                const toast = document.getElementById('pwa-toast');
+                if (toast) {
+                    toast.style.transform = 'translate(-50%, 0)';
+                    toast.style.opacity = '1';
+                }
+            });
+        });
 
         document.getElementById('btn-pwa-install').addEventListener('click', async () => {
             document.getElementById('pwa-toast').remove();
