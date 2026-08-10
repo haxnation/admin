@@ -562,7 +562,10 @@ window.openQrScanner = () => {
         html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
             (text) => { closeQrScanner(); viewAttendee(text.replace('USER#', '').trim()); },
             () => {}
-        ).catch((err) => document.getElementById('qr-reader').innerHTML = `<p class="text-red-500">Camera failed: ${err}</p>`);
+        ).catch((err) => {
+            const el = document.getElementById('qr-reader');
+            if (el) el.innerHTML = `<p class="text-red-500">Camera failed: ${err}</p>`;
+        });
     }, 200);
 };
 

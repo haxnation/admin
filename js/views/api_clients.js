@@ -220,13 +220,13 @@ function renderKeysList() {
         return;
     }
 
-    container.innerHTML = state.keys.map(k => \`
-        <div class="border rounded p-3 flex justify-between items-center \${k.status === 'REVOKED' ? 'bg-gray-100 opacity-60' : 'bg-white'}">
+    container.innerHTML = state.keys.map(k => `
+        <div class="border rounded p-3 flex justify-between items-center ${k.status === 'REVOKED' ? 'bg-gray-100 opacity-60' : 'bg-white'}">
             <div>
-                <p class="font-bold text-sm">\${k.name} \${k.status === 'REVOKED' ? '<span class="text-red-500 text-xs ml-2 border border-red-500 rounded px-1">REVOKED</span>' : ''}</p>
-                <p class="text-xs text-gray-500 mt-1">Created: \${new Date(k.createdAt).toLocaleDateString()}</p>
+                <p class="font-bold text-sm">${k.name} ${k.status === 'REVOKED' ? '<span class="text-red-500 text-xs ml-2 border border-red-500 rounded px-1">REVOKED</span>' : ''}</p>
+                <p class="text-xs text-gray-500 mt-1">Created: ${new Date(k.createdAt).toLocaleDateString()}</p>
             </div>
-            \${k.status !== 'REVOKED' ? \`<button onclick="window.revokeKey('\${k.hash}')" class="text-red-600 hover:text-red-800 text-xs font-bold px-2 py-1 bg-red-50 hover:bg-red-100 rounded">Revoke</button>\` : ''}
+            ${k.status !== 'REVOKED' ? `<button onclick="window.revokeKey('${k.hash}')" class="text-red-600 hover:text-red-800 text-xs font-bold px-2 py-1 bg-red-50 hover:bg-red-100 rounded">Revoke</button>` : ''}
         </div>
-    \`).join('');
+    `).join('');
 }
