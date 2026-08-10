@@ -22,17 +22,27 @@
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800 font-sans">
     
-    <nav class="bg-slate-900 text-white p-4 sticky top-0 z-50 shadow-md">
-        <div class="container mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-6">
-                <a href="#/dashboard" class="text-xl font-bold tracking-tight"><img src="/logo.png" alt="Haxnation Admin" class="h-8 w-auto"></a>
-                <a href="#/minigames" class="text-sm text-gray-300 hover:text-white transition hidden md:block" id="nav-minigames">Mini-Games</a>
-                <a href="#/b2b-admin" class="text-sm text-gray-300 hover:text-white transition hidden md:block" id="nav-b2b-admin">B2B Admin</a>
-                <a href="api-docs.html" target="_blank" class="text-sm text-gray-300 hover:text-white transition hidden md:block" id="nav-api-docs">API Docs</a>
+    <nav class="sticky top-0 z-50 border-b-2 border-[#0b0b0b] bg-[#0b0b0b] text-[#fafafa]">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-3 sm:gap-4 font-mono">
+            <div class="flex items-center gap-3 sm:gap-4">
+                <a href="#/dashboard" class="flex items-center gap-3 group">
+                    <img src="/logo.png" alt="Haxnation Admin" class="h-7 sm:h-8 w-auto object-contain">
+                    <span class="hidden sm:inline font-mono text-[10px] font-bold uppercase tracking-widest text-[#0b0b0b] border-2 border-[#0b0b0b] px-1.5 py-0.5 bg-[#5ce1e6]">ADMIN</span>
+                </a>
+                <div class="hidden md:flex items-center gap-2">
+                    <a href="#/minigames" class="font-mono uppercase text-[10px] font-bold px-3 py-1.5 border-2 border-transparent text-[#fafafa] hover:border-[#fafafa] hover:bg-[#fafafa] hover:text-[#0b0b0b] transition-all duration-75" id="nav-minigames">Mini-Games</a>
+                    <a href="#/b2b-admin" class="font-mono uppercase text-[10px] font-bold px-3 py-1.5 border-2 border-transparent text-[#fafafa] hover:border-[#fafafa] hover:bg-[#fafafa] hover:text-[#0b0b0b] transition-all duration-75 hidden" id="nav-b2b-admin">B2B Admin</a>
+                    <a href="api-docs.html" target="_blank" class="font-mono uppercase text-[10px] font-bold px-3 py-1.5 border-2 border-transparent text-[#fafafa] hover:border-[#fafafa] hover:bg-[#fafafa] hover:text-[#0b0b0b] transition-all duration-75" id="nav-api-docs">API Docs</a>
+                </div>
             </div>
-            <div id="nav-user" class="flex gap-4 items-center hidden">
-                <span id="user-name" class="text-sm opacity-80">Loading...</span>
-                <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-xs px-3 py-1.5 rounded transition">Logout</button>
+            <div id="nav-user" class="flex gap-3 items-center hidden">
+                <div class="flex items-center gap-2 border-2 border-[#fafafa] px-3 py-1">
+                    <div class="w-6 h-6 bg-[#5ce1e6] text-[#0b0b0b] flex items-center justify-center font-mono text-[10px] font-bold">
+                        <span id="user-avatar-initials">U</span>
+                    </div>
+                    <span id="user-name" class="hidden sm:inline font-mono text-xs font-bold uppercase">Loading...</span>
+                </div>
+                <button onclick="logout()" class="font-mono uppercase tracking-widest text-[10px] font-bold bg-[#ff2a2a] text-white border-2 border-[#0b0b0b] px-3 py-1.5 shadow-[3px_3px_0_0_#fafafa] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_#fafafa] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all duration-75">Logout</button>
             </div>
         </div>
     </nav>

@@ -28,9 +28,13 @@ export async function logout() {
 function updateNavUser(user) {
     const nav = document.getElementById('nav-user');
     const name = document.getElementById('user-name');
+    const initials = document.getElementById('user-avatar-initials');
     if (nav && name) {
         nav.classList.remove('hidden');
         name.innerText = user.name;
+        if (initials && user.name) {
+            initials.innerText = user.name.charAt(0).toUpperCase();
+        }
     }
     const b2bNav = document.getElementById('nav-b2b-admin');
     if (b2bNav && user.platformRole === 'SUPER_ADMIN') {
