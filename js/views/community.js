@@ -249,6 +249,14 @@ export async function renderCommunity(id) {
                                 ` : ''}
                             </div>
                         </div>
+                        
+                        <div class="mt-4 pt-4 border-t border-gray-100">
+                            <span class="block text-xs text-gray-400 uppercase tracking-wide mb-2">Account Credits</span>
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-lg text-gray-800"><i class="fas fa-coins text-yellow-500 mr-2"></i>${community.credits || 0}</span>
+                                <a href="#/community/${id}/api-clients" class="text-blue-600 text-[10px] font-bold hover:underline uppercase">Manage</a>
+                            </div>
+                        </div>
                         ` : ''}
                     </div>
                 </div>
