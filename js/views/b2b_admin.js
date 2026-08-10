@@ -111,7 +111,7 @@ function setupListeners() {
 
             if (!cid || isNaN(quantity)) return;
 
-            const res = await api(\`/b2b/communities/\${cid}/credits\`, 'POST', { quantity });
+            const res = await api(`/b2b/communities/${cid}/credits`, 'POST', { quantity });
             if (res && res.success) {
                 window.closeModal('override-credits-modal');
                 renderB2BAdmin();
@@ -125,7 +125,7 @@ function setupListeners() {
 window.updateB2BStatus = async (cid, status) => {
     if (status === 'REVOKED' && !confirm("Are you sure you want to revoke this community's B2B access? API integrations will stop working.")) return;
     
-    const res = await api(\`/b2b/communities/\${cid}/status\`, 'PUT', { status });
+    const res = await api(`/b2b/communities/${cid}/status`, 'PUT', { status });
     if (res && res.success) {
         renderB2BAdmin();
     } else {
