@@ -65,7 +65,10 @@ export async function renderEvent(communityId, eventId) {
             
             <div class="flex justify-between items-start mb-6">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-800">${currentEvent.name}</h1>
+                    <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-2">
+                        ${currentEvent.name}
+                        ${currentEvent.eventType === 'API_ONLY' ? '<span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.5 rounded border border-purple-200 uppercase font-black tracking-widest"><i class="fas fa-network-wired"></i> API-ONLY</span>' : ''}
+                    </h1>
                     <span class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm mt-2">${currentEvent.status || 'Active'}</span>
                 </div>
                 <button onclick="openModal('edit-event')" class="text-gray-500 hover:text-gray-700 bg-gray-100 px-4 py-2 rounded shadow-sm border">⚙️ Edit Details</button>
@@ -103,6 +106,7 @@ export async function renderEvent(communityId, eventId) {
                             <label class="block text-xs font-bold text-gray-500 mb-1">COST (INR)</label>
                             <input type="number" name="cost" value="${certSettings.cost}" class="border p-2 rounded w-24 bg-white text-black text-sm ${!isSuperAdmin ? 'bg-gray-100 cursor-not-allowed' : ''}" ${!isSuperAdmin ? 'readonly' : ''}>
                         </div>
+                        ${currentEvent.eventType !== 'API_ONLY' ? `
                         <div>
                             <label class="block text-xs font-bold text-gray-500 mb-1">MODE</label>
                             <select name="renderingMode" class="border p-2 rounded w-32 bg-white text-sm text-black">
@@ -110,6 +114,7 @@ export async function renderEvent(communityId, eventId) {
                                 <option value="SERVER" ${certSettings.renderingMode === 'SERVER' ? 'selected' : ''}>Server Side</option>
                             </select>
                         </div>
+                        ` : '<input type="hidden" name="renderingMode" value="CLIENT">'}
                         <button type="submit" class="bg-slate-800 text-white px-4 py-2 text-sm rounded hover:bg-slate-900 ml-auto">Save</button>
                     </form>
                     ${(certSettings.renderingModeStatus === 'PENDING_APPROVAL' && isSuperAdmin) ? `
@@ -175,6 +180,7 @@ export async function renderEvent(communityId, eventId) {
             </div>
             ` : ''}
 
+            ${currentEvent.eventType !== 'API_ONLY' ? `
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col min-h-[500px]">
                 <div class="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-lg">
                     <h2 class="text-xl font-bold text-black">Attendee Management</h2>
@@ -201,6 +207,7 @@ export async function renderEvent(communityId, eventId) {
                     </table>
                 </div>
             </div>
+            ` : ''}
 
             <div id="modal-container">
                 ${modalTemplate('qr-modal', 'Scan Participant QR Code', `

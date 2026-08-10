@@ -81,17 +81,10 @@ export function router() {
         return;
     }
     
-    // API Clients List (Scoped to Community)
-    const apiClientMatch = hash.match(/^\/community\/([^/]+)\/api-clients$/);
-    if (apiClientMatch) {
-        import('./views/api_clients.js').then(m => m.renderApiClients(apiClientMatch[1]));
-        return;
-    }
-    
-    // API Client Designer (Scoped to Community)
-    const apiDesignMatch = hash.match(/^\/community\/([^/]+)\/api-clients\/([^/]+)\/design$/);
-    if (apiDesignMatch) {
-        renderCertificateDesigner('apiclient', apiDesignMatch[2], apiDesignMatch[1]);
+    // API Keys List (Scoped to Community)
+    const apiKeyMatch = hash.match(/^\/community\/([^/]+)\/api-keys$/);
+    if (apiKeyMatch) {
+        import('./views/api_keys.js').then(m => m.renderApiKeys(apiKeyMatch[1]));
         return;
     }
 

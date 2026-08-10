@@ -240,8 +240,6 @@ function setupListeners() {
                 // 2. Get Presigned URL
                 const endpoint = state.targetType === 'community'
                     ? `/community/${state.targetId}/certificate-template/upload-url`
-                    : state.targetType === 'apiclient'
-                    ? `/community/${state.communityId}/apiclients/${state.targetId}/certificate-template/upload-url`
                     : `/event/${state.targetId}/certificate-template/upload-url`;
                 
                 const response = await api(endpoint, 'POST', { contentType: compressedFile.type });
@@ -588,9 +586,6 @@ async function saveTemplate() {
     if (state.targetType === 'community') {
         endpoint = `/community/${state.targetId}/certificate-template`;
         body = { template };
-    } else if (state.targetType === 'apiclient') {
-        endpoint = `/community/${state.communityId}/apiclients/${state.targetId}/template`;
-        body = { template };
     } else {
         endpoint = `/event/${state.targetId}/certificate-settings`;
         body = { template, enabled: true };
@@ -612,9 +607,6 @@ async function loadTemplateData(type, id) {
         if (type === 'community') {
             const res = await api(`/community/${id}`);
             template = res?.data?.community?.certificateTemplate;
-        } else if (type === 'apiclient') {
-            const res = await api(`/community/${state.communityId}/apiclients/${id}`);
-            template = res?.data?.template;
         } else if (type === 'event') {
             const res = await api(`/event/${id}/certificate-settings`);
             template = res?.data?.certificateTemplate;

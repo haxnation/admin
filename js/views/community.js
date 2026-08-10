@@ -114,15 +114,25 @@ export async function renderCommunity(id) {
                 <div class="flex items-center gap-4">
                     <a href="#/dashboard" class="text-gray-400 hover:text-gray-700 transition"><i class="fas fa-arrow-left"></i></a>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-800">${community.name}</h1>
+                        <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                            ${community.name}
+                            ${community.communityType === 'SUPER' ? '<span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-0.5 rounded border border-yellow-200 uppercase font-black tracking-widest"><i class="fas fa-crown text-yellow-600 mr-1"></i> SUPER</span>' : '<span class="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded border border-gray-200 uppercase font-black tracking-widest">STANDARD</span>'}
+                        </h1>
                         <p class="text-xs text-gray-400 font-mono mt-1">ID: ${id}</p>
                     </div>
                 </div>
-                ${canManageTemplates ? `
-                    <a href="#/community/${id}/design" class="bg-indigo-600 text-white px-4 py-2 rounded shadow hover:bg-indigo-700 text-sm flex items-center gap-2 transition">
-                        <span>🎨</span> Manage Default Template
-                    </a>
-                ` : ''}
+                <div class="flex items-center gap-2">
+                    ${(currentUser.platformRole === 'SUPER_ADMIN' && community.communityType !== 'SUPER') ? `
+                        <button onclick="window.promoteCommunity('${id}')" class="bg-yellow-500 text-white px-4 py-2 rounded shadow hover:bg-yellow-600 text-sm flex items-center gap-2 transition font-bold">
+                            <i class="fas fa-crown"></i> Promote to SUPER
+                        </button>
+                    ` : ''}
+                    ${canManageTemplates ? `
+                        <a href="#/community/${id}/design" class="bg-indigo-600 text-white px-4 py-2 rounded shadow hover:bg-indigo-700 text-sm flex items-center gap-2 transition">
+                            <span>🎨</span> Manage Default Template
+                        </a>
+                    ` : ''}
+                </div>
             </div>
             
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -254,7 +264,7 @@ export async function renderCommunity(id) {
                             <span class="block text-xs text-gray-400 uppercase tracking-wide mb-2">Account Credits</span>
                             <div class="flex items-center justify-between">
                                 <span class="font-bold text-lg text-gray-800"><i class="fas fa-coins text-yellow-500 mr-2"></i>${community.credits || 0}</span>
-                                <a href="#/community/${id}/api-clients" class="text-blue-600 text-[10px] font-bold hover:underline uppercase">Manage</a>
+                                <a href="#/community/${id}/api-keys" class="text-blue-600 text-[10px] font-bold hover:underline uppercase">Manage API Keys</a>
                             </div>
                         </div>
                         ` : ''}
@@ -290,14 +300,43 @@ export async function renderCommunity(id) {
                             <input type="text" name="location" placeholder="Venue Address or 'Online'" class="w-full border border-gray-300 p-2 rounded">
                         </div>
 
-                        <div>
-                             <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Custom Link</label>
-                            <div class="flex">
-                                 <span class="bg-gray-100 border border-r-0 border-gray-300 p-2 rounded-l text-gray-500 text-sm">haxnation.org/</span>
-                                 <input type="text" name="customSlug" placeholder="my-event-slug" class="w-full border border-gray-300 p-2 rounded-r" required>
+                        ${community.communityType === 'SUPER' ? `
+                            <div class="mb-4 bg-gray-50 p-3 rounded border">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="isApiOnly" id="is-api-only-toggle" onchange="window.toggleEventTypeUI()" class="rounded text-blue-600 focus:ring-blue-500"> 
+                                    <span class="text-sm font-bold text-gray-800">API-Only Event</span>
+                                </label>
+                                <p class="text-xs text-gray-500 mt-1 ml-6">Hides public pages, check-ins, and rendering settings. Perfect for headless integrations.</p>
+                            </div>
+                        ` : `
+                            <div class="mb-4 bg-gray-50 p-3 rounded border">
+                                <span class="text-sm font-bold text-gray-800"><i class="fas fa-info-circle text-blue-500"></i> Standard Community Restriction</span>
+                                <p class="text-xs text-gray-500 mt-1">Standard communities can only create API-Only events. Upgrade to a SUPER community for full-feature events.</p>
+                                <input type="hidden" name="isApiOnly" value="on">
+                            </div>
+                        `}
+
+                        <div id="full-feature-fields" class="${community.communityType !== 'SUPER' ? 'hidden' : ''}">
+                            <div class="mb-3">
+                                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Custom Link</label>
+                                <div class="flex">
+                                     <span class="bg-gray-100 border border-r-0 border-gray-300 p-2 rounded-l text-gray-500 text-sm">haxnation.org/</span>
+                                     <input type="text" name="customSlug" id="input-custom-slug" placeholder="my-event-slug" class="w-full border border-gray-300 p-2 rounded-r" ${community.communityType === 'SUPER' ? 'required' : ''}>
+                                </div>
+                            </div>
+                            
+                            <div class="flex gap-4 pt-2 mb-3">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="requiresApproval" class="rounded text-blue-600 focus:ring-blue-500"> 
+                                    <span class="text-sm text-gray-700">Approval Required</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="enableWaitlist" class="rounded text-blue-600 focus:ring-blue-500"> 
+                                    <span class="text-sm text-gray-700">Enable Waitlist</span>
+                                </label>
                             </div>
                         </div>
-                        
+
                         <div class="grid grid-cols-2 gap-3">
                              <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Capacity</label>
@@ -310,14 +349,6 @@ export async function renderCommunity(id) {
                         </div>
 
                         <div class="flex gap-4 pt-2">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" name="requiresApproval" class="rounded text-blue-600 focus:ring-blue-500"> 
-                                <span class="text-sm text-gray-700">Approval Required</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" name="enableWaitlist" class="rounded text-blue-600 focus:ring-blue-500"> 
-                                <span class="text-sm text-gray-700">Enable Waitlist</span>
-                            </label>
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="checkbox" name="isCertificateOnly" class="rounded text-blue-600 focus:ring-blue-500"> 
                                 <span class="text-sm text-gray-700 font-bold">Certificate Only Event</span>
@@ -428,6 +459,7 @@ window.handleCreateEvent = async (e, cid) => {
     e.preventDefault();
     const fd = new FormData(e.target);
     const body = Object.fromEntries(fd.entries());
+    body.eventType = (body.isApiOnly === 'on' || body.isApiOnly === true) ? 'API_ONLY' : 'FULL';
     const res = await api(`/community/${cid}/event`, 'POST', body);
     if(res && res.success) {
         window.closeModal('create-event');
@@ -468,7 +500,7 @@ window.handleRemoveRole = async (cid, uid) => {
 };
 
 window.openApiIntegrations = (cid) => {
-    window.location.hash = `/community/${cid}/api-clients`;
+    window.location.hash = `/community/${cid}/api-keys`;
 };
 
 window.applyForB2B = async (cid) => {
@@ -480,4 +512,25 @@ window.applyForB2B = async (cid) => {
     } else {
         alert(res?.error || 'Failed to submit application');
     }
+};
+
+window.toggleEventTypeUI = () => {
+    const isApiOnly = document.getElementById('is-api-only-toggle').checked;
+    const fullFields = document.getElementById('full-feature-fields');
+    const slugInput = document.getElementById('input-custom-slug');
+    if (isApiOnly) {
+        fullFields.classList.add('hidden');
+        slugInput.required = false;
+    } else {
+        fullFields.classList.remove('hidden');
+        slugInput.required = true;
+    }
+};
+
+window.promoteCommunity = async (id) => {
+    if(!confirm("Promote this community to SUPER?")) return;
+    const res = await api(`/community/${id}/type`, 'PUT');
+    if(res && res.success) {
+        renderCommunity(id);
+    } else alert(res?.error || 'Failed to promote');
 };
