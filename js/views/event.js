@@ -124,7 +124,7 @@ export async function renderEvent(communityId, eventId) {
                     </div>
                     ` : ''}
                 </div>
-
+                ${currentEvent.eventType !== 'API_ONLY' ? `
                 <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-black">
                     <h2 class="text-xl font-bold mb-4 border-b pb-2">Event Stats</h2>
                     <div class="space-y-2 text-sm">
@@ -137,7 +137,13 @@ export async function renderEvent(communityId, eventId) {
                         <div class="text-center"><span class="block text-2xl font-bold">${currentEvent.capacity || '∞'}</span><span class="text-xs text-gray-500">Capacity</span></div>
                     </div>
                 </div>
+                ` : `
+                <div class="bg-purple-50 p-6 rounded-lg shadow-sm border border-purple-200 text-purple-900 flex flex-col justify-center items-center text-center">
+                    <i class="fas fa-network-wired text-4xl mb-4 text-purple-400"></i>
+                    <h2 class="text-xl font-bold mb-2">API-Only Mode Active</h2>
+                    <p class="text-sm opacity-80">This event is running in headless mode. Public pages, check-ins, and ticket sales are disabled.</p>
                 </div>
+                `}
             </div>
 
             ${currentEvent.settings?.isCertificateOnly ? `

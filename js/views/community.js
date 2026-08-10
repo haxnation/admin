@@ -6,19 +6,23 @@ export async function renderCommunity(id) {
     
     // --- 1. FETCH DATA (Community + Transactions) ---
     try {
-        const [res, txnRes] = await Promise.all([
-            api(`/community/${id}`),
-            api(`/community/${id}/transactions`)
-        ]);
-
-        if(!res) {
+        const res = await api(`/community/${id}`);
+        if(!res || !res.success) {
             document.getElementById('app').innerHTML = '<div class="text-red-500 text-center">Community not found</div>';
             return;
         }
 
-        // Destructure response
         const { community, team, events, posts, permissions } = res.data;
-        const transactions = txnRes?.data?.transactions || [];
+
+        let transactions = [];
+        let usages = [];
+        if (community.communityType === 'SUPER') {
+            const txnRes = await api(`/community/${id}/transactions`);
+            if (txnRes && txnRes.success) transactions = txnRes.data.transactions || [];
+        } else {
+            const usagesRes = await api(`/community/${id}/apikeys/usages`);
+            if (usagesRes && usagesRes.success) usages = usagesRes.data.usages || [];
+        }
         
         const completedTxns = transactions.filter(t => t.status === 'COMPLETED');
         const totalRevenue = completedTxns.reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
@@ -141,6 +145,7 @@ export async function renderCommunity(id) {
                 <div class="lg:col-span-2 space-y-8">
                     
                     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        ${community.communityType === 'SUPER' ? `
                         <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
                             <h2 class="font-bold text-gray-700 flex items-center gap-2">
                                 💰 Revenue &amp; Transactions
@@ -173,6 +178,32 @@ export async function renderCommunity(id) {
                             </button>
                             ` : ''}
                         </div>
+                        ` : `
+                        <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                            <h2 class="font-bold text-gray-700 flex items-center gap-2">
+                                🔑 Credits &amp; API Usage
+                            </h2>
+                        </div>
+                        <div class="p-5 grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Remaining Credits</p>
+                                <p class="text-2xl font-black text-blue-600">${community.credits || 0}</p>
+                                <p class="text-xs text-gray-400 mt-1">available for API</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Certificates Generated</p>
+                                <p class="text-2xl font-black text-gray-800">${usages.length}</p>
+                                <p class="text-xs text-gray-400 mt-1">deducted via API</p>
+                            </div>
+                        </div>
+                        <div class="border-t border-gray-100 p-3 flex gap-2">
+                            ${canManageTemplates ? `
+                            <button onclick="openApiIntegrations('${id}')" class="flex items-center justify-center gap-2 w-full py-2 text-sm font-semibold text-purple-600 hover:bg-purple-50 rounded-lg transition">
+                                <i class="fas fa-code"></i> Manage API Integrations
+                            </button>
+                            ` : ''}
+                        </div>
+                        `}
                     </div>
 
                     <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
@@ -336,24 +367,24 @@ export async function renderCommunity(id) {
                                     <span class="text-sm text-gray-700">Enable Waitlist</span>
                                 </label>
                             </div>
-                        </div>
 
-                        <div class="grid grid-cols-2 gap-3">
-                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Capacity</label>
-                                <input type="number" name="capacity" placeholder="e.g. 100" class="w-full border border-gray-300 p-2 rounded">
+                            <div class="grid grid-cols-2 gap-3 mb-3">
+                                 <div>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Capacity</label>
+                                    <input type="number" name="capacity" placeholder="e.g. 100" class="w-full border border-gray-300 p-2 rounded">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Ticket Price</label>
+                                    <input type="number" name="ticketPrice" placeholder="0 = Free" class="w-full border border-gray-300 p-2 rounded">
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Ticket Price</label>
-                                <input type="number" name="ticketPrice" placeholder="0 = Free" class="w-full border border-gray-300 p-2 rounded">
-                            </div>
-                        </div>
 
-                        <div class="flex gap-4 pt-2">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" name="isCertificateOnly" class="rounded text-blue-600 focus:ring-blue-500"> 
-                                <span class="text-sm text-gray-700 font-bold">Certificate Only Event</span>
-                            </label>
+                            <div class="flex gap-4 pt-2">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" name="isCertificateOnly" class="rounded text-blue-600 focus:ring-blue-500"> 
+                                    <span class="text-sm text-gray-700 font-bold">Certificate Only Event</span>
+                                </label>
+                            </div>
                         </div>
 
                         <button class="w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700 transition mt-2">Create Event</button>

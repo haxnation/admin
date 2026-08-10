@@ -93,40 +93,40 @@ export async function renderApiKeys(communityId) {
 }
 
 async function loadKeys() {
-    const res = await api(\`/community/\${state.communityId}/apikeys\`);
+    const res = await api(`/community/${state.communityId}/apikeys`);
     state.keys = res?.data || [];
 }
 
 function renderKeysList() {
     if (state.keys.length === 0) {
-        return \`<div class="col-span-full text-center py-10 bg-white rounded shadow text-gray-500">No API keys created yet.</div>\`;
+        return `<div class="col-span-full text-center py-10 bg-white rounded shadow text-gray-500">No API keys created yet.</div>`;
     }
 
-    return state.keys.map(k => \`
-        <div class="bg-white rounded-lg shadow-md border \${k.status === 'REVOKED' ? 'border-red-200 bg-red-50 opacity-75' : 'border-gray-200'} overflow-hidden flex flex-col">
+    return state.keys.map(k => `
+        <div class="bg-white rounded-lg shadow-md border ${k.status === 'REVOKED' ? 'border-red-200 bg-red-50 opacity-75' : 'border-gray-200'} overflow-hidden flex flex-col">
             <div class="p-5 flex-1">
                 <div class="flex justify-between items-start mb-2">
-                    <h3 class="text-xl font-bold text-gray-800">\${k.name}</h3>
-                    \${k.status === 'REVOKED' ? '<span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-bold rounded">REVOKED</span>' : '<span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-bold rounded">ACTIVE</span>'}
+                    <h3 class="text-xl font-bold text-gray-800">${k.name}</h3>
+                    ${k.status === 'REVOKED' ? '<span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-bold rounded">REVOKED</span>' : '<span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-bold rounded">ACTIVE</span>'}
                 </div>
-                <p class="text-xs text-gray-500 mb-4">Created: \${new Date(k.createdAt).toLocaleDateString()}</p>
+                <p class="text-xs text-gray-500 mb-4">Created: ${new Date(k.createdAt).toLocaleDateString()}</p>
                 
                 <div class="mb-2">
-                    <span class="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded font-mono border">TYPE: \${k.keyType || 'PUBLIC'}</span>
+                    <span class="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded font-mono border">TYPE: ${k.keyType || 'PUBLIC'}</span>
                 </div>
                 <div class="text-sm text-gray-600 mt-2">
-                    <span class="font-bold">Domains:</span> \${k.allowedDomains ? \`<code class="bg-gray-100 px-1 rounded">\${k.allowedDomains}</code>\` : '<em>Any</em>'}
+                    <span class="font-bold">Domains:</span> ${k.allowedDomains ? `<code class="bg-gray-100 px-1 rounded">${k.allowedDomains}</code>` : '<em>Any</em>'}
                 </div>
             </div>
-            \${k.status !== 'REVOKED' ? \`
+            ${k.status !== 'REVOKED' ? `
             <div class="bg-gray-50 p-3 border-t">
-                <button onclick="window.revokeKey('\${k.hash}')" class="w-full bg-white border border-red-300 hover:bg-red-50 text-red-600 text-sm py-1.5 px-3 rounded transition font-medium">
+                <button onclick="window.revokeKey('${k.hash}')" class="w-full bg-white border border-red-300 hover:bg-red-50 text-red-600 text-sm py-1.5 px-3 rounded transition font-medium">
                     Revoke Key
                 </button>
             </div>
-            \` : ''}
+            ` : ''}
         </div>
-    \`).join('');
+    `).join('');
 }
 
 function setupListeners() {
@@ -136,7 +136,7 @@ function setupListeners() {
         const allowedDomains = document.getElementById('key-domains').value;
         const keyType = document.getElementById('key-type').value;
 
-        const res = await api(\`/community/\${state.communityId}/apikeys\`, 'POST', { name, allowedDomains, keyType });
+        const res = await api(`/community/${state.communityId}/apikeys`, 'POST', { name, allowedDomains, keyType });
         if (res?.data) {
             document.getElementById('create-key-form').reset();
             window.closeModal('create-key-modal');
@@ -171,7 +171,7 @@ function setupListeners() {
         btn.disabled = true;
         btn.innerText = 'Processing...';
 
-        const res = await api(\`/community/\${state.communityId}/apikeys/buy-credits\`, 'POST', { quantity: qty, gateway: 'PHONEPE' });
+        const res = await api(`/community/${state.communityId}/apikeys/buy-credits`, 'POST', { quantity: qty, gateway: 'PHONEPE' });
         if (res?.data?.redirect_url) {
             window.location.href = res.data.redirect_url;
         } else {
@@ -202,7 +202,7 @@ window.openCreateKeyModal = () => {
 
 window.revokeKey = async (hash) => {
     if (!confirm("Are you sure you want to revoke this key? Any integrations using it will break immediately.")) return;
-    const res = await api(\`/community/\${state.communityId}/apikeys/\${hash}\`, 'DELETE');
+    const res = await api(`/community/${state.communityId}/apikeys/${hash}`, 'DELETE');
     if (res?.data) {
         await loadKeys();
         document.getElementById('keys-list').innerHTML = renderKeysList();
