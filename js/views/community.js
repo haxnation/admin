@@ -391,7 +391,7 @@ window.verifyUser = async (cid) => {
 
     resultDiv.innerHTML = '<span class="text-gray-500 flex items-center gap-2"><i class="fas fa-spinner fa-spin"></i> Searching...</span>';
     
-    const res = await api('/users/lookup', 'POST', { userId: input.value, communityId: cid });
+    const res = await api('/users/lookup', 'POST', { userId: input.value });
     
     if (res && res.success) {
         resultDiv.innerHTML = `
