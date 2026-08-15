@@ -97,7 +97,6 @@ export async function renderEvent(communityId, eventId) {
                         <h2 class="text-xl font-bold flex items-center gap-2">
                             📜 Certificates
                             ${certSettings.enabled ? '<span class="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Active</span>' : '<span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Disabled</span>'}
-                            ${certSettings.renderingModeStatus === 'PENDING_APPROVAL' ? '<span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded shadow">Pending Server Mode Approval</span>' : ''}
                         </h2>
                         <a href="#/event/${eventId}/design" class="bg-indigo-600 text-white px-3 py-1.5 rounded text-sm hover:bg-indigo-700 flex items-center gap-2">
                             <span>🎨</span> Designer
@@ -117,23 +116,8 @@ export async function renderEvent(communityId, eventId) {
                             <input type="number" name="cost" value="${certSettings.cost}" class="border p-2 rounded w-24 bg-white text-black text-sm ${!isSuperAdmin ? 'bg-gray-100 cursor-not-allowed' : ''}" ${!isSuperAdmin ? 'readonly' : ''}>
                         </div>
                         ` : ''}
-                        ${currentEvent.eventType !== 'API_ONLY' ? `
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 mb-1">MODE</label>
-                            <select name="renderingMode" class="border p-2 rounded w-32 bg-white text-sm text-black">
-                                <option value="CLIENT" ${(!certSettings.renderingMode || certSettings.renderingMode === 'CLIENT') ? 'selected' : ''}>Client Side</option>
-                                <option value="SERVER" ${certSettings.renderingMode === 'SERVER' ? 'selected' : ''}>Server Side</option>
-                            </select>
-                        </div>
-                        ` : '<input type="hidden" name="renderingMode" value="CLIENT">'}
                         <button type="submit" class="bg-slate-800 text-white px-4 py-2 text-sm rounded hover:bg-slate-900 ml-auto">Save</button>
                     </form>
-                    ${(certSettings.renderingModeStatus === 'PENDING_APPROVAL' && isSuperAdmin) ? `
-                    <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-black">
-                        <p class="text-sm text-yellow-800 mb-2 font-bold">Server-Side Rendering requested.</p>
-                        <button onclick="approveServerRendering('${eventId}')" class="bg-green-600 text-white px-4 py-2 text-sm rounded hover:bg-green-700">Approve Server Rendering</button>
-                    </div>
-                    ` : ''}
                 </div>
                 ${currentEvent.eventType !== 'API_ONLY' ? `
                 <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-black">
@@ -609,14 +593,8 @@ window.handleEditEvent = async (e, cid, eid) => {
 window.handleCertSettings = async (e, eventId) => {
     e.preventDefault();
     const fd = new FormData(e.target);
-    await api(`/event/${eventId}/certificate-settings`, 'PUT', { communityId: currentCommunityId, enabled: fd.get('enabled') === 'true', cost: fd.get('cost'), renderingMode: fd.get('renderingMode') });
+    await api(`/event/${eventId}/certificate-settings`, 'PUT', { communityId: currentCommunityId, enabled: fd.get('enabled') === 'true', cost: fd.get('cost') });
     alert('Certificate settings updated.');
-    renderEvent(currentCommunityId, currentEvent.id || currentEvent.SK.replace('METADATA', ''));
-};
-
-window.approveServerRendering = async (eventId) => {
-    await api(`/event/${eventId}/certificate-settings`, 'PUT', { communityId: currentCommunityId, renderingMode: 'SERVER' });
-    alert('Server Rendering Approved.');
     renderEvent(currentCommunityId, currentEvent.id || currentEvent.SK.replace('METADATA', ''));
 };
 

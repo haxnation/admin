@@ -286,7 +286,7 @@ function setupListeners() {
                 uploadStatus.innerText = 'Success!';
                 uploadStatus.style.color = '#22c55e'; // green-500
                 
-                document.getElementById('bgUrlInput').value = res.cloudfrontUrl;
+                document.getElementById('bgUrlInput').value = res.s3Url;
                 document.getElementById('btn-load-bg').click();
 
             } catch (err) {
