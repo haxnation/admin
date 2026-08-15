@@ -265,7 +265,9 @@ function setupListeners() {
                         formData.append(key, res.fields[key]);
                     });
                     // Ensure Content-Type is present for policy validation before the file field
-                    formData.append('Content-Type', compressedFile.type);
+                    if (!res.fields['Content-Type']) {
+                        formData.append('Content-Type', compressedFile.type);
+                    }
                     formData.append('file', compressedFile);
 
                     uploadRes = await fetch(res.url, {
