@@ -130,7 +130,7 @@ function renderKeysList() {
             ${k.status !== 'REVOKED' ? `
             <div class="bg-gray-50 p-3 border-t">
                 <button onclick="window.revokeKey('${k.hash}')" class="w-full bg-white border border-red-300 hover:bg-red-50 text-red-600 text-sm py-1.5 px-3 rounded transition font-medium">
-                    Revoke Key
+                    Delete Key
                 </button>
             </div>
             ` : ''}
@@ -260,7 +260,7 @@ window.openCreateKeyModal = () => {
 };
 
 window.revokeKey = async (hash) => {
-    if (!confirm("Are you sure you want to revoke this key? Any integrations using it will break immediately.")) return;
+    if (!confirm("Are you sure you want to completely delete this key? Any integrations using it will break immediately.")) return;
     const res = await api(`/community/${state.communityId}/apikeys/${hash}`, 'DELETE');
     if (res?.data) {
         await loadKeys();
