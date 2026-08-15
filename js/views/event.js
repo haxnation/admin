@@ -464,6 +464,8 @@ function renderCtfChart() {
 
 function renderAttendeeList(list) {
     const container = document.getElementById('attendee-list-container');
+    if (!container) return;
+    
     if (list.length === 0) {
         container.innerHTML = '<tr><td colspan="4" class="text-center text-gray-400 py-10">No attendees found.</td></tr>';
         return;
