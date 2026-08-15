@@ -50,7 +50,7 @@ export async function renderCommunity(id) {
                         <span><i class="fas fa-globe"></i> ${e.timezone || 'UTC'}</span>
                     </div>
                     <div class="text-xs text-gray-400 mt-1">
-                         <i class="fas fa-map-marker-alt"></i> ${e.location || 'Online'} | <i class="fas fa-users"></i> Cap: ${e.capacity || '∞'}
+                         <i class="fas fa-map-marker-alt"></i> ${e.location || 'Online'} ${e.eventType !== 'API_ONLY' ? `| <i class="fas fa-users"></i> Cap: ${e.capacity || '∞'}` : ''}
                     </div>
                 </div>
                 
@@ -178,7 +178,7 @@ export async function renderCommunity(id) {
                             </button>
                             ` : ''}
                         </div>
-                        ` : `
+                        ` : community.communityType === 'B2B' ? `
                         <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
                             <h2 class="font-bold text-gray-700 flex items-center gap-2">
                                 🔑 Credits &amp; API Usage
@@ -205,6 +205,26 @@ export async function renderCommunity(id) {
                             <a href="#/community/${id}/api-usage" class="flex items-center justify-center gap-2 w-full py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition">
                                 <i class="fas fa-list-alt"></i> View Detailed Logs
                             </a>
+                        </div>
+                        ` : `
+                        <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                            <h2 class="font-bold text-gray-700 flex items-center gap-2">
+                                📊 Events &amp; Attendees
+                            </h2>
+                        </div>
+                        <div class="p-5 grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Total Events</p>
+                                <p class="text-2xl font-black text-blue-600">${events.length}</p>
+                                <p class="text-xs text-gray-400 mt-1">hosted by community</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Total Attendees</p>
+                                <p class="text-2xl font-black text-gray-800">${events.reduce((sum, e) => sum + (parseInt(e.stats?.registered) || 0), 0)}</p>
+                                <p class="text-xs text-gray-400 mt-1">across all events</p>
+                            </div>
+                        </div>
+                        <div class="border-t border-gray-100 p-3 flex flex-col gap-2">
                         </div>
                         `}
                     </div>
