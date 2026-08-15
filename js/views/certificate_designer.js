@@ -821,7 +821,6 @@ async function loadTemplateData(type, id) {
             if (srcUrl.startsWith('s3://')) {
                 srcUrl = (window.EVENTS_API_URL || window.API_URL.replace('admin-', 'events-')) + '/proxy?url=' + encodeURIComponent(srcUrl);
             }
-            templateImage.src = srcUrl;
             
             // Once the background loads, calculate the scale and restore the fields
             templateImage.onload = () => {
@@ -871,6 +870,14 @@ async function loadTemplateData(type, id) {
                     });
                 }
             };
+            
+            templateImage.onerror = () => {
+                console.error("Failed to load background image:", srcUrl);
+                alert("Failed to load background image. Please try again.");
+            };
+            
+            // Set src AFTER attaching handlers, and append a cache buster
+            templateImage.src = srcUrl + (srcUrl.includes('?') ? '&' : '?') + '_cb=' + Date.now();
         }
     } catch (e) {
         console.error("Error loading template data:", e);
