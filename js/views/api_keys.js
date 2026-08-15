@@ -30,12 +30,7 @@ export async function renderApiKeys(communityId) {
             </div>
         </div>
 
-        <div id="new-key-display" class="hidden mb-6 p-4 bg-green-50 border border-green-200 rounded shadow-sm">
-            <p class="text-sm text-green-800 font-bold mb-2">Key generated! Copy it now, you won't be able to see it again.</p>
-            <div class="flex items-center gap-2">
-                <code id="new-key-value" class="flex-1 block bg-black text-green-400 p-3 rounded text-sm break-all font-mono"></code>
-            </div>
-        </div>
+
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="keys-list">
             ${renderKeysList()}
@@ -65,6 +60,20 @@ export async function renderApiKeys(communityId) {
                 </div>
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Generate Key</button>
             </form>
+        `)}
+
+        ${modalTemplate('new-key-modal', 'API Key Generated', `
+            <div class="p-4 bg-yellow-50 border border-yellow-200 rounded shadow-sm mb-4">
+                <p class="text-sm text-yellow-800 font-bold">Please copy this key now. You will not be able to see it again!</p>
+            </div>
+            <div class="flex items-center gap-2 bg-gray-900 p-3 rounded">
+                <code id="new-key-value" class="flex-1 text-green-400 text-sm break-all font-mono"></code>
+                <button type="button" onclick="window.toggleKeyVisibility()" class="text-gray-400 hover:text-white px-2"><i class="fas fa-eye" id="key-visibility-icon"></i></button>
+                <button type="button" onclick="window.copyNewKey()" class="text-gray-400 hover:text-white px-2"><i class="fas fa-copy"></i></button>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button type="button" onclick="window.closeModal('new-key-modal')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition">I have copied it</button>
+            </div>
         `)}
 
         ${modalTemplate('buy-credits-modal', 'Buy Credits', `
@@ -154,11 +163,24 @@ function setupListeners() {
             document.getElementById('create-key-form').reset();
             window.closeModal('create-key-modal');
             
-            document.getElementById('new-key-display').classList.remove('hidden');
-            document.getElementById('new-key-value').innerText = res.data.apiKey;
+            window.generatedKey = res.data.apiKey;
+            const el = document.getElementById('new-key-value');
+            el.innerText = '*'.repeat(window.generatedKey.length);
+            const icon = document.getElementById('key-visibility-icon');
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
             
-            await loadKeys();
-            document.getElementById('keys-list').innerHTML = renderKeysList();
+            window.openModal('new-key-modal');
+            
+            // Manually add the key to the state to avoid DynamoDB GSI eventual consistency delays
+            if (res.data.key) {
+                state.keys.unshift(res.data.key);
+                document.getElementById('keys-list').innerHTML = renderKeysList();
+            } else {
+                // Fallback
+                await loadKeys();
+                document.getElementById('keys-list').innerHTML = renderKeysList();
+            }
         } else {
             alert(res?.error || 'Failed to create key');
         }
@@ -199,6 +221,30 @@ window.openBuyCredits = () => {
     document.getElementById('credit-quantity').value = 100;
     document.getElementById('credit-quantity').dispatchEvent(new Event('input'));
     window.openModal('buy-credits-modal');
+};
+
+window.toggleKeyVisibility = () => {
+    const el = document.getElementById('new-key-value');
+    const icon = document.getElementById('key-visibility-icon');
+    if (el.innerText.includes('*')) {
+        el.innerText = window.generatedKey;
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        el.innerText = '*'.repeat(window.generatedKey.length);
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+};
+
+window.copyNewKey = () => {
+    if (!window.generatedKey) return;
+    navigator.clipboard.writeText(window.generatedKey).then(() => {
+        alert('API Key copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy', err);
+        alert('Failed to copy. Please try selecting the text manually.');
+    });
 };
 
 window.openCreateKeyModal = () => {

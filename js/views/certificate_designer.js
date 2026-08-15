@@ -591,11 +591,42 @@ async function saveTemplate() {
         body = { template, enabled: true };
     }
 
+    // Always backup locally before saving, in case of API failure (like 401)
+    localStorage.setItem('cert_backup_' + state.targetId, template);
+
     try {
         await api(endpoint, 'PUT', body);
-        alert("Template Saved Successfully!");
+        // Clear backup on success
+        localStorage.removeItem('cert_backup_' + state.targetId);
+        
+        let modal = document.getElementById('save-success-modal');
+        if(!modal) {
+            modal = document.createElement('div');
+            modal.id = 'save-success-modal';
+            modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; align-items:center;";
+            modal.innerHTML = `
+                <div style="background:#1f2937; padding:24px; border-radius:8px; max-width:400px; width:90%; text-align:center; color:white; border: 1px solid #374151; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);">
+                    <div style="font-size:48px; margin-bottom:16px;">✅</div>
+                    <h3 style="font-size:20px; font-weight:bold; margin-bottom:8px;">Template Saved!</h3>
+                    <p style="color:#9ca3af; margin-bottom:24px; font-size:14px;">Your certificate template has been saved successfully to the cloud.</p>
+                    <div style="display:flex; gap:12px; justify-content:center;">
+                        <button id="btn-ss-back" style="padding:8px 16px; background:#4b5563; border-radius:6px; font-weight:bold; transition:background 0.2s;" onmouseover="this.style.background='#6b7280'" onmouseout="this.style.background='#4b5563'">Go Back</button>
+                        <button id="btn-ss-stay" style="padding:8px 16px; background:#22c55e; border-radius:6px; font-weight:bold; transition:background 0.2s;" onmouseover="this.style.background='#16a34a'" onmouseout="this.style.background='#22c55e'">Keep Editing</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.querySelector('#btn-ss-back').onclick = () => {
+                modal.style.display = 'none';
+                window.history.back();
+            };
+            modal.querySelector('#btn-ss-stay').onclick = () => {
+                modal.style.display = 'none';
+            };
+        }
+        modal.style.display = 'flex';
     } catch(e) {
-        alert("Error saving: " + e.message);
+        alert("Error saving: " + e.message + "\n\nDon't worry, a local backup was saved. Refresh or login again and it will ask to restore.");
     }
 }
 
@@ -618,6 +649,20 @@ async function loadTemplateData(type, id) {
             } catch(e) {
                 console.warn("Could not parse template string", e);
                 template = null;
+            }
+        }
+
+        // Check for local backup
+        const backupStr = localStorage.getItem('cert_backup_' + id);
+        if (backupStr) {
+            if (confirm("You have an unsaved backup of this template from a previous session. Do you want to restore it?")) {
+                try {
+                    template = JSON.parse(backupStr);
+                } catch(e) {
+                    console.warn("Could not parse backup string", e);
+                }
+            } else {
+                localStorage.removeItem('cert_backup_' + id);
             }
         }
 
