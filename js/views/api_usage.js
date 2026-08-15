@@ -131,7 +131,7 @@ function renderView(communityId, allLogs) {
             if (t && log.type !== t) return false;
             if (e && log.eventId !== e) return false;
             if (q) {
-                const searchStr = \`\${log.SK || ''} \${log.recipientName || ''} \${log.eventId || ''} \${log.gateway || ''}\`.toLowerCase();
+                const searchStr = `${log.SK || ''} ${log.recipientName || ''} ${log.eventId || ''} ${log.gateway || ''}`.toLowerCase();
                 if (!searchStr.includes(q)) return false;
             }
             return true;
@@ -153,13 +153,13 @@ function renderTableBody(logs) {
     const footer = document.getElementById('usage-footer');
 
     if (logs.length === 0) {
-        tbody.innerHTML = \`
+        tbody.innerHTML = `
             <tr>
                 <td colspan="4" class="py-12 text-center text-gray-400">
                     <i class="fas fa-folder-open text-3xl mb-3 text-gray-300"></i>
                     <p>No usage logs found for the selected filters.</p>
                 </td>
-            </tr>\`;
+            </tr>`;
         footer.innerHTML = '-';
         return;
     }
@@ -176,35 +176,35 @@ function renderTableBody(logs) {
         let impactHtml = '';
 
         if (log.type === 'CREDIT_PURCHASE') {
-            actionHtml = \`<span class="bg-green-100 text-green-800 text-[10px] uppercase px-2 py-0.5 rounded font-bold whitespace-nowrap"><i class="fas fa-plus"></i> Credits Added</span>\`;
-            detailsHtml = \`
-                <div class="font-medium text-gray-800">Order ID: <span class="font-mono text-xs text-gray-500">\${log.SK?.replace('TXN#', '')}</span></div>
-                <div class="text-xs text-gray-500 mt-0.5">Gateway: \${log.gateway} | Amount: ₹\${log.amount}</div>
-            \`;
-            impactHtml = \`<span class="text-green-600 font-bold">+\${log.quantity} Credits</span>\`;
+            actionHtml = `<span class="bg-green-100 text-green-800 text-[10px] uppercase px-2 py-0.5 rounded font-bold whitespace-nowrap"><i class="fas fa-plus"></i> Credits Added</span>`;
+            detailsHtml = `
+                <div class="font-medium text-gray-800">Order ID: <span class="font-mono text-xs text-gray-500">${log.SK?.replace('TXN#', '')}</span></div>
+                <div class="text-xs text-gray-500 mt-0.5">Gateway: ${log.gateway} | Amount: ₹${log.amount}</div>
+            `;
+            impactHtml = `<span class="text-green-600 font-bold">+${log.quantity} Credits</span>`;
         } else if (log.type === 'CERTIFICATE_USAGE') {
-            actionHtml = \`<span class="bg-blue-100 text-blue-800 text-[10px] uppercase px-2 py-0.5 rounded font-bold whitespace-nowrap"><i class="fas fa-file-invoice"></i> Cert Generated</span>\`;
-            detailsHtml = \`
-                <div class="font-medium text-gray-800">Recipient: \${log.recipientName || 'Unknown'}</div>
-                <div class="text-xs text-gray-500 mt-0.5">Event: <span class="font-mono text-xs text-gray-500">\${log.eventId || 'N/A'}</span></div>
-            \`;
-            impactHtml = \`<span class="text-red-500 font-bold">-\${log.creditsDeducted || 1} Credit</span>\`;
+            actionHtml = `<span class="bg-blue-100 text-blue-800 text-[10px] uppercase px-2 py-0.5 rounded font-bold whitespace-nowrap"><i class="fas fa-file-invoice"></i> Cert Generated</span>`;
+            detailsHtml = `
+                <div class="font-medium text-gray-800">Recipient: ${log.recipientName || 'Unknown'}</div>
+                <div class="text-xs text-gray-500 mt-0.5">Event: <span class="font-mono text-xs text-gray-500">${log.eventId || 'N/A'}</span></div>
+            `;
+            impactHtml = `<span class="text-red-500 font-bold">-${log.creditsDeducted || 1} Credit</span>`;
         } else {
-            actionHtml = \`<span class="bg-gray-100 text-gray-800 text-[10px] uppercase px-2 py-0.5 rounded font-bold">\${log.type}</span>\`;
-            detailsHtml = \`<div class="text-gray-500 text-xs break-all">\${JSON.stringify(log)}</div>\`;
-            impactHtml = \`<span class="text-gray-500">-</span>\`;
+            actionHtml = `<span class="bg-gray-100 text-gray-800 text-[10px] uppercase px-2 py-0.5 rounded font-bold">${log.type}</span>`;
+            detailsHtml = `<div class="text-gray-500 text-xs break-all">${JSON.stringify(log)}</div>`;
+            impactHtml = `<span class="text-gray-500">-</span>`;
         }
 
-        return \`
+        return `
             <tr class="hover:bg-gray-50 transition">
-                <td class="py-3 px-4 whitespace-nowrap text-gray-600">\${dateStr}</td>
-                <td class="py-3 px-4">\${actionHtml}</td>
-                <td class="py-3 px-4">\${detailsHtml}</td>
-                <td class="py-3 px-4 whitespace-nowrap">\${impactHtml}</td>
+                <td class="py-3 px-4 whitespace-nowrap text-gray-600">${dateStr}</td>
+                <td class="py-3 px-4">${actionHtml}</td>
+                <td class="py-3 px-4">${detailsHtml}</td>
+                <td class="py-3 px-4 whitespace-nowrap">${impactHtml}</td>
             </tr>
-        \`;
+        `;
     }).join('');
 
     tbody.innerHTML = rowsHtml;
-    footer.innerHTML = \`Showing \${logs.length} record(s)\`;
+    footer.innerHTML = `Showing ${logs.length} record(s)`;
 }
