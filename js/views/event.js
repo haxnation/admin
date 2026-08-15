@@ -47,7 +47,13 @@ export async function renderEvent(communityId, eventId) {
         const ctf = currentEvent.ctfSettings || { status: 'NONE' };
         
         const isSuperAdmin = currentUser.platformRole === 'SUPER_ADMIN';
-        const dateValue = currentEvent.date ? new Date(currentEvent.date).toISOString().slice(0, 16) : '';
+        let dateValue = '';
+        if (currentEvent.date) {
+            const d = new Date(currentEvent.date);
+            if (!isNaN(d.getTime())) {
+                dateValue = d.toISOString().slice(0, 16);
+            }
+        }
 
         if (ctf.status === 'APPROVED') {
             const [chalRes, subRes] = await Promise.all([

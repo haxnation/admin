@@ -196,12 +196,15 @@ export async function renderCommunity(id) {
                                 <p class="text-xs text-gray-400 mt-1">deducted via API</p>
                             </div>
                         </div>
-                        <div class="border-t border-gray-100 p-3 flex gap-2">
+                        <div class="border-t border-gray-100 p-3 flex flex-col gap-2">
                             ${canManageTemplates ? `
                             <button onclick="openApiIntegrations('${id}')" class="flex items-center justify-center gap-2 w-full py-2 text-sm font-semibold text-purple-600 hover:bg-purple-50 rounded-lg transition">
                                 <i class="fas fa-code"></i> Manage API Integrations
                             </button>
                             ` : ''}
+                            <a href="#/community/${id}/api-usage" class="flex items-center justify-center gap-2 w-full py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition">
+                                <i class="fas fa-list-alt"></i> View Detailed Logs
+                            </a>
                         </div>
                         `}
                     </div>
@@ -312,26 +315,6 @@ export async function renderCommunity(id) {
                             <input type="text" name="name" placeholder="e.g. Hackathon 2024" class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" required>
                         </div>
                         
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Date & Time</label>
-                                <input type="datetime-local" name="date" class="w-full border border-gray-300 p-2 rounded text-sm" required>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Timezone</label>
-                                <select name="timezone" class="w-full border border-gray-300 p-2 rounded text-sm bg-white">
-                                    <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
-                                    <option value="UTC">UTC</option>
-                                    <option value="America/New_York">New York (EST)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Location</label>
-                            <input type="text" name="location" placeholder="Venue Address or 'Online'" class="w-full border border-gray-300 p-2 rounded">
-                        </div>
-
                         ${community.communityType === 'SUPER' ? `
                             <div class="mb-4 bg-gray-50 p-3 rounded border">
                                 <label class="flex items-center gap-2 cursor-pointer">
@@ -349,6 +332,26 @@ export async function renderCommunity(id) {
                         `}
 
                         <div id="full-feature-fields" class="${community.communityType !== 'SUPER' ? 'hidden' : ''}">
+                            <div class="grid grid-cols-2 gap-3 mb-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Date & Time</label>
+                                    <input type="datetime-local" id="input-event-date" name="date" class="w-full border border-gray-300 p-2 rounded text-sm" ${community.communityType === 'SUPER' ? 'required' : ''}>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Timezone</label>
+                                    <select name="timezone" class="w-full border border-gray-300 p-2 rounded text-sm bg-white">
+                                        <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                                        <option value="UTC">UTC</option>
+                                        <option value="America/New_York">New York (EST)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Location</label>
+                                <input type="text" name="location" placeholder="Venue Address or 'Online'" class="w-full border border-gray-300 p-2 rounded">
+                            </div>
+
                             <div class="mb-3">
                                  <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Custom Link</label>
                                 <div class="flex">
@@ -550,12 +553,15 @@ window.toggleEventTypeUI = () => {
     const isApiOnly = document.getElementById('is-api-only-toggle').checked;
     const fullFields = document.getElementById('full-feature-fields');
     const slugInput = document.getElementById('input-custom-slug');
+    const dateInput = document.getElementById('input-event-date');
     if (isApiOnly) {
         fullFields.classList.add('hidden');
         slugInput.required = false;
+        dateInput.required = false;
     } else {
         fullFields.classList.remove('hidden');
         slugInput.required = true;
+        dateInput.required = true;
     }
 };
 

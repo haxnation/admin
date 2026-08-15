@@ -5,6 +5,7 @@ import { renderEvent } from './views/event.js';
 import { renderCertificateDesigner } from './views/certificate_designer.js';
 import { renderMiniGames } from './views/minigames.js';
 import { renderTransactions } from './views/transactions.js';
+import { renderApiUsage } from './views/api_usage.js';
 import { currentUser } from './auth.js';
 
 export function router() {
@@ -32,6 +33,13 @@ export function router() {
     const txnMatch = hash.match(/^\/community\/([^/]+)\/transactions$/);
     if (txnMatch) {
         renderTransactions(txnMatch[1]);
+        return;
+    }
+
+    // 1.5. API Usage view
+    const apiUsageMatch = hash.match(/^\/community\/([^/]+)\/api-usage$/);
+    if (apiUsageMatch) {
+        renderApiUsage(apiUsageMatch[1]);
         return;
     }
 
