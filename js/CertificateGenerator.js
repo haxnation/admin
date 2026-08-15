@@ -408,12 +408,12 @@ class CertificateGenerator {
      * The proxy URL will be prepended to the original src.
      */
     _loadImage(src) {
-        // Skip CORS handling entirely for data: URLs — they are never cross-origin.
-        if (src.startsWith('data:')) {
+        // Skip CORS handling entirely for data: and blob: URLs — they are never cross-origin.
+        if (src.startsWith('data:') || src.startsWith('blob:')) {
             return new Promise((resolve, reject) => {
                 const img  = new Image();
                 img.onload = () => resolve(img);
-                img.onerror = () => reject(new Error(`Failed to load data URL`));
+                img.onerror = () => reject(new Error(`Failed to load local URL`));
                 img.src    = src;
             });
         }
