@@ -51,7 +51,7 @@ export async function renderApiKeys(communityId) {
                     <label class="block text-gray-700 text-sm font-bold mb-2">Key Name</label>
                     <input type="text" id="key-name" placeholder="e.g. Production Frontend" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                 </div>
-                <div class="mb-4">
+                <div class="mb-4" id="domain-input-container">
                     <label class="block text-gray-700 text-sm font-bold mb-2">Allowed Domains (Optional)</label>
                     <input type="text" id="key-domains" placeholder="e.g. *.haxnation.org, http://localhost:*" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                     <p class="text-xs text-gray-500 mt-1">Comma-separated. Supports wildcards (*). Leave empty to allow any domain.</p>
@@ -130,6 +130,19 @@ function renderKeysList() {
 }
 
 function setupListeners() {
+    const keyTypeSelect = document.getElementById('key-type');
+    const domainContainer = document.getElementById('domain-input-container');
+    if (keyTypeSelect && domainContainer) {
+        keyTypeSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'PRIVATE') {
+                domainContainer.classList.add('hidden');
+                document.getElementById('key-domains').value = '';
+            } else {
+                domainContainer.classList.remove('hidden');
+            }
+        });
+    }
+
     document.getElementById('create-key-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('key-name').value;

@@ -120,8 +120,14 @@
                 <div class="bg-[#ff2a2a] text-white border-2 border-[#0b0b0b] p-4 font-bold mb-6 font-mono shadow-[4px_4px_0_0_#0b0b0b]">
                     NO API IS PUBLIC. ALL ENDPOINTS REQUIRE AN API KEY.
                 </div>
-                <p class="mb-4">The Haxnation API utilizes API Keys for authorization. While internal platforms use session cookies, any third-party domain calling <b>any</b> of our endpoints (including Events endpoints) MUST provide an API Key.</p>
-                <p class="mb-6 font-bold bg-[#5ce1e6] text-[#0b0b0b] border-2 border-[#0b0b0b] p-3 shadow-[2px_2px_0_0_#0b0b0b]">Note: The API key does not need a community ID because it fetches off that only.</p>
+                <p class="mb-4">The Haxnation API utilizes API Keys for authorization. While internal platforms use session cookies, any third-party domain or backend service calling <b>any</b> of our endpoints (including Events endpoints) MUST provide an API Key.</p>
+                <div class="mb-6 bg-gray-50 p-4 border border-gray-300 shadow-sm">
+                    <h4 class="font-bold font-mono mb-2">Key Types</h4>
+                    <ul class="list-disc pl-5 space-y-2 text-sm">
+                        <li><b>PUBLIC Keys:</b> Designed for client-side applications (like frontend websites). These keys are strictly read-only and <b>cannot</b> generate certificates. They require <b>Allowed Domains</b> to be configured to prevent unauthorized use from other websites.</li>
+                        <li><b>PRIVATE Keys:</b> Designed for backend-to-backend communication. These keys have full access, including the ability to generate certificates and deduct credits. They <b>do not</b> require domain restrictions. Keep these keys absolutely secret.</li>
+                    </ul>
+                </div>
                 
                 <div class="brutal-card">
                     <h3 class="font-bold text-lg mb-2 font-mono uppercase">Making Authenticated Requests</h3>
@@ -133,7 +139,7 @@ Content-Type: application/json</div>
 
             <section id="generate-certificate" class="mb-12">
                 <h2 class="text-2xl font-black mb-4 uppercase font-mono border-b-2 border-gray-300 pb-2">Generate Certificate</h2>
-                <p class="mb-6">Dynamically generates a custom certificate based on the active template configured for the API Client. This endpoint consumes 1 credit per successful generation.</p>
+                <p class="mb-6">Dynamically generates a custom certificate based on the active template configured for your Community account. This endpoint consumes 1 credit per successful generation. <b>Requires a PRIVATE key.</b></p>
                 
                 <div class="brutal-card">
                     <div class="flex items-center gap-3 mb-6 bg-gray-100 p-2 border-2 border-[#0b0b0b] shadow-[2px_2px_0_0_#0b0b0b]">
