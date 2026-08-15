@@ -7,8 +7,64 @@ let state = {
     bgImage: null,
     scale: 1,
     targetType: null,
-    targetId: null
+    targetId: null,
+    pendingBlobUrl: null // Store local preview URL to revoke later
 };
+
+// IndexedDB Helpers
+const DB_NAME = 'CertDesignerDB';
+const STORE_NAME = 'pendingImages';
+let dbPromise = null;
+
+function getDB() {
+    if (!dbPromise) {
+        dbPromise = new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, 1);
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => resolve(request.result);
+            request.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME);
+                }
+            };
+        });
+    }
+    return dbPromise;
+}
+
+async function setPendingImage(key, blob) {
+    const db = await getDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.put(blob, key);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+    });
+}
+
+async function getPendingImage(key) {
+    const db = await getDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+async function clearPendingImage(key) {
+    const db = await getDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.delete(key);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+    });
+}
 
 // Available Variables
 const AVAILABLE_VARS = [
@@ -187,7 +243,13 @@ function setupListeners() {
         if(!url) return;
         state.bgImage = url;
         templateImage.crossOrigin = "Anonymous";
-        templateImage.src = state.bgImage;
+        
+        let srcUrl = state.bgImage;
+        if (srcUrl.startsWith('s3://')) {
+            srcUrl = (window.EVENTS_API_URL || window.API_URL.replace('admin-', 'events-')) + '/proxy?url=' + encodeURIComponent(srcUrl);
+        }
+        
+        templateImage.src = srcUrl;
         templateImage.onload = () => {
             const ws = document.getElementById('workspace');
             const aspect = templateImage.naturalWidth / templateImage.naturalHeight;
@@ -201,7 +263,7 @@ function setupListeners() {
             
             canvasArea.style.width = w + 'px';
             canvasArea.style.height = h + 'px';
-            canvasArea.style.backgroundImage = `url(${state.bgImage})`;
+            canvasArea.style.backgroundImage = `url(${srcUrl})`;
             state.scale = w / templateImage.naturalWidth;
         };
         templateImage.onerror = () => {
@@ -235,68 +297,31 @@ function setupListeners() {
                 };
                 const compressedFile = await imageCompression(file, options);
                 
-                uploadStatus.innerText = 'Requesting secure upload link...';
+                uploadStatus.innerText = 'Saving locally...';
                 
-                // 2. Get Presigned URL
-                const endpoint = state.targetType === 'community'
-                    ? `/community/${state.targetId}/certificate-template/upload-url`
-                    : `/event/${state.targetId}/certificate-template/upload-url`;
+                // 2. Save to IndexedDB for persistence
+                const dbKey = `pending_bg_${state.targetType}_${state.targetId}`;
+                await setPendingImage(dbKey, compressedFile);
                 
-                const response = await api(endpoint, 'POST', { contentType: compressedFile.type });
-                
-                if (!response || !response.data || !response.data.url || !response.data.fields) {
-                    throw new Error("Could not get upload credentials");
-                }
-
-                const res = response.data;
-                uploadStatus.innerText = 'Uploading to CDN...';
-
-                // 3. Post to S3
-                let uploadRes;
-                if (res.method === 'PUT') {
-                    uploadRes = await fetch(res.url, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': compressedFile.type },
-                        body: compressedFile
-                    });
-                } else {
-                    const formData = new FormData();
-                    Object.keys(res.fields).forEach(key => {
-                        formData.append(key, res.fields[key]);
-                    });
-                    // Ensure Content-Type is present for policy validation before the file field
-                    if (!res.fields['Content-Type']) {
-                        formData.append('Content-Type', compressedFile.type);
-                    }
-                    formData.append('file', compressedFile);
-
-                    uploadRes = await fetch(res.url, {
-                        method: 'POST',
-                        body: formData
-                    });
-                }
-
-                if (!uploadRes.ok) {
-                    const text = await uploadRes.text();
-                    console.error("S3 Upload Failed:", text);
-                    throw new Error("Upload to S3 failed. Ensure CORS is configured.");
-                }
+                // 3. Generate Local Blob URL
+                if (state.pendingBlobUrl) URL.revokeObjectURL(state.pendingBlobUrl);
+                state.pendingBlobUrl = URL.createObjectURL(compressedFile);
 
                 // 4. Update UI
-                uploadStatus.innerText = 'Success!';
-                uploadStatus.style.color = '#22c55e'; // green-500
+                uploadStatus.innerText = 'Previewing (Unsaved)';
+                uploadStatus.style.color = '#eab308'; // yellow-500
                 
-                document.getElementById('bgUrlInput').value = res.s3Url;
+                document.getElementById('bgUrlInput').value = state.pendingBlobUrl;
                 document.getElementById('btn-load-bg').click();
 
             } catch (err) {
                 console.error(err);
-                uploadStatus.innerText = err.message || 'Upload failed.';
+                uploadStatus.innerText = err.message || 'Processing failed.';
                 uploadStatus.style.color = '#ef4444'; // red-500
             } finally {
                 uploadBtn.disabled = false;
                 uploadInput.value = ''; // reset
-                setTimeout(() => { if(uploadStatus.innerText === 'Success!') uploadStatus.style.display = 'none'; }, 3000);
+                setTimeout(() => { if(uploadStatus.innerText.includes('Previewing')) uploadStatus.style.display = 'none'; }, 3000);
             }
         });
     }
@@ -581,6 +606,98 @@ function showPreviewModal(base64Img) {
 
 async function saveTemplate() {
     const templateObj = buildTemplate();
+    
+    // Check if there is an unsaved background image in IndexedDB
+    const dbKey = `pending_bg_${state.targetType}_${state.targetId}`;
+    let pendingBlob = null;
+    try {
+        pendingBlob = await getPendingImage(dbKey);
+    } catch(e) {
+        console.warn("Could not read pending image", e);
+    }
+    
+    if (pendingBlob) {
+        // Show Progress Modal
+        let progModal = document.getElementById('upload-progress-modal');
+        if (!progModal) {
+            progModal = document.createElement('div');
+            progModal.id = 'upload-progress-modal';
+            progModal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; align-items:center;";
+            progModal.innerHTML = `
+                <div style="background:#1f2937; padding:24px; border-radius:8px; width:300px; text-align:center; color:white; border: 1px solid #374151; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);">
+                    <h3 style="font-size:18px; font-weight:bold; margin-bottom:16px;">Uploading Background</h3>
+                    <div style="width:100%; background:#374151; border-radius:4px; height:8px; overflow:hidden; margin-bottom:8px;">
+                        <div id="upload-progress-bar" style="width:0%; height:100%; background:#a855f7; transition:width 0.1s;"></div>
+                    </div>
+                    <p id="upload-progress-text" style="color:#9ca3af; font-size:14px;">0%</p>
+                </div>
+            `;
+            document.body.appendChild(progModal);
+        }
+        const progBar = progModal.querySelector('#upload-progress-bar');
+        const progText = progModal.querySelector('#upload-progress-text');
+        progModal.style.display = 'flex';
+        progBar.style.width = '0%';
+        progText.innerText = '0%';
+
+        try {
+            // Get Presigned URL
+            progText.innerText = 'Requesting secure link...';
+            const endpoint = state.targetType === 'community'
+                ? `/community/${state.targetId}/certificate-template/upload-url`
+                : `/event/${state.targetId}/certificate-template/upload-url`;
+            
+            const response = await api(endpoint, 'POST', { contentType: pendingBlob.type });
+            if (!response || !response.data || !response.data.url) throw new Error("Could not get upload credentials");
+            const res = response.data;
+            
+            // Perform XHR Upload
+            await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open(res.method, res.url);
+                
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        progBar.style.width = percent + '%';
+                        progText.innerText = percent + '%';
+                    }
+                };
+                
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve();
+                    } else {
+                        reject(new Error("S3 Upload Failed: " + xhr.responseText));
+                    }
+                };
+                xhr.onerror = () => reject(new Error("Network Error during S3 Upload"));
+                
+                if (res.method === 'PUT') {
+                    xhr.setRequestHeader('Content-Type', pendingBlob.type);
+                    xhr.send(pendingBlob);
+                } else {
+                    const formData = new FormData();
+                    Object.keys(res.fields).forEach(key => formData.append(key, res.fields[key]));
+                    if (!res.fields['Content-Type']) formData.append('Content-Type', pendingBlob.type);
+                    formData.append('file', pendingBlob);
+                    xhr.send(formData);
+                }
+            });
+            
+            // Upload successful, inject s3Url
+            templateObj.backgroundImage = res.s3Url;
+            state.bgImage = res.s3Url; 
+            
+        } catch (e) {
+            progModal.style.display = 'none';
+            alert("Error uploading image: " + e.message);
+            return; // Abort save
+        } finally {
+            progModal.style.display = 'none';
+        }
+    }
+
     const template = JSON.stringify(templateObj);
     
     let endpoint = "";
@@ -600,6 +717,12 @@ async function saveTemplate() {
         await api(endpoint, 'PUT', body);
         // Clear backup on success
         localStorage.removeItem('cert_backup_' + state.targetId);
+        
+        try {
+            await clearPendingImage(`pending_bg_${state.targetType}_${state.targetId}`);
+        } catch(e) {
+            console.warn("Failed to clear pending image from IndexedDB", e);
+        }
         
         let modal = document.getElementById('save-success-modal');
         if(!modal) {
@@ -668,6 +791,20 @@ async function loadTemplateData(type, id) {
             }
         }
 
+        // Check for pending image in IndexedDB
+        const dbKey = `pending_bg_${type}_${id}`;
+        try {
+            const pendingBlob = await getPendingImage(dbKey);
+            if (pendingBlob) {
+                if (state.pendingBlobUrl) URL.revokeObjectURL(state.pendingBlobUrl);
+                state.pendingBlobUrl = URL.createObjectURL(pendingBlob);
+                if (!template) template = {};
+                template.backgroundImage = state.pendingBlobUrl;
+            }
+        } catch(e) {
+            console.warn("Failed to read pending image from IndexedDB", e);
+        }
+
         if (template && template.backgroundImage) {
             state.bgImage = template.backgroundImage;
             
@@ -679,7 +816,12 @@ async function loadTemplateData(type, id) {
             const canvasArea = document.getElementById('canvas-area');
             
             templateImage.crossOrigin = "Anonymous";
-            templateImage.src = state.bgImage;
+            
+            let srcUrl = state.bgImage;
+            if (srcUrl.startsWith('s3://')) {
+                srcUrl = (window.EVENTS_API_URL || window.API_URL.replace('admin-', 'events-')) + '/proxy?url=' + encodeURIComponent(srcUrl);
+            }
+            templateImage.src = srcUrl;
             
             // Once the background loads, calculate the scale and restore the fields
             templateImage.onload = () => {
@@ -696,7 +838,7 @@ async function loadTemplateData(type, id) {
                 
                 canvasArea.style.width = w + 'px';
                 canvasArea.style.height = h + 'px';
-                canvasArea.style.backgroundImage = `url(${state.bgImage})`;
+                canvasArea.style.backgroundImage = `url(${srcUrl})`;
                 
                 // Calculate the scale ratio compared to the original image size
                 state.scale = w / templateImage.naturalWidth;
