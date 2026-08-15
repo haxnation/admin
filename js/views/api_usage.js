@@ -90,7 +90,7 @@ function renderView(communityId, allLogs) {
                 <!-- Event Filter -->
                 <select id="usage-event" class="py-2 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
                     <option value="">All Events</option>
-                    ${eventIds.map(e => \`<option value="\${e}">\${e}</option>\`).join('')}
+                    ${eventIds.map(e => `<option value="${e}">${e}</option>`).join('')}
                 </select>
             </div>
         </div>
