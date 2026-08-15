@@ -11,8 +11,11 @@ export async function api(endpoint, method = 'GET', body = null) {
 
     const res = await fetch(`${API_URL}${endpoint}`, opts);
     if (res.status === 401) {
-        // Redirect to login if unauthorized
-        window.location.hash = '/';
+        // Redirect to login if unauthorized and prevent infinite loops
+        if (window.location.hash !== '#/' && window.location.hash !== '') {
+            window.location.hash = '/';
+            setTimeout(() => window.location.reload(), 100); // Force reload to clear in-memory user state
+        }
         return null;
     }
     return res.json();

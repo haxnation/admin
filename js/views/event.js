@@ -783,6 +783,14 @@ window.processBulkUpload = async (cid, eid) => {
             await api(`/community/${cid}/event/${eid}/allowed-users`, 'POST', chunk);
         }
         alert(`Successfully allowed ${res.data.length} users!`);
+        
+        // Reset UI
+        document.getElementById('bulk-upload-file').value = '';
+        document.getElementById('bulk-upload-ui').classList.add('hidden');
+        document.getElementById('bulk-upload-preview').classList.add('hidden');
+        
+        // Refresh Table
+        renderEvent(cid, eid);
     } catch (e) {
         alert("Upload failed partially or fully.");
     }
