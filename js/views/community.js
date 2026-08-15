@@ -133,6 +133,9 @@ export async function renderCommunity(id) {
                         </button>
                     ` : ''}
                     ${canManageTemplates ? `
+                        <button onclick="window.openModal('community-settings-modal')" class="bg-gray-100 text-gray-700 px-4 py-2 rounded shadow hover:bg-gray-200 text-sm flex items-center gap-2 transition font-medium border border-gray-300">
+                            <i class="fas fa-cog"></i> Settings
+                        </button>
                         <a href="#/community/${id}/design" class="bg-indigo-600 text-white px-4 py-2 rounded shadow hover:bg-indigo-700 text-sm flex items-center gap-2 transition">
                             <span>🎨</span> Manage Default Template
                         </a>
@@ -463,6 +466,22 @@ export async function renderCommunity(id) {
                     </button>
                 </form>
             `)}
+
+            ${modalTemplate('community-settings-modal', 'Community Settings', `
+                <form onsubmit="handleSaveCommunitySettings(event, '${id}')">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Custom Certificate URL Prefix</label>
+                            <input type="text" name="customCertificateUrlPrefix" value="${community.settings?.customCertificateUrlPrefix || ''}" placeholder="e.g. https://my-frontend.com/validate?id=" class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                            <p class="text-[10px] text-gray-400 mt-1">Used to override the default verification link on generated certificates for API-Only events.</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex justify-end gap-3">
+                        <button type="button" onclick="closeModal('community-settings-modal')" class="px-4 py-2 text-gray-600 font-bold">Cancel</button>
+                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded font-bold shadow hover:bg-blue-700">Save</button>
+                    </div>
+                </form>
+            `)}
         `;
 
     } catch(e) {
@@ -541,6 +560,18 @@ window.handleAssignRole = async (e, cid) => {
         renderCommunity(cid); 
     } else {
         alert(res?.error || 'Failed to assign role');
+    }
+};
+
+window.handleSaveCommunitySettings = async (e, id) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const body = Object.fromEntries(fd.entries());
+    
+    const res = await api(`/community/${id}/settings`, 'PUT', body);
+    if (res && res.success) {
+        window.closeModal('community-settings-modal');
+        renderCommunity(id);
     }
 };
 

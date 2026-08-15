@@ -116,6 +116,10 @@ export async function renderEvent(communityId, eventId) {
                             <input type="number" name="cost" value="${certSettings.cost}" class="border p-2 rounded w-24 bg-white text-black text-sm ${!isSuperAdmin ? 'bg-gray-100 cursor-not-allowed' : ''}" ${!isSuperAdmin ? 'readonly' : ''}>
                         </div>
                         ` : ''}
+                        <div class="w-full mt-2">
+                            <label class="block text-xs font-bold text-gray-500 mb-1">CUSTOM URL PREFIX</label>
+                            <input type="text" name="customCertificateUrlPrefix" value="${certSettings.customCertificateUrlPrefix || ''}" placeholder="e.g. https://my-frontend.com/validate?id=" class="w-full border p-2 rounded bg-white text-black text-sm">
+                        </div>
                         <button type="submit" class="bg-slate-800 text-white px-4 py-2 text-sm rounded hover:bg-slate-900 ml-auto">Save</button>
                     </form>
                 </div>
@@ -593,7 +597,12 @@ window.handleEditEvent = async (e, cid, eid) => {
 window.handleCertSettings = async (e, eventId) => {
     e.preventDefault();
     const fd = new FormData(e.target);
-    await api(`/event/${eventId}/certificate-settings`, 'PUT', { communityId: currentCommunityId, enabled: fd.get('enabled') === 'true', cost: fd.get('cost') });
+    await api(`/event/${eventId}/certificate-settings`, 'PUT', { 
+        communityId: currentCommunityId, 
+        enabled: fd.get('enabled') === 'true', 
+        cost: fd.get('cost'),
+        customCertificateUrlPrefix: fd.get('customCertificateUrlPrefix')
+    });
     alert('Certificate settings updated.');
     renderEvent(currentCommunityId, currentEvent.id || currentEvent.SK.replace('METADATA', ''));
 };
