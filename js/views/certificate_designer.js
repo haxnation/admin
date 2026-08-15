@@ -1,4 +1,5 @@
 import { api } from '../utils.js';
+import { API_URL } from '../config.js';
 
 // Local State
 let state = {
@@ -246,7 +247,7 @@ function setupListeners() {
         
         let srcUrl = state.bgImage;
         if (srcUrl.startsWith('s3://')) {
-            srcUrl = (window.EVENTS_API_URL || window.API_URL.replace('admin-', 'events-')) + '/proxy?url=' + encodeURIComponent(srcUrl);
+            srcUrl = (window.EVENTS_API_URL || API_URL.replace('admin', 'events')) + '/api/events/proxy?url=' + encodeURIComponent(srcUrl);
         }
         
         templateImage.src = srcUrl;
@@ -819,7 +820,7 @@ async function loadTemplateData(type, id) {
             
             let srcUrl = state.bgImage;
             if (srcUrl.startsWith('s3://')) {
-                srcUrl = (window.EVENTS_API_URL || window.API_URL.replace('admin-', 'events-')) + '/proxy?url=' + encodeURIComponent(srcUrl);
+                srcUrl = (window.EVENTS_API_URL || API_URL.replace('admin', 'events')) + '/api/events/proxy?url=' + encodeURIComponent(srcUrl);
             }
             
             // Once the background loads, calculate the scale and restore the fields
