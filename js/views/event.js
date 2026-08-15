@@ -80,6 +80,7 @@ export async function renderEvent(communityId, eventId) {
                 <button onclick="openModal('edit-event')" class="text-gray-500 hover:text-gray-700 bg-gray-100 px-4 py-2 rounded shadow-sm border">⚙️ Edit Details</button>
             </div>
 
+            ${currentEvent.eventType !== 'API_ONLY' ? `
             <div class="bg-indigo-900 text-white p-6 rounded-lg shadow-sm border border-indigo-800 mb-8">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold flex items-center gap-2">🚩 CTF Management</h2>
@@ -87,6 +88,8 @@ export async function renderEvent(communityId, eventId) {
                 </div>
                 ${renderCtfDashboard(ctf, isSuperAdmin, communityId, eventId)}
             </div>
+            ` : ''}
+
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -152,7 +155,7 @@ export async function renderEvent(communityId, eventId) {
                 `}
             </div>
 
-            ${currentEvent.settings?.isCertificateOnly ? `
+            ${(currentEvent.settings?.isCertificateOnly || currentEvent.eventType === 'API_ONLY') ? `
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8 p-6 text-black">
                 <div class="flex justify-between items-center mb-4 border-b pb-2">
                     <h2 class="text-xl font-bold">Bulk Upload & Certificate Requirements</h2>
@@ -192,7 +195,6 @@ export async function renderEvent(communityId, eventId) {
             </div>
             ` : ''}
 
-            ${currentEvent.eventType !== 'API_ONLY' ? `
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col min-h-[500px]">
                 <div class="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-lg">
                     <h2 class="text-xl font-bold text-black">Attendee Management</h2>
@@ -219,7 +221,6 @@ export async function renderEvent(communityId, eventId) {
                     </table>
                 </div>
             </div>
-            ` : ''}
 
             <div id="modal-container">
                 ${modalTemplate('qr-modal', 'Scan Participant QR Code', `
@@ -249,7 +250,7 @@ export async function renderEvent(communityId, eventId) {
             </form>
         `);
         
-        if (ctf.status === 'APPROVED') {
+        if (ctf.status === 'APPROVED' && currentEvent.eventType !== 'API_ONLY') {
             document.getElementById('modal-container').innerHTML += modalTemplate('add-ctf', 'Add CTF Challenge', `
                 <form onsubmit="handleCreateCtfChallenge(event, '${communityId}', '${eventId}')" class="text-black">
                     <div class="space-y-3">
@@ -273,7 +274,7 @@ export async function renderEvent(communityId, eventId) {
         
         renderAttendeeList(currentAttendees);
 
-        if (currentEvent.settings?.isCertificateOnly) {
+        if (currentEvent.settings?.isCertificateOnly || currentEvent.eventType === 'API_ONLY') {
             // Render the AST builder with existing requirements or a default empty group
             const existingReqs = currentEvent.settings?.certificateRequirements;
             currentAST = existingReqs || { logic: 'AND', conditions: [] };
