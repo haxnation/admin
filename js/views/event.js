@@ -111,10 +111,12 @@ export async function renderEvent(communityId, eventId) {
                                 <option value="false" ${!certSettings.enabled ? 'selected' : ''}>No</option>
                             </select>
                         </div>
+                        ${currentEvent.eventType !== 'API_ONLY' ? `
                         <div>
                             <label class="block text-xs font-bold text-gray-500 mb-1">COST (INR)</label>
                             <input type="number" name="cost" value="${certSettings.cost}" class="border p-2 rounded w-24 bg-white text-black text-sm ${!isSuperAdmin ? 'bg-gray-100 cursor-not-allowed' : ''}" ${!isSuperAdmin ? 'readonly' : ''}>
                         </div>
+                        ` : ''}
                         ${currentEvent.eventType !== 'API_ONLY' ? `
                         <div>
                             <label class="block text-xs font-bold text-gray-500 mb-1">MODE</label>
