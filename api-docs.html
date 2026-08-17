@@ -9,6 +9,30 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
     <link rel="shortcut icon" href="/favicons/favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        canvas: '#fafafa',
+                        ink: '#0b0b0b',
+                        card: '#ffffff',
+                        cyan: '#5ce1e6',
+                        danger: '#ff2a2a',
+                        success: '#00e676',
+                        warning: '#ffeb3b'
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .brutal-card {
@@ -57,7 +81,8 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen text-gray-800 font-sans">
+<body class="bg-canvas text-ink font-sans min-h-screen antialiased selection:bg-cyan selection:text-ink smooth-scroll">
+    <div class="fixed inset-0 pointer-events-none z-[-1] bg-[linear-gradient(to_right,#80808020_1px,transparent_1px),linear-gradient(to_bottom,#80808020_1px,transparent_1px)] bg-[size:32px_32px]"></div>
     <nav class="sticky top-0 z-50 border-b-2 border-[#0b0b0b] bg-[#0b0b0b] text-[#fafafa]">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-3 sm:gap-4 font-mono">
             <div class="flex items-center gap-3 sm:gap-4">
