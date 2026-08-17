@@ -24,9 +24,9 @@ export async function api(endpoint, method = 'GET', body = null) {
 // --- UI HELPERS ---
 export function modalTemplate(id, title, content) {
     return `
-    <div id="${id}" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
-            <button onclick="closeModal('${id}')" class="absolute top-4 right-4 text-gray-500">&times;</button>
+    <div id="${id}" class="fixed inset-0 bg-ink/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="card w-full max-w-md relative">
+            <button onclick="closeModal('${id}')" class="absolute top-4 right-4 text-ink/50 hover:text-ink">&times;</button>
             <h2 class="text-xl font-bold mb-4">${title}</h2>
             ${content}
         </div>

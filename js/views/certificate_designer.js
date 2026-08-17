@@ -100,9 +100,9 @@ export async function renderCertificateDesigner(type, id, communityId = null) {
             #cert-root { display: flex; height: calc(100vh - 80px); background: #1e1e1e; color: #ddd; }
             #sidebar { width: 320px; background: #2d2d2d; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; border-right: 1px solid #444; }
             #workspace { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; overflow: auto; background: #333; }
-            #canvas-area { position: relative; box-shadow: 0 0 30px rgba(0,0,0,0.8); background-size: contain; background-repeat: no-repeat; transition: all 0.2s; }
+            #canvas-area { position: relative; box-: 0 0 30px rgba(0,0,0,0.8); background-size: contain; background-repeat: no-repeat; transition: all 0.2s; }
             
-            .field-el { position: absolute; border: 1px dashed rgba(255,255,255,0.5); background: rgba(0, 123, 255, 0.1); cursor: move; display: flex; align-items: center; justify-content: center; color: white; text-shadow: 0 0 2px black; font-size: 12px; overflow: hidden; white-space: nowrap; user-select: none; }
+            .field-el { position: absolute; border: 1px dashed rgba(255,255,255,0.5); background: rgba(0, 123, 255, 0.1); cursor: move; display: flex; align-items: center; justify-content: center; color: white; text-: 0 0 2px black; font-size: 12px; overflow: hidden; white-space: nowrap; user-select: none; }
             .field-el:hover { border-color: #007bff; }
             .field-el.selected { border: 2px solid #00C853; background: rgba(0, 200, 83, 0.1); z-index: 100; }
             
@@ -128,33 +128,33 @@ export async function renderCertificateDesigner(type, id, communityId = null) {
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="font-bold text-lg text-white">Cert Designer</h2>
                     <div class="flex gap-2">
-                        <button id="btn-preview" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700 transition">👁️ Preview</button>
-                        <button id="btn-save" class="bg-green-600 text-white px-4 py-1.5 rounded text-sm hover:bg-green-700 transition">Save</button>
+                        <button id="btn-preview" class="btn-primary">👁️ Preview</button>
+                        <button id="btn-save" class="bg-green-600 text-white px-4 py-1.5 text-sm hover:bg-green-700 transition">Save</button>
                     </div>
                 </div>
                 
-                <div class="p-3 bg-gray-800 rounded border border-gray-700">
-                    <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 block">1. Background Image</label>
+                <div class="p-3 bg-ink text-white border border-gray-700">
+                    <label class="text-xs font-bold uppercase tracking-wider text-ink/40 mb-2 block">1. Background Image</label>
                     <div class="flex gap-2 mb-2">
-                        <input type="text" id="bgUrlInput" placeholder="https://..." class="text-xs text-gray-800 w-full p-1.5 rounded outline-none focus:ring-2 focus:ring-blue-500">
-                        <button id="btn-load-bg" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs hover:bg-blue-700 transition">Load</button>
+                        <input type="text" id="bgUrlInput" placeholder="https://..." class="text-xs text-ink w-full p-1.5 outline-none focus:ring-2 focus:ring-blue-500">
+                        <button id="btn-load-bg" class="btn-primary">Load</button>
                     </div>
-                    <div class="text-xs text-gray-400 text-center mb-1">- OR -</div>
+                    <div class="text-xs text-ink/40 text-center mb-1">- OR -</div>
                     <div class="flex flex-col gap-2">
                         <input type="file" id="bgUploadInput" accept="image/png, image/jpeg" class="hidden">
-                        <button id="btn-upload-bg" class="w-full bg-purple-600 text-white px-3 py-1.5 rounded text-xs hover:bg-purple-700 transition">📤 Upload to CDN</button>
-                        <div id="upload-status" class="text-[10px] text-gray-400 text-center hidden"></div>
+                        <button id="btn-upload-bg" class="w-full bg-purple-600 text-white px-3 py-1.5 text-xs hover:bg-purple-700 transition">📤 Upload to CDN</button>
+                        <div id="upload-status" class="text-[10px] text-ink/40 text-center hidden"></div>
                     </div>
                 </div>
 
                 <div>
-                    <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 block">2. Add Elements</label>
+                    <label class="text-xs font-bold uppercase tracking-wider text-ink/40 mb-2 block">2. Add Elements</label>
                     <div class="flex gap-2 mb-2">
-                        <button id="btn-add-text" class="btn-tool bg-blue-600 text-white">+ Text</button>
+                        <button id="btn-add-text" class="btn-primary">+ Text</button>
                         <button id="btn-add-var" class="btn-tool bg-purple-600 text-white">+ Variable</button>
                     </div>
                     <div class="flex gap-2">
-                        <button id="btn-add-qr" class="btn-tool bg-gray-600 text-white">+ QR Code</button>
+                        <button id="btn-add-qr" class="btn-tool bg-ink text-white">+ QR Code</button>
                         <button id="btn-add-img" class="btn-tool bg-orange-600 text-white">+ Image</button>
                     </div>
                 </div>
@@ -204,7 +204,7 @@ export async function renderCertificateDesigner(type, id, communityId = null) {
                     </div>
                 </div>
                 
-                <button onclick="history.back()" class="mt-auto bg-gray-700 text-white py-2 rounded hover:bg-gray-600">Exit Designer</button>
+                <button onclick="history.back()" class="btn-secondary">Exit Designer</button>
             </div>
             
             <div id="workspace">
@@ -625,7 +625,7 @@ async function saveTemplate() {
             progModal.id = 'upload-progress-modal';
             progModal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; align-items:center;";
             progModal.innerHTML = `
-                <div style="background:#1f2937; padding:24px; border-radius:8px; width:300px; text-align:center; color:white; border: 1px solid #374151; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);">
+                <div style="background:#1f2937; padding:24px; border-radius:8px; width:300px; text-align:center; color:white; border: 1px solid #374151; box-: 0 10px 15px -3px rgba(0,0,0,0.5);">
                     <h3 style="font-size:18px; font-weight:bold; margin-bottom:16px;">Uploading Background</h3>
                     <div style="width:100%; background:#374151; border-radius:4px; height:8px; overflow:hidden; margin-bottom:8px;">
                         <div id="upload-progress-bar" style="width:0%; height:100%; background:#a855f7; transition:width 0.1s;"></div>
@@ -731,7 +731,7 @@ async function saveTemplate() {
             modal.id = 'save-success-modal';
             modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; align-items:center;";
             modal.innerHTML = `
-                <div style="background:#1f2937; padding:24px; border-radius:8px; max-width:400px; width:90%; text-align:center; color:white; border: 1px solid #374151; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);">
+                <div style="background:#1f2937; padding:24px; border-radius:8px; max-width:400px; width:90%; text-align:center; color:white; border: 1px solid #374151; box-: 0 10px 15px -3px rgba(0, 0, 0, 0.5);">
                     <div style="font-size:48px; margin-bottom:16px;">✅</div>
                     <h3 style="font-size:20px; font-weight:bold; margin-bottom:8px;">Template Saved!</h3>
                     <p style="color:#9ca3af; margin-bottom:24px; font-size:14px;">Your certificate template has been saved successfully to the cloud.</p>

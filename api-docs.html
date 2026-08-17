@@ -99,18 +99,18 @@
         <aside class="w-full md:w-64 flex-shrink-0">
             <div class="sticky top-24">
                 <div class="mb-6">
-                    <h3 class="font-mono font-bold uppercase text-xs tracking-widest text-gray-500 mb-2 border-b-2 border-gray-300 pb-1">Getting Started</h3>
+                    <h3 class="font-mono font-bold uppercase text-xs tracking-widest text-ink/60 mb-2 border-b-2 border-ink pb-1">Getting Started</h3>
                     <a href="#introduction" class="nav-link">Introduction</a>
                     <a href="#authentication" class="nav-link">Authentication</a>
                 </div>
                 
                 <div class="mb-6">
-                    <h3 class="font-mono font-bold uppercase text-xs tracking-widest text-gray-500 mb-2 border-b-2 border-gray-300 pb-1">Certificate API (B2B)</h3>
+                    <h3 class="font-mono font-bold uppercase text-xs tracking-widest text-ink/60 mb-2 border-b-2 border-ink pb-1">Certificate API (B2B)</h3>
                     <a href="#generate-certificate" class="nav-link">Generate Certificate</a>
                 </div>
 
                 <div class="mb-6">
-                    <h3 class="font-mono font-bold uppercase text-xs tracking-widest text-gray-500 mb-2 border-b-2 border-gray-300 pb-1">Events API</h3>
+                    <h3 class="font-mono font-bold uppercase text-xs tracking-widest text-ink/60 mb-2 border-b-2 border-ink pb-1">Events API</h3>
                     <a href="#list-events" class="nav-link">List Events</a>
                     <a href="#get-event" class="nav-link">Get Event Details</a>
                     <a href="#verify-certificate" class="nav-link">Verify Certificate</a>
@@ -141,12 +141,12 @@
             </section>
 
             <section id="authentication" class="mb-12">
-                <h2 class="text-2xl font-black mb-4 uppercase font-mono border-b-2 border-gray-300 pb-2">Authentication</h2>
+                <h2 class="text-2xl font-black mb-4 uppercase font-mono border-b-2 border-ink pb-2">Authentication</h2>
                 <div class="bg-[#ff2a2a] text-white border-2 border-[#0b0b0b] p-4 font-bold mb-6 font-mono shadow-[4px_4px_0_0_#0b0b0b]">
                     NO API IS PUBLIC. ALL ENDPOINTS REQUIRE AN API KEY.
                 </div>
                 <p class="mb-4">The Haxnation API utilizes API Keys for authorization. While internal platforms use session cookies, any third-party domain or backend service calling <b>any</b> of our endpoints (including Events endpoints) MUST provide an API Key.</p>
-                <div class="mb-6 bg-gray-50 p-4 border border-gray-300 shadow-sm">
+                <div class="mb-6 bg-canvas p-4 border border-ink shadow-sm">
                     <h4 class="font-bold font-mono mb-2">Key Types</h4>
                     <ul class="list-disc pl-5 space-y-2 text-sm">
                         <li><b>PUBLIC Keys:</b> Designed for client-side applications (like frontend websites). These keys are strictly read-only and <b>cannot</b> generate certificates. They require <b>Allowed Domains</b> to be configured to prevent unauthorized use from other websites.</li>
@@ -163,11 +163,11 @@ Content-Type: application/json</div>
             </section>
 
             <section id="generate-certificate" class="mb-12">
-                <h2 class="text-2xl font-black mb-4 uppercase font-mono border-b-2 border-gray-300 pb-2">Generate Certificate</h2>
+                <h2 class="text-2xl font-black mb-4 uppercase font-mono border-b-2 border-ink pb-2">Generate Certificate</h2>
                 <p class="mb-6">Dynamically generates a custom certificate based on the active template configured for your Community account. This endpoint consumes 1 credit per successful generation. <b>Requires a PRIVATE key.</b></p>
                 
                 <div class="brutal-card">
-                    <div class="flex items-center gap-3 mb-6 bg-gray-100 p-2 border-2 border-[#0b0b0b] shadow-[2px_2px_0_0_#0b0b0b]">
+                    <div class="flex items-center gap-3 mb-6 bg-canvas p-2 border-2 border-[#0b0b0b] shadow-[2px_2px_0_0_#0b0b0b]">
                         <span class="brutal-badge brutal-badge-post">POST</span>
                         <span class="font-mono font-bold text-sm">/api/v1/certificates/generate</span>
                     </div>
@@ -176,7 +176,7 @@ Content-Type: application/json</div>
                     <p class="mb-4 text-sm">The payload must be a JSON object containing a <code>data</code> property. The keys inside <code>data</code> should exactly match the variable placeholders defined in your certificate template.</p>
                     
                     <div class="mb-6 overflow-x-auto">
-                        <table class="w-full border-2 border-[#0b0b0b] text-sm bg-white">
+                        <table class="w-full border-2 border-[#0b0b0b] text-sm bg-card">
                             <thead class="bg-[#0b0b0b] text-white">
                                 <tr>
                                     <th class="p-2 text-left font-mono">Field</th>
@@ -204,14 +204,14 @@ Content-Type: application/json</div>
 }</div>
 
                     <h3 class="font-bold mt-6 mb-2 font-mono uppercase">Responses</h3>
-                    <div class="mb-2 font-bold text-green-600 font-mono text-sm">200 OK - Success</div>
+                    <div class="mb-2 font-bold text-success font-mono text-sm">200 OK - Success</div>
                     <div class="brutal-code mb-4">{
   "success": true,
   "data": {
     "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB..."
   }
 }</div>
-                    <div class="mb-2 font-bold text-red-600 font-mono text-sm">402 Payment Required - Insufficient Credits</div>
+                    <div class="mb-2 font-bold text-danger font-mono text-sm">402 Payment Required - Insufficient Credits</div>
                     <div class="brutal-code">{
   "success": false,
   "message": "Insufficient credits"
@@ -220,17 +220,17 @@ Content-Type: application/json</div>
             </section>
 
             <section id="list-events" class="mb-12">
-                <h2 class="text-2xl font-black mb-4 uppercase font-mono border-b-2 border-gray-300 pb-2">List Events</h2>
+                <h2 class="text-2xl font-black mb-4 uppercase font-mono border-b-2 border-ink pb-2">List Events</h2>
                 <p class="mb-6">Retrieves a list of events available on Haxnation.</p>
                 
                 <div class="brutal-card">
-                    <div class="flex items-center gap-3 mb-6 bg-gray-100 p-2 border-2 border-[#0b0b0b] shadow-[2px_2px_0_0_#0b0b0b]">
+                    <div class="flex items-center gap-3 mb-6 bg-canvas p-2 border-2 border-[#0b0b0b] shadow-[2px_2px_0_0_#0b0b0b]">
                         <span class="brutal-badge brutal-badge-get">GET</span>
                         <span class="font-mono font-bold text-sm">/events/api/events/</span>
                     </div>
 
                     <h3 class="font-bold mb-2 font-mono uppercase">Response</h3>
-                    <div class="mb-2 font-bold text-green-600 font-mono text-sm">200 OK - Success</div>
+                    <div class="mb-2 font-bold text-success font-mono text-sm">200 OK - Success</div>
                     <div class="brutal-code">{
   "success": true,
   "data": [
@@ -246,18 +246,18 @@ Content-Type: application/json</div>
             </section>
 
             <section id="get-event" class="mb-12">
-                <h2 class="text-2xl font-black mb-4 uppercase font-mono border-b-2 border-gray-300 pb-2">Get Event Details</h2>
+                <h2 class="text-2xl font-black mb-4 uppercase font-mono border-b-2 border-ink pb-2">Get Event Details</h2>
                 <p class="mb-6">Retrieves detailed metadata for a specific event by its ID or slug.</p>
                 
                 <div class="brutal-card">
-                    <div class="flex items-center gap-3 mb-6 bg-gray-100 p-2 border-2 border-[#0b0b0b] shadow-[2px_2px_0_0_#0b0b0b]">
+                    <div class="flex items-center gap-3 mb-6 bg-canvas p-2 border-2 border-[#0b0b0b] shadow-[2px_2px_0_0_#0b0b0b]">
                         <span class="brutal-badge brutal-badge-get">GET</span>
                         <span class="font-mono font-bold text-sm">/events/api/events/{id}</span>
                     </div>
 
                     <h3 class="font-bold mb-2 font-mono uppercase">Path Parameters</h3>
                     <div class="mb-6 overflow-x-auto">
-                        <table class="w-full border-2 border-[#0b0b0b] text-sm bg-white">
+                        <table class="w-full border-2 border-[#0b0b0b] text-sm bg-card">
                             <thead class="bg-[#0b0b0b] text-white">
                                 <tr>
                                     <th class="p-2 text-left font-mono">Parameter</th>
@@ -276,7 +276,7 @@ Content-Type: application/json</div>
                     </div>
 
                     <h3 class="font-bold mb-2 font-mono uppercase">Response</h3>
-                    <div class="mb-2 font-bold text-green-600 font-mono text-sm">200 OK - Success</div>
+                    <div class="mb-2 font-bold text-success font-mono text-sm">200 OK - Success</div>
                     <div class="brutal-code">{
   "success": true,
   "data": {
@@ -292,18 +292,18 @@ Content-Type: application/json</div>
             </section>
 
             <section id="verify-certificate" class="mb-12">
-                <h2 class="text-2xl font-black mb-4 uppercase font-mono border-b-2 border-gray-300 pb-2">Verify Certificate</h2>
+                <h2 class="text-2xl font-black mb-4 uppercase font-mono border-b-2 border-ink pb-2">Verify Certificate</h2>
                 <p class="mb-6">Endpoint to verify the authenticity of a certificate issued by Haxnation.</p>
                 
                 <div class="brutal-card">
-                    <div class="flex items-center gap-3 mb-6 bg-gray-100 p-2 border-2 border-[#0b0b0b] shadow-[2px_2px_0_0_#0b0b0b]">
+                    <div class="flex items-center gap-3 mb-6 bg-canvas p-2 border-2 border-[#0b0b0b] shadow-[2px_2px_0_0_#0b0b0b]">
                         <span class="brutal-badge brutal-badge-get">GET</span>
                         <span class="font-mono font-bold text-sm">/events/api/events/certificate/verify/{certId}</span>
                     </div>
 
                     <h3 class="font-bold mb-2 font-mono uppercase">Path Parameters</h3>
                     <div class="mb-6 overflow-x-auto">
-                        <table class="w-full border-2 border-[#0b0b0b] text-sm bg-white">
+                        <table class="w-full border-2 border-[#0b0b0b] text-sm bg-card">
                             <thead class="bg-[#0b0b0b] text-white">
                                 <tr>
                                     <th class="p-2 text-left font-mono">Parameter</th>
@@ -322,7 +322,7 @@ Content-Type: application/json</div>
                     </div>
 
                     <h3 class="font-bold mb-2 font-mono uppercase">Response</h3>
-                    <div class="mb-2 font-bold text-green-600 font-mono text-sm">200 OK - Success</div>
+                    <div class="mb-2 font-bold text-success font-mono text-sm">200 OK - Success</div>
                     <div class="brutal-code">{
   "success": true,
   "data": {

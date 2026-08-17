@@ -18,23 +18,23 @@ export async function renderMiniGames() {
 
     const gamesHtml = currentGames.map(g => {
         const statusColor = g.status === 'APPROVED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
-        const expText = g.expiresAt ? `<span class="text-red-500 font-bold ml-2 text-xs">Expires < 1hr</span>` : '';
+        const expText = g.expiresAt ? `<span class="text-danger font-bold ml-2 text-xs">Expires < 1hr</span>` : '';
         
         return `
-        <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex justify-between items-start">
+        <div class="bg-card p-5 border border-ink flex justify-between items-start">
             <div class="flex items-start gap-4">
                 ${isSuperAdmin ? `<input type="checkbox" class="game-checkbox w-5 h-5 mt-1 cursor-pointer" value="${g.id}" onchange="toggleGameSelection(this)">` : ''}
                 <div>
-                    <h3 class="font-bold text-lg text-gray-800">${g.name} <span class="text-xs px-2 py-1 rounded ml-2 ${statusColor}">${g.status}</span>${expText}</h3>
-                    <p class="text-sm text-gray-500 mt-1">Difficulty: <span class="font-bold text-gray-700">${g.difficulty}</span> | Category: ${(g.category || []).join(', ')}</p>
-                    ${isSuperAdmin ? `<p class="text-xs text-gray-400 mt-1">ID: ${g.gameId || g.id} | Points: ${g.points}</p>` : ''}
+                    <h3 class="font-bold text-lg text-ink">${g.name} <span class="text-xs px-2 py-1 ml-2 ${statusColor}">${g.status}</span>${expText}</h3>
+                    <p class="text-sm text-ink/50 mt-1">Difficulty: <span class="font-bold text-ink">${g.difficulty}</span> | Category: ${(g.category || []).join(', ')}</p>
+                    ${isSuperAdmin ? `<p class="text-xs text-ink/40 mt-1">ID: ${g.gameId || g.id} | Points: ${g.points}</p>` : ''}
                 </div>
             </div>
             <div class="flex flex-col gap-2">
                 ${isSuperAdmin ? `
-                    <button onclick="openEditModal('${g.id}')" class="bg-blue-50 text-blue-600 px-3 py-1 rounded text-sm font-bold border border-blue-200 hover:bg-blue-100 transition">Review / Edit</button>
-                    <button onclick="generateJson('${g.id}')" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded text-sm font-bold border border-indigo-200 hover:bg-indigo-100 transition">Quick JSON</button>
-                ` : '<span class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded text-center">Locked / Read Only</span>'}
+                    <button onclick="openEditModal('${g.id}')" class="bg-canvas text-cyan px-3 py-1 text-sm font-bold border border-ink hover:bg-cyan/20 transition">Review / Edit</button>
+                    <button onclick="generateJson('${g.id}')" class="bg-canvas text-cyan px-3 py-1 text-sm font-bold border border-indigo-200 hover:bg-indigo-100 transition">Quick JSON</button>
+                ` : '<span class="text-xs text-ink/40 bg-canvas px-2 py-1 text-center">Locked / Read Only</span>'}
             </div>
         </div>`;
     }).join('');
@@ -44,26 +44,26 @@ export async function renderMiniGames() {
             <h1 class="text-2xl font-bold">Mini-Games</h1>
             <div class="flex gap-2 items-center">
                 ${isSuperAdmin ? `
-                    <button onclick="exportSelected()" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition font-bold">
+                    <button onclick="exportSelected()" class="bg-indigo-600 text-white px-4 py-2 text-sm hover:bg-indigo-700 transition font-bold">
                         Export Selected
                     </button>
-                    <button onclick="scheduleDeleteSelected()" class="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700 transition font-bold">
+                    <button onclick="scheduleDeleteSelected()" class="bg-red-600 text-white px-4 py-2 text-sm hover:bg-red-700 transition font-bold">
                         Delete Selected
                     </button>
                 ` : ''}
-                <button onclick="openCreateModal()" class="bg-slate-800 text-white px-4 py-2 rounded text-sm hover:bg-slate-900 transition font-bold">
+                <button onclick="openCreateModal()" class="bg-slate-800 text-white px-4 py-2 text-sm hover:bg-slate-900 transition font-bold">
                     + Submit Mini-Game
                 </button>
             </div>
         </div>
         ${isSuperAdmin && currentGames.length > 0 ? `
-        <div class="flex items-center gap-2 mb-4 bg-white p-3 rounded shadow-sm border border-gray-200">
+        <div class="flex items-center gap-2 mb-4 bg-card p-3 border border-ink">
             <input type="checkbox" id="selectAll" class="w-5 h-5 cursor-pointer" onchange="toggleAllGames(this)">
             <label for="selectAll" class="text-sm font-bold cursor-pointer">Select All Games</label>
         </div>
         ` : ''}
         <div class="flex flex-col gap-4">
-            ${gamesHtml || '<p class="text-gray-500 text-center py-10">No mini-games found.</p>'}
+            ${gamesHtml || '<p class="text-ink/50 text-center py-10">No mini-games found.</p>'}
         </div>
         <div id="minigame-modals"></div>
     `;
@@ -74,18 +74,18 @@ export async function renderMiniGames() {
 function setupModals(isSuperAdmin) {
     const adminFields = isSuperAdmin ? `
         <div class="border-t pt-4 mt-4">
-            <h4 class="font-bold text-xs text-red-500 uppercase mb-3">Super Admin Overrides</h4>
+            <h4 class="font-bold text-xs text-danger uppercase mb-3">Super Admin Overrides</h4>
             <div class="grid grid-cols-2 gap-3 mb-3">
-                <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Override Global ID</label><input type="text" name="gameId" id="mg-gameId" class="w-full border p-2 rounded text-sm"></div>
-                <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Points</label><input type="number" name="points" id="mg-points" class="w-full border p-2 rounded text-sm"></div>
+                <div><label class="block text-xs font-bold text-ink/50 uppercase mb-1">Override Global ID</label><input type="text" name="gameId" id="mg-gameId" class="w-full border p-2 text-sm"></div>
+                <div><label class="block text-xs font-bold text-ink/50 uppercase mb-1">Points</label><input type="number" name="points" id="mg-points" class="w-full border p-2 text-sm"></div>
             </div>
             <div class="grid grid-cols-2 gap-3 mb-3">
-                <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Start Date</label><input type="datetime-local" name="startDate" id="mg-startDate" class="w-full border p-2 rounded text-sm"></div>
-                <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">End Date</label><input type="datetime-local" name="endDate" id="mg-endDate" class="w-full border p-2 rounded text-sm"></div>
+                <div><label class="block text-xs font-bold text-ink/50 uppercase mb-1">Start Date</label><input type="datetime-local" name="startDate" id="mg-startDate" class="w-full border p-2 text-sm"></div>
+                <div><label class="block text-xs font-bold text-ink/50 uppercase mb-1">End Date</label><input type="datetime-local" name="endDate" id="mg-endDate" class="w-full border p-2 text-sm"></div>
             </div>
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Approval Status</label>
-                <select name="status" id="mg-status" class="w-full border p-2 rounded text-sm bg-white">
+                <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Approval Status</label>
+                <select name="status" id="mg-status" class="w-full border p-2 text-sm bg-card">
                     <option value="PENDING_APPROVAL">Pending Approval</option>
                     <option value="APPROVED">Approved</option>
                 </select>
@@ -97,17 +97,17 @@ function setupModals(isSuperAdmin) {
         <form onsubmit="handleSaveMiniGame(event, ${isSuperAdmin})" class="overflow-y-auto max-h-[70vh] p-1">
             <input type="hidden" name="id" id="mg-id">
             <div class="mb-3">
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Name</label>
-                <input type="text" name="name" id="mg-name" class="w-full border p-2 rounded text-sm" required>
+                <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Name</label>
+                <input type="text" name="name" id="mg-name" class="w-full border p-2 text-sm" required>
             </div>
             <div class="grid grid-cols-2 gap-3 mb-3">
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Category (comma separated)</label>
-                    <input type="text" name="category" id="mg-category" placeholder="Cryptography, Web" class="w-full border p-2 rounded text-sm" required>
+                    <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Category (comma separated)</label>
+                    <input type="text" name="category" id="mg-category" placeholder="Cryptography, Web" class="w-full border p-2 text-sm" required>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Difficulty</label>
-                    <select name="difficulty" id="mg-difficulty" class="w-full border p-2 rounded text-sm bg-white">
+                    <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Difficulty</label>
+                    <select name="difficulty" id="mg-difficulty" class="w-full border p-2 text-sm bg-card">
                         <option value="Easy">Easy</option>
                         <option value="Medium">Medium</option>
                         <option value="Hard">Hard</option>
@@ -115,23 +115,23 @@ function setupModals(isSuperAdmin) {
                 </div>
             </div>
             <div class="mb-3">
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Description (HTML allowed)</label>
-                <textarea name="description" id="mg-description" class="w-full border p-2 rounded text-sm h-24" required></textarea>
+                <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Description (HTML allowed)</label>
+                <textarea name="description" id="mg-description" class="w-full border p-2 text-sm h-24" required></textarea>
             </div>
             <div class="mb-3">
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Authors (Name, URL per line)</label>
-                <textarea name="authors" id="mg-authors" placeholder="John Doe, https://github.com/john" class="w-full border p-2 rounded text-sm h-16"></textarea>
+                <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Authors (Name, URL per line)</label>
+                <textarea name="authors" id="mg-authors" placeholder="John Doe, https://github.com/john" class="w-full border p-2 text-sm h-16"></textarea>
             </div>
             <div class="mb-3">
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Flag</label>
-                <input type="text" name="flag" id="mg-flag" placeholder="aurum{...}" class="w-full border p-2 rounded text-sm" required>
+                <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Flag</label>
+                <input type="text" name="flag" id="mg-flag" placeholder="aurum{...}" class="w-full border p-2 text-sm" required>
             </div>
             <div class="mb-3">
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Assets (URLs, comma separated)</label>
-                <input type="text" name="assets" id="mg-assets" class="w-full border p-2 rounded text-sm">
+                <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Assets (URLs, comma separated)</label>
+                <input type="text" name="assets" id="mg-assets" class="w-full border p-2 text-sm">
             </div>
             ${adminFields}
-            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded mt-4 hover:bg-blue-700 transition">Save Mini-Game</button>
+            <button type="submit" class="btn-primary">Save Mini-Game</button>
         </form>
     `);
 }

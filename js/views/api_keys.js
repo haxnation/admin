@@ -7,24 +7,24 @@ let state = {
 export async function renderApiKeys(communityId) {
     state.communityId = communityId;
     const app = document.getElementById('app');
-    app.innerHTML = '<div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mx-auto"></div>';
+    app.innerHTML = '<div class="loader ease-linear rounded-none border-4 border-t-4 border-ink h-12 w-12 mx-auto"></div>';
 
     await loadKeys();
 
     app.innerHTML = `
         <div class="mb-6 flex justify-between items-center border-b pb-4">
             <div class="flex items-center gap-4">
-                <button onclick="window.location.hash='#/community/${state.communityId}'" class="text-gray-400 hover:text-gray-700 transition"><i class="fas fa-arrow-left"></i></button>
+                <button onclick="window.location.hash='#/community/${state.communityId}'" class="text-ink/40 hover:text-ink transition"><i class="fas fa-arrow-left"></i></button>
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-800">API Keys</h1>
-                    <p class="text-sm text-gray-500">Manage API Keys for your Community</p>
+                    <h1 class="text-3xl font-black uppercase font-mono border-b-4 border-ink pb-2 inline-block mb-4 text-ink">API Keys</h1>
+                    <p class="text-sm text-ink/50">Manage API Keys for your Community</p>
                 </div>
             </div>
             <div class="flex gap-2">
-                <button onclick="window.openBuyCredits()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition shadow-sm">
+                <button onclick="window.openBuyCredits()" class="btn-primary">
                     💳 Buy Credits
                 </button>
-                <button onclick="window.openCreateKeyModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+                <button onclick="window.openCreateKeyModal()" class="btn-primary">
                     + New API Key
                 </button>
             </div>
@@ -43,57 +43,57 @@ export async function renderApiKeys(communityId) {
         ${modalTemplate('create-key-modal', 'Create New API Key', `
             <form id="create-key-form">
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Key Name</label>
-                    <input type="text" id="key-name" placeholder="e.g. Production Frontend" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <label class="label">Key Name</label>
+                    <input type="text" id="key-name" placeholder="e.g. Production Frontend" class="input" required>
                 </div>
                 <div class="mb-4" id="domain-input-container">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Allowed Domains (Optional)</label>
-                    <input type="text" id="key-domains" placeholder="e.g. *.haxnation.org, http://localhost:*" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                    <p class="text-xs text-gray-500 mt-1">Comma-separated. Supports wildcards (*). Leave empty to allow any domain.</p>
+                    <label class="label">Allowed Domains (Optional)</label>
+                    <input type="text" id="key-domains" placeholder="e.g. *.haxnation.org, http://localhost:*" class="input">
+                    <p class="text-xs text-ink/50 mt-1">Comma-separated. Supports wildcards (*). Leave empty to allow any domain.</p>
                 </div>
                 <div class="mb-6">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Key Type</label>
-                    <select id="key-type" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <label class="label">Key Type</label>
+                    <select id="key-type" class="input">
                         <option value="PUBLIC">PUBLIC - Read-only access (Safe for frontend)</option>
                         <option value="PRIVATE">PRIVATE - Full access including cert generation (Keep secret)</option>
                     </select>
                 </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Generate Key</button>
+                <button type="submit" class="btn-primary w-full">Generate Key</button>
             </form>
         `)}
 
         ${modalTemplate('new-key-modal', 'API Key Generated', `
-            <div class="p-4 bg-yellow-50 border border-yellow-200 rounded shadow-sm mb-4">
-                <p class="text-sm text-yellow-800 font-bold">Please copy this key now. You will not be able to see it again!</p>
+            <div class="p-4 bg-yellow-50 border border-yellow-200 mb-4">
+                <p class="text-sm text-warning font-bold">Please copy this key now. You will not be able to see it again!</p>
             </div>
-            <div class="flex items-center gap-2 bg-gray-900 p-3 rounded">
-                <code id="new-key-value" class="flex-1 text-green-400 text-sm break-all font-mono"></code>
-                <button type="button" onclick="window.toggleKeyVisibility()" class="text-gray-400 hover:text-white px-2"><i class="fas fa-eye" id="key-visibility-icon"></i></button>
-                <button type="button" onclick="window.copyNewKey()" class="text-gray-400 hover:text-white px-2"><i class="fas fa-copy"></i></button>
+            <div class="flex items-center gap-2 bg-ink p-3">
+                <code id="new-key-value" class="flex-1 text-success text-sm break-all font-mono"></code>
+                <button type="button" onclick="window.toggleKeyVisibility()" class="text-ink/40 hover:text-white px-2"><i class="fas fa-eye" id="key-visibility-icon"></i></button>
+                <button type="button" onclick="window.copyNewKey()" class="text-ink/40 hover:text-white px-2"><i class="fas fa-copy"></i></button>
             </div>
             <div class="mt-6 flex justify-end">
-                <button type="button" onclick="window.closeModal('new-key-modal')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition">I have copied it</button>
+                <button type="button" onclick="window.closeModal('new-key-modal')" class="btn-secondary">I have copied it</button>
             </div>
         `)}
 
         ${modalTemplate('buy-credits-modal', 'Buy Credits', `
             <form id="buy-credits-form">
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Number of Certificates</label>
-                    <input type="number" id="credit-quantity" min="100" value="100" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                    <p class="text-xs text-gray-500 mt-1">Minimum order quantity: 100</p>
+                    <label class="label">Number of Certificates</label>
+                    <input type="number" id="credit-quantity" min="100" value="100" class="input" required>
+                    <p class="text-xs text-ink/50 mt-1">Minimum order quantity: 100</p>
                 </div>
-                <div class="bg-gray-50 p-4 rounded mb-4">
+                <div class="bg-canvas p-4 mb-4">
                     <div class="flex justify-between mb-2">
-                        <span class="text-sm text-gray-600">Price per cert:</span>
+                        <span class="text-sm text-ink/70">Price per cert:</span>
                         <span id="price-per-cert" class="font-bold">₹2.00</span>
                     </div>
                     <div class="flex justify-between border-t pt-2 mt-2">
                         <span class="font-bold">Total Amount:</span>
-                        <span id="total-price" class="font-bold text-lg text-blue-600">₹200.00</span>
+                        <span id="total-price" class="font-bold text-lg text-cyan">₹200.00</span>
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Pay with PhonePe</button>
+                <button type="submit" class="w-full btn-primary">Pay with PhonePe</button>
             </form>
         `)}
     `;
@@ -108,28 +108,28 @@ async function loadKeys() {
 
 function renderKeysList() {
     if (state.keys.length === 0) {
-        return `<div class="col-span-full text-center py-10 bg-white rounded shadow text-gray-500">No API keys created yet.</div>`;
+        return `<div class="col-span-full text-center py-10 card text-ink/50">No API keys created yet.</div>`;
     }
 
     return state.keys.map(k => `
-        <div class="bg-white rounded-lg shadow-md border ${k.status === 'REVOKED' ? 'border-red-200 bg-red-50 opacity-75' : 'border-gray-200'} overflow-hidden flex flex-col">
+        <div class="card border ${k.status === 'REVOKED' ? 'border-danger bg-danger/10 opacity-75' : 'border-ink'} overflow-hidden flex flex-col">
             <div class="p-5 flex-1">
                 <div class="flex justify-between items-start mb-2">
-                    <h3 class="text-xl font-bold text-gray-800">${k.name}</h3>
-                    ${k.status === 'REVOKED' ? '<span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-bold rounded">REVOKED</span>' : '<span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-bold rounded">ACTIVE</span>'}
+                    <h3 class="text-xl font-black uppercase font-mono mb-2 text-ink">${k.name}</h3>
+                    ${k.status === 'REVOKED' ? '<span class="px-2 py-1 bg-danger text-white border-2 border-ink text-xs font-bold">REVOKED</span>' : '<span class="px-2 py-1 bg-success text-ink border-2 border-ink text-xs font-bold">ACTIVE</span>'}
                 </div>
-                <p class="text-xs text-gray-500 mb-4">Created: ${new Date(k.createdAt).toLocaleDateString()}</p>
+                <p class="text-xs text-ink/50 mb-4">Created: ${new Date(k.createdAt).toLocaleDateString()}</p>
                 
                 <div class="mb-2">
-                    <span class="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded font-mono border">TYPE: ${k.keyType || 'PUBLIC'}</span>
+                    <span class="inline-block px-2 py-1 bg-canvas text-ink/70 text-xs font-mono border">TYPE: ${k.keyType || 'PUBLIC'}</span>
                 </div>
-                <div class="text-sm text-gray-600 mt-2">
-                    <span class="font-bold">Domains:</span> ${k.allowedDomains ? `<code class="bg-gray-100 px-1 rounded">${k.allowedDomains}</code>` : '<em>Any</em>'}
+                <div class="text-sm text-ink/70 mt-2">
+                    <span class="font-bold">Domains:</span> ${k.allowedDomains ? `<code class="bg-canvas px-1">${k.allowedDomains}</code>` : '<em>Any</em>'}
                 </div>
             </div>
             ${k.status !== 'REVOKED' ? `
-            <div class="bg-gray-50 p-3 border-t">
-                <button onclick="window.revokeKey('${k.hash}')" class="w-full bg-white border border-red-300 hover:bg-red-50 text-red-600 text-sm py-1.5 px-3 rounded transition font-medium">
+            <div class="bg-canvas p-3 border-t">
+                <button onclick="window.revokeKey('${k.hash}')" class="w-full btn-danger">
                     Delete Key
                 </button>
             </div>

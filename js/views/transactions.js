@@ -4,22 +4,22 @@ export async function renderTransactions(communityId) {
     const app = document.getElementById('app');
     app.innerHTML = `
         <div class="flex items-center gap-3 mb-6 pb-4 border-b">
-            <a href="#/community/${communityId}" class="text-gray-400 hover:text-gray-700 transition">
+            <a href="#/community/${communityId}" class="text-ink/40 hover:text-ink transition">
                 <i class="fas fa-arrow-left"></i>
             </a>
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">Transactions</h1>
-                <p class="text-xs text-gray-400 font-mono mt-0.5">Community: ${communityId}</p>
+                <h1 class="text-2xl font-black uppercase font-mono border-b-2 border-ink pb-2 inline-block mb-4 text-ink">Transactions</h1>
+                <p class="text-xs text-ink/40 font-mono mt-0.5">Community: ${communityId}</p>
             </div>
         </div>
-        <div class="text-center py-16 text-gray-400">
+        <div class="text-center py-16 text-ink/40">
             <i class="fas fa-spinner fa-spin text-2xl mb-3"></i>
             <p class="text-sm">Loading transactions...</p>
         </div>`;
 
     const res = await api(`/community/${communityId}/transactions/all`);
     if (!res || !res.success) {
-        app.innerHTML += `<div class="text-red-500 text-center mt-10">Failed to load transactions.</div>`;
+        app.innerHTML += `<div class="text-danger text-center mt-10">Failed to load transactions.</div>`;
         return;
     }
 
@@ -43,50 +43,50 @@ function renderView(communityId, allTxns) {
     app.innerHTML = `
         <!-- Header -->
         <div class="flex items-center gap-3 mb-6 pb-4 border-b">
-            <a href="#/community/${communityId}" class="text-gray-400 hover:text-gray-700 transition">
+            <a href="#/community/${communityId}" class="text-ink/40 hover:text-ink transition">
                 <i class="fas fa-arrow-left"></i>
             </a>
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">Transactions</h1>
-                <p class="text-xs text-gray-400 font-mono mt-0.5">Community: ${communityId}</p>
+                <h1 class="text-2xl font-black uppercase font-mono border-b-2 border-ink pb-2 inline-block mb-4 text-ink">Transactions</h1>
+                <p class="text-xs text-ink/40 font-mono mt-0.5">Community: ${communityId}</p>
             </div>
         </div>
 
         <!-- Summary Cards -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Total Revenue</p>
-                <p class="text-2xl font-black text-green-600">₹${totalRevenue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-                <p class="text-xs text-gray-400 mt-1">${completed.length} completed payment${completed.length !== 1 ? 's' : ''}</p>
+            <div class="bg-card border border-ink p-5">
+                <p class="text-xs text-ink/40 uppercase tracking-wider font-semibold mb-1">Total Revenue</p>
+                <p class="text-2xl font-black text-success">₹${totalRevenue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                <p class="text-xs text-ink/40 mt-1">${completed.length} completed payment${completed.length !== 1 ? 's' : ''}</p>
             </div>
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">All Transactions</p>
-                <p class="text-2xl font-black text-gray-800">${allTxns.length}</p>
-                <p class="text-xs text-gray-400 mt-1">across all statuses</p>
+            <div class="bg-card border border-ink p-5">
+                <p class="text-xs text-ink/40 uppercase tracking-wider font-semibold mb-1">All Transactions</p>
+                <p class="text-2xl font-black text-ink">${allTxns.length}</p>
+                <p class="text-xs text-ink/40 mt-1">across all statuses</p>
             </div>
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Pending</p>
+            <div class="bg-card border border-ink p-5">
+                <p class="text-xs text-ink/40 uppercase tracking-wider font-semibold mb-1">Pending</p>
                 <p class="text-2xl font-black text-yellow-500">${pending.length}</p>
-                <p class="text-xs text-gray-400 mt-1">awaiting completion</p>
+                <p class="text-xs text-ink/40 mt-1">awaiting completion</p>
             </div>
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Failed / Dropped</p>
-                <p class="text-2xl font-black text-red-500">${failed.length}</p>
-                <p class="text-xs text-gray-400 mt-1">did not complete</p>
+            <div class="bg-card border border-ink p-5">
+                <p class="text-xs text-ink/40 uppercase tracking-wider font-semibold mb-1">Failed / Dropped</p>
+                <p class="text-2xl font-black text-danger">${failed.length}</p>
+                <p class="text-xs text-ink/40 mt-1">did not complete</p>
             </div>
         </div>
 
         <!-- Filters Bar -->
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-4 p-4">
+        <div class="bg-card border border-ink mb-4 p-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                 <!-- Search -->
                 <div class="lg:col-span-2 relative">
-                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-ink/40 text-xs"></i>
                     <input id="txn-search" type="text" placeholder="Search user, event, order ID..."
-                        class="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                        class="w-full pl-8 pr-3 py-2 text-sm border border-ink focus:outline-none focus:ring-2 focus:ring-blue-500 bg-canvas">
                 </div>
                 <!-- Status Filter -->
-                <select id="txn-status" class="py-2 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                <select id="txn-status" class="py-2 px-3 text-sm border border-ink focus:outline-none focus:ring-2 focus:ring-blue-500 bg-canvas">
                     <option value="">All Statuses</option>
                     <option value="COMPLETED">✅ Completed</option>
                     <option value="PENDING">🕐 Pending</option>
@@ -94,51 +94,51 @@ function renderView(communityId, allTxns) {
                     <option value="USER_DROPPED">🚪 User Dropped</option>
                 </select>
                 <!-- Event Filter -->
-                <select id="txn-event" class="py-2 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                <select id="txn-event" class="py-2 px-3 text-sm border border-ink focus:outline-none focus:ring-2 focus:ring-blue-500 bg-canvas">
                     <option value="">All Events</option>
                     ${eventNames.map(e => `<option value="${e}">${e}</option>`).join('')}
                 </select>
                 <!-- Date Range -->
                 <div class="flex gap-2">
                     <input id="txn-date-from" type="date" title="From date"
-                        class="w-full py-2 px-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                        class="w-full py-2 px-2 text-xs border border-ink focus:outline-none focus:ring-2 focus:ring-blue-500 bg-canvas">
                     <input id="txn-date-to" type="date" title="To date"
-                        class="w-full py-2 px-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                        class="w-full py-2 px-2 text-xs border border-ink focus:outline-none focus:ring-2 focus:ring-blue-500 bg-canvas">
                 </div>
             </div>
             <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-                <p id="txn-count" class="text-xs text-gray-400">Showing all ${allTxns.length} transactions</p>
-                <button id="txn-reset" class="text-xs text-blue-600 hover:text-blue-800 font-medium transition">
+                <p id="txn-count" class="text-xs text-ink/40">Showing all ${allTxns.length} transactions</p>
+                <button id="txn-reset" class="text-xs text-cyan hover:text-cyan font-medium transition">
                     <i class="fas fa-times-circle mr-1"></i>Reset Filters
                 </button>
             </div>
         </div>
 
         <!-- Table -->
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="bg-card border border-ink overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
-                    <thead class="bg-gray-50 border-b border-gray-200">
+                    <thead class="bg-canvas border-b border-ink">
                         <tr>
-                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition select-none" data-sort="timestamp">
-                                Date <i class="fas fa-sort ml-1 text-gray-300"></i>
+                            <th class="px-4 py-3 text-xs font-semibold text-ink/50 uppercase tracking-wider cursor-pointer hover:bg-canvas transition select-none" data-sort="timestamp">
+                                Date <i class="fas fa-sort ml-1 text-canvas"></i>
                             </th>
-                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition select-none" data-sort="userName">
-                                User <i class="fas fa-sort ml-1 text-gray-300"></i>
+                            <th class="px-4 py-3 text-xs font-semibold text-ink/50 uppercase tracking-wider cursor-pointer hover:bg-canvas transition select-none" data-sort="userName">
+                                User <i class="fas fa-sort ml-1 text-canvas"></i>
                             </th>
-                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition select-none" data-sort="eventName">
-                                Event <i class="fas fa-sort ml-1 text-gray-300"></i>
+                            <th class="px-4 py-3 text-xs font-semibold text-ink/50 uppercase tracking-wider cursor-pointer hover:bg-canvas transition select-none" data-sort="eventName">
+                                Event <i class="fas fa-sort ml-1 text-canvas"></i>
                             </th>
-                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <th class="px-4 py-3 text-xs font-semibold text-ink/50 uppercase tracking-wider">
                                 Type
                             </th>
-                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <th class="px-4 py-3 text-xs font-semibold text-ink/50 uppercase tracking-wider">
                                 Order ID
                             </th>
-                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition select-none text-right" data-sort="amount">
-                                Amount <i class="fas fa-sort ml-1 text-gray-300"></i>
+                            <th class="px-4 py-3 text-xs font-semibold text-ink/50 uppercase tracking-wider cursor-pointer hover:bg-canvas transition select-none text-right" data-sort="amount">
+                                Amount <i class="fas fa-sort ml-1 text-canvas"></i>
                             </th>
-                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">
+                            <th class="px-4 py-3 text-xs font-semibold text-ink/50 uppercase tracking-wider text-center">
                                 Status
                             </th>
                         </tr>
@@ -147,7 +147,7 @@ function renderView(communityId, allTxns) {
                     </tbody>
                 </table>
             </div>
-            <div id="txn-empty" class="hidden p-12 text-center text-gray-400">
+            <div id="txn-empty" class="hidden p-12 text-center text-ink/40">
                 <i class="fas fa-search text-3xl mb-3"></i>
                 <p class="font-medium">No transactions match your filters</p>
                 <p class="text-xs mt-1">Try adjusting or resetting the filters above</p>
@@ -212,30 +212,30 @@ function renderView(communityId, allTxns) {
             const shortOrderId = orderId.length > 16 ? orderId.slice(0, 16) + '…' : orderId;
 
             const typeBadge = {
-                CERTIFICATE_PAYMENT: `<span class="bg-purple-50 text-purple-700 border border-purple-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">📜 Certificate</span>`,
-                TICKET_PAYMENT:      `<span class="bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">🎟 Ticket</span>`,
-            }[t.type] || `<span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full text-[10px] font-mono">${t.type || '—'}</span>`;
+                CERTIFICATE_PAYMENT: `<span class="bg-purple-50 text-purple-700 border border-purple-100 px-2 py-0.5 rounded-none text-[10px] font-bold uppercase">📜 Certificate</span>`,
+                TICKET_PAYMENT:      `<span class="bg-canvas text-cyan border border-ink px-2 py-0.5 rounded-none text-[10px] font-bold uppercase">🎟 Ticket</span>`,
+            }[t.type] || `<span class="bg-canvas text-ink/50 px-2 py-0.5 rounded-none text-[10px] font-mono">${t.type || '—'}</span>`;
 
             const statusBadge = {
-                COMPLETED:    `<span class="inline-flex items-center gap-1 bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full text-[10px] font-bold"><span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>COMPLETED</span>`,
-                PENDING:      `<span class="inline-flex items-center gap-1 bg-yellow-50 text-yellow-700 border border-yellow-200 px-2 py-0.5 rounded-full text-[10px] font-bold"><span class="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span>PENDING</span>`,
-                FAILED:       `<span class="inline-flex items-center gap-1 bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded-full text-[10px] font-bold"><span class="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span>FAILED</span>`,
-                USER_DROPPED: `<span class="inline-flex items-center gap-1 bg-gray-100 text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full text-[10px] font-bold"><span class="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block"></span>DROPPED</span>`,
-            }[t.status] || `<span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full text-[10px] font-mono">${t.status || '?'}</span>`;
+                COMPLETED:    `<span class="inline-flex items-center gap-1 bg-success/10 text-green-700 border border-success px-2 py-0.5 rounded-none text-[10px] font-bold"><span class="w-1.5 h-1.5 rounded-none bg-success/100 inline-block"></span>COMPLETED</span>`,
+                PENDING:      `<span class="inline-flex items-center gap-1 bg-yellow-50 text-yellow-700 border border-yellow-200 px-2 py-0.5 rounded-none text-[10px] font-bold"><span class="w-1.5 h-1.5 rounded-none bg-yellow-400 inline-block"></span>PENDING</span>`,
+                FAILED:       `<span class="inline-flex items-center gap-1 bg-danger/10 text-red-700 border border-danger px-2 py-0.5 rounded-none text-[10px] font-bold"><span class="w-1.5 h-1.5 rounded-none bg-danger/100 inline-block"></span>FAILED</span>`,
+                USER_DROPPED: `<span class="inline-flex items-center gap-1 bg-canvas text-ink/50 border border-ink px-2 py-0.5 rounded-none text-[10px] font-bold"><span class="w-1.5 h-1.5 rounded-none bg-ink/40 inline-block"></span>DROPPED</span>`,
+            }[t.status] || `<span class="bg-canvas text-ink/50 px-2 py-0.5 rounded-none text-[10px] font-mono">${t.status || '?'}</span>`;
 
-            const amountColor = t.status === 'COMPLETED' ? 'text-green-600 font-bold' : 'text-gray-400 line-through';
+            const amountColor = t.status === 'COMPLETED' ? 'text-success font-bold' : 'text-ink/40 line-through';
 
             return `
-                <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-4 py-3 text-gray-600 text-xs whitespace-nowrap">${date}</td>
+                <tr class="hover:bg-canvas transition-colors">
+                    <td class="px-4 py-3 text-ink/70 text-xs whitespace-nowrap">${date}</td>
                     <td class="px-4 py-3">
-                        <div class="font-semibold text-gray-800 text-sm">${t.userName || '—'}</div>
-                        <div class="text-[10px] text-gray-400 font-mono">${t.userId || ''}</div>
+                        <div class="font-semibold text-ink text-sm">${t.userName || '—'}</div>
+                        <div class="text-[10px] text-ink/40 font-mono">${t.userId || ''}</div>
                     </td>
-                    <td class="px-4 py-3 text-gray-600 text-sm max-w-[160px] truncate" title="${t.eventName || ''}">${t.eventName || '—'}</td>
+                    <td class="px-4 py-3 text-ink/70 text-sm max-w-[160px] truncate" title="${t.eventName || ''}">${t.eventName || '—'}</td>
                     <td class="px-4 py-3">${typeBadge}</td>
                     <td class="px-4 py-3">
-                        <span class="font-mono text-[10px] text-gray-400 select-all" title="${orderId}">${shortOrderId}</span>
+                        <span class="font-mono text-[10px] text-ink/40 select-all" title="${orderId}">${shortOrderId}</span>
                     </td>
                     <td class="px-4 py-3 text-right text-sm ${amountColor}">₹${parseFloat(t.amount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
                     <td class="px-4 py-3 text-center">${statusBadge}</td>
@@ -251,9 +251,9 @@ function renderView(communityId, allTxns) {
             else { sortKey = key; sortDir = -1; }
             // Update sort icons
             document.querySelectorAll('th[data-sort] i').forEach(i => {
-                i.className = 'fas fa-sort ml-1 text-gray-300';
+                i.className = 'fas fa-sort ml-1 text-canvas';
             });
-            th.querySelector('i').className = `fas fa-sort-${sortDir === -1 ? 'down' : 'up'} ml-1 text-blue-500`;
+            th.querySelector('i').className = `fas fa-sort-${sortDir === -1 ? 'down' : 'up'} ml-1 text-cyan`;
             applyFilters();
         });
     });
@@ -272,7 +272,7 @@ function renderView(communityId, allTxns) {
         document.getElementById('txn-date-to').value   = '';
         sortKey = 'timestamp'; sortDir = -1;
         document.querySelectorAll('th[data-sort] i').forEach(i => {
-            i.className = 'fas fa-sort ml-1 text-gray-300';
+            i.className = 'fas fa-sort ml-1 text-canvas';
         });
         applyFilters();
     });
