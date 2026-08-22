@@ -11,6 +11,7 @@ function renderCommunityFeaturePills(features) {
     if (features.api_access) pills.push('<span class="bg-ink text-cyan border-2 border-ink text-xs px-2.5 py-1 font-mono font-black tracking-wider uppercase shadow-[2px_2px_0_0_#0b0b0b]">API</span>');
     if (features.transactions) pills.push('<span class="bg-emerald-300 text-ink border-2 border-ink text-xs px-2.5 py-1 font-mono font-black tracking-wider uppercase shadow-[2px_2px_0_0_#0b0b0b]">Rev</span>');
     if (features.ctf) pills.push('<span class="bg-purple-300 text-ink border-2 border-ink text-xs px-2.5 py-1 font-mono font-black tracking-wider uppercase shadow-[2px_2px_0_0_#0b0b0b]">CTF</span>');
+    if (features.display_on_main_site) pills.push('<span class="bg-blue-300 text-ink border-2 border-ink text-xs px-2.5 py-1 font-mono font-black tracking-wider uppercase shadow-[2px_2px_0_0_#0b0b0b]">Listed</span>');
 
     return pills.length ? `<div class="flex flex-wrap gap-1.5">${pills.join('')}</div>` : '<span class="bg-canvas text-neutral-600 border-2 border-ink text-xs px-2.5 py-1 font-mono font-bold tracking-wider uppercase shadow-[2px_2px_0_0_#0b0b0b]">Base</span>';
 }
@@ -33,12 +34,13 @@ export async function renderCommunity(id) {
 
         const { community, team, events, posts, permissions } = res.data;
         const features = community.features || {};
-        const hasFullEvents   = !!features.full_events;
-        const hasPosts        = !!features.posts;
-        const hasCertificates = features.certificates !== false;
-        const hasApiAccess    = !!features.api_access;
-        const hasTransactions = !!features.transactions;
-        const hasCtf          = !!features.ctf;
+        const hasFullEvents        = !!features.full_events;
+        const hasPosts             = !!features.posts;
+        const hasCertificates      = features.certificates !== false;
+        const hasApiAccess         = !!features.api_access;
+        const hasTransactions      = !!features.transactions;
+        const hasCtf               = !!features.ctf;
+        const hasMainSiteDisplay   = !!features.display_on_main_site;
 
         let transactions = [];
         let usages = [];
@@ -560,6 +562,13 @@ export async function renderCommunity(id) {
                                 <div class="text-[11px] text-neutral-600">Security challenge builder, solution approval workflows, and scoreboards.</div>
                             </div>
                         </label>
+                        <label class="flex items-start gap-3 p-3 bg-canvas border-2 border-ink cursor-pointer hover:bg-neutral-100 transition">
+                            <input type="checkbox" name="feat_display_on_main_site" ${hasMainSiteDisplay ? 'checked' : ''} class="w-5 h-5 accent-cyan border-2 border-ink mt-0.5">
+                            <div>
+                                <div class="font-black text-ink uppercase">List on Main Site</div>
+                                <div class="text-[11px] text-neutral-600">Display this community's events on the public directory at haxnation.org.</div>
+                            </div>
+                        </label>
                     </div>
 
                     <div class="pt-4 border-t-2 border-ink flex justify-end gap-3">
@@ -669,6 +678,7 @@ window.handleUpdateCommunityFeatures = async (e, cid) => {
         api_access: fd.get('feat_api_access') === 'on',
         transactions: fd.get('feat_transactions') === 'on',
         ctf: fd.get('feat_ctf') === 'on',
+        display_on_main_site: fd.get('feat_display_on_main_site') === 'on',
     };
 
     const res = await api(`/community/${cid}/features`, 'PUT', { features });

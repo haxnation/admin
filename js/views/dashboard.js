@@ -11,6 +11,7 @@ function renderFeatureBadges(features) {
     if (features.api_access) badges.push('<span class="bg-ink text-cyan border border-ink text-[10px] font-mono font-bold px-1.5 py-0.5 uppercase">API</span>');
     if (features.transactions) badges.push('<span class="bg-emerald-300 text-ink border border-ink text-[10px] font-mono font-bold px-1.5 py-0.5 uppercase shadow-[1px_1px_0_0_#0b0b0b]">Rev</span>');
     if (features.ctf) badges.push('<span class="bg-purple-300 text-ink border border-ink text-[10px] font-mono font-bold px-1.5 py-0.5 uppercase shadow-[1px_1px_0_0_#0b0b0b]">CTF</span>');
+    if (features.display_on_main_site) badges.push('<span class="bg-blue-300 text-ink border border-ink text-[10px] font-mono font-bold px-1.5 py-0.5 uppercase shadow-[1px_1px_0_0_#0b0b0b]">Listed</span>');
 
     return badges.length ? `<div class="flex flex-wrap gap-1">${badges.join('')}</div>` : '<span class="bg-canvas text-neutral-600 border border-ink/40 text-[10px] font-mono font-bold px-1.5 py-0.5 uppercase">Base</span>';
 }
@@ -118,6 +119,10 @@ export async function renderDashboard() {
                             <input type="checkbox" name="feat_ctf" class="w-4 h-4 accent-cyan border-2 border-ink">
                             <span><b>CTF Challenges</b></span>
                         </label>
+                        <label class="flex items-center gap-2 p-2 bg-white border border-ink cursor-pointer col-span-1 sm:col-span-2">
+                            <input type="checkbox" name="feat_display_on_main_site" class="w-4 h-4 accent-cyan border-2 border-ink">
+                            <span><b>List on Main Site</b> (Display events on haxnation.org)</span>
+                        </label>
                     </div>
                 </div>
 
@@ -141,6 +146,7 @@ async function handleCreateCommunity(e) {
         api_access: fd.get('feat_api_access') === 'on',
         transactions: fd.get('feat_transactions') === 'on',
         ctf: fd.get('feat_ctf') === 'on',
+        display_on_main_site: fd.get('feat_display_on_main_site') === 'on',
     };
     const body = {
         name: fd.get('name'),
