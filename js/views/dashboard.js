@@ -1,6 +1,20 @@
 import { api, modalTemplate } from '../utils.js';
 import { currentUser } from '../auth.js';
 
+function renderFeatureBadges(features) {
+    if (!features) return '<span class="bg-canvas text-neutral-600 border border-ink/40 text-[10px] font-mono font-bold px-1.5 py-0.5 uppercase">Base</span>';
+    
+    const badges = [];
+    if (features.full_events) badges.push('<span class="bg-cyan text-ink border border-ink text-[10px] font-mono font-bold px-1.5 py-0.5 uppercase shadow-[1px_1px_0_0_#0b0b0b]">Events</span>');
+    if (features.posts) badges.push('<span class="bg-success text-ink border border-ink text-[10px] font-mono font-bold px-1.5 py-0.5 uppercase shadow-[1px_1px_0_0_#0b0b0b]">Posts</span>');
+    if (features.certificates) badges.push('<span class="bg-warning text-ink border border-ink text-[10px] font-mono font-bold px-1.5 py-0.5 uppercase shadow-[1px_1px_0_0_#0b0b0b]">Certs</span>');
+    if (features.api_access) badges.push('<span class="bg-ink text-cyan border border-ink text-[10px] font-mono font-bold px-1.5 py-0.5 uppercase">API</span>');
+    if (features.transactions) badges.push('<span class="bg-emerald-300 text-ink border border-ink text-[10px] font-mono font-bold px-1.5 py-0.5 uppercase shadow-[1px_1px_0_0_#0b0b0b]">Rev</span>');
+    if (features.ctf) badges.push('<span class="bg-purple-300 text-ink border border-ink text-[10px] font-mono font-bold px-1.5 py-0.5 uppercase shadow-[1px_1px_0_0_#0b0b0b]">CTF</span>');
+
+    return badges.length ? `<div class="flex flex-wrap gap-1">${badges.join('')}</div>` : '<span class="bg-canvas text-neutral-600 border border-ink/40 text-[10px] font-mono font-bold px-1.5 py-0.5 uppercase">Base</span>';
+}
+
 export async function renderDashboard() {
     if (!currentUser) return;
     document.getElementById('app').innerHTML = `
@@ -30,11 +44,11 @@ export async function renderDashboard() {
                 </div>
             </div>
             
-            <div class="mt-6 pt-4 border-t-2 border-ink flex items-center justify-between">
+            <div class="mt-6 pt-4 border-t-2 border-ink flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                    ${c.features?.posts ? '<span class="bg-success text-ink border-2 border-ink text-[10px] font-mono font-bold px-2 py-0.5 uppercase shadow-[2px_2px_0_0_#0b0b0b]">Posts Enabled</span>' : '<span class="bg-canvas text-neutral-600 border border-ink/40 text-[10px] font-mono font-bold px-2 py-0.5 uppercase">Standard</span>'}
+                    ${renderFeatureBadges(c.features)}
                 </div>
-                <span class="font-mono text-xs font-bold uppercase text-ink underline group-hover:text-cyan transition-colors">Manage →</span>
+                <span class="font-mono text-xs font-bold uppercase text-ink underline group-hover:text-cyan transition-colors whitespace-nowrap self-end sm:self-auto">Manage →</span>
             </div>
         </a>
     `).join('');
@@ -64,7 +78,7 @@ export async function renderDashboard() {
         </div>
 
         ${modalTemplate('create-community', 'Create New Community', `
-            <form onsubmit="handleCreateCommunity(event)" class="space-y-4">
+            <form onsubmit="handleCreateCommunity(event)" class="space-y-4 font-mono">
                 <div>
                     <label class="label" for="comm-name">Community Name</label>
                     <input type="text" id="comm-name" name="name" placeholder="e.g. Mumbai Chapter" class="input" required>
@@ -74,13 +88,39 @@ export async function renderDashboard() {
                     <input type="text" id="comm-owner" name="ownerId" placeholder="e.g. user_abc123" class="input" required>
                     <p class="font-mono text-[11px] text-neutral-600 mt-1 font-semibold">User ID of the designated community manager.</p>
                 </div>
-                <div class="bg-canvas border-2 border-ink p-3 my-4">
-                    <label class="flex items-center gap-3 cursor-pointer font-mono text-xs font-bold uppercase text-ink">
-                        <input type="checkbox" name="postFeature" class="w-4 h-4 accent-cyan border-2 border-ink"> 
-                        Enable Social Posts Module
-                    </label>
-                    <p class="font-mono text-[10px] text-neutral-600 ml-7 mt-1">Allows community managers to publish and schedule updates.</p>
+
+                <div class="border-2 border-ink p-3 bg-canvas mt-4">
+                    <div class="font-black text-xs uppercase text-ink mb-2 flex items-center gap-2">
+                        <i class="fas fa-sliders-h text-cyan"></i> Feature Entitlements (RBAC)
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <label class="flex items-center gap-2 p-2 bg-white border border-ink cursor-pointer">
+                            <input type="checkbox" name="feat_full_events" checked class="w-4 h-4 accent-cyan border-2 border-ink">
+                            <span><b>Full Events</b> (Public/Tickets)</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white border border-ink cursor-pointer">
+                            <input type="checkbox" name="feat_posts" checked class="w-4 h-4 accent-cyan border-2 border-ink">
+                            <span><b>Social Posts</b></span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white border border-ink cursor-pointer">
+                            <input type="checkbox" name="feat_certificates" checked class="w-4 h-4 accent-cyan border-2 border-ink">
+                            <span><b>Certificates Designer</b></span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white border border-ink cursor-pointer">
+                            <input type="checkbox" name="feat_api_access" class="w-4 h-4 accent-cyan border-2 border-ink">
+                            <span><b>API Access &amp; Keys</b></span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white border border-ink cursor-pointer">
+                            <input type="checkbox" name="feat_transactions" class="w-4 h-4 accent-cyan border-2 border-ink">
+                            <span><b>Revenue &amp; Ledgers</b></span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white border border-ink cursor-pointer">
+                            <input type="checkbox" name="feat_ctf" class="w-4 h-4 accent-cyan border-2 border-ink">
+                            <span><b>CTF Challenges</b></span>
+                        </label>
+                    </div>
                 </div>
+
                 <div class="pt-2 flex justify-end gap-3 border-t-2 border-ink">
                     <button type="button" onclick="closeModal('create-community')" class="btn-secondary">Cancel</button>
                     <button type="submit" class="btn-primary">Create Community</button>
@@ -94,7 +134,19 @@ export async function renderDashboard() {
 async function handleCreateCommunity(e) {
     e.preventDefault();
     const fd = new FormData(e.target);
-    const body = { name: fd.get('name'), ownerId: fd.get('ownerId'), postFeature: fd.get('postFeature') === 'on' };
+    const features = {
+        full_events: fd.get('feat_full_events') === 'on',
+        posts: fd.get('feat_posts') === 'on',
+        certificates: fd.get('feat_certificates') === 'on',
+        api_access: fd.get('feat_api_access') === 'on',
+        transactions: fd.get('feat_transactions') === 'on',
+        ctf: fd.get('feat_ctf') === 'on',
+    };
+    const body = {
+        name: fd.get('name'),
+        ownerId: fd.get('ownerId'),
+        features
+    };
     const res = await api('/community', 'POST', body);
     if (res && res.success !== false) {
         window.closeModal('create-community');

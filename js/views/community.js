@@ -1,6 +1,20 @@
 import { api, modalTemplate } from '../utils.js';
 import { currentUser } from '../auth.js';
 
+function renderCommunityFeaturePills(features) {
+    if (!features) return '<span class="bg-canvas text-neutral-600 border-2 border-ink text-xs px-2.5 py-1 font-mono font-bold tracking-wider uppercase shadow-[2px_2px_0_0_#0b0b0b]">STANDARD</span>';
+    
+    const pills = [];
+    if (features.full_events) pills.push('<span class="bg-cyan text-ink border-2 border-ink text-xs px-2.5 py-1 font-mono font-black tracking-wider uppercase shadow-[2px_2px_0_0_#0b0b0b]">Events</span>');
+    if (features.posts) pills.push('<span class="bg-success text-ink border-2 border-ink text-xs px-2.5 py-1 font-mono font-black tracking-wider uppercase shadow-[2px_2px_0_0_#0b0b0b]">Posts</span>');
+    if (features.certificates) pills.push('<span class="bg-warning text-ink border-2 border-ink text-xs px-2.5 py-1 font-mono font-black tracking-wider uppercase shadow-[2px_2px_0_0_#0b0b0b]">Certs</span>');
+    if (features.api_access) pills.push('<span class="bg-ink text-cyan border-2 border-ink text-xs px-2.5 py-1 font-mono font-black tracking-wider uppercase shadow-[2px_2px_0_0_#0b0b0b]">API</span>');
+    if (features.transactions) pills.push('<span class="bg-emerald-300 text-ink border-2 border-ink text-xs px-2.5 py-1 font-mono font-black tracking-wider uppercase shadow-[2px_2px_0_0_#0b0b0b]">Rev</span>');
+    if (features.ctf) pills.push('<span class="bg-purple-300 text-ink border-2 border-ink text-xs px-2.5 py-1 font-mono font-black tracking-wider uppercase shadow-[2px_2px_0_0_#0b0b0b]">CTF</span>');
+
+    return pills.length ? `<div class="flex flex-wrap gap-1.5">${pills.join('')}</div>` : '<span class="bg-canvas text-neutral-600 border-2 border-ink text-xs px-2.5 py-1 font-mono font-bold tracking-wider uppercase shadow-[2px_2px_0_0_#0b0b0b]">Base</span>';
+}
+
 export async function renderCommunity(id) {
     document.getElementById('app').innerHTML = `
         <div class="flex flex-col items-center justify-center py-20 gap-4">
@@ -18,13 +32,21 @@ export async function renderCommunity(id) {
         }
 
         const { community, team, events, posts, permissions } = res.data;
+        const features = community.features || {};
+        const hasFullEvents   = !!features.full_events;
+        const hasPosts        = !!features.posts;
+        const hasCertificates = features.certificates !== false;
+        const hasApiAccess    = !!features.api_access;
+        const hasTransactions = !!features.transactions;
+        const hasCtf          = !!features.ctf;
 
         let transactions = [];
         let usages = [];
-        if (community.communityType === 'SUPER') {
+        if (hasTransactions) {
             const txnRes = await api(`/community/${id}/transactions`);
             if (txnRes && txnRes.success) transactions = txnRes.data.transactions || [];
-        } else {
+        }
+        if (hasApiAccess) {
             const usagesRes = await api(`/community/${id}/apikeys/usages`);
             if (usagesRes && usagesRes.success) usages = usagesRes.data.usages || [];
         }
@@ -38,9 +60,9 @@ export async function renderCommunity(id) {
 
         const canManageTeam   = has('MANAGE_TEAM');
         const canManageEvents = has('MANAGE_EVENTS');
-        const canManagePosts  = has('MANAGE_POSTS') && community.features?.posts;
+        const canManagePosts  = has('MANAGE_POSTS') && hasPosts;
         // Check if user can manage templates (usually requires event/community management perms)
-        const canManageTemplates = has('MANAGE_COMMUNITY') || has('ALL');
+        const canManageTemplates = (has('MANAGE_COMMUNITY') || has('ALL')) && hasCertificates;
 
         // --- 3. RENDER EVENTS ---
         const eventsHtml = events.map(e => `
@@ -128,15 +150,15 @@ export async function renderCommunity(id) {
                     <div>
                         <h1 class="text-2xl sm:text-4xl font-black font-mono text-ink uppercase tracking-tight flex items-center flex-wrap gap-2">
                             ${community.name}
-                            ${community.communityType === 'SUPER' ? '<span class="bg-warning text-ink border-2 border-ink text-xs px-2.5 py-1 font-mono font-black tracking-wider uppercase shadow-[2px_2px_0_0_#0b0b0b]"><i class="fas fa-crown text-ink mr-1"></i> SUPER</span>' : '<span class="bg-canvas text-ink border-2 border-ink text-xs px-2.5 py-1 font-mono font-bold tracking-wider uppercase shadow-[2px_2px_0_0_#0b0b0b]">STANDARD</span>'}
+                            ${renderCommunityFeaturePills(features)}
                         </h1>
                         <p class="text-xs text-neutral-700 font-mono font-bold mt-1">ID: ${id}</p>
                     </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                    ${(currentUser.platformRole === 'SUPER_ADMIN' && community.communityType !== 'SUPER') ? `
-                        <button onclick="window.promoteCommunity('${id}')" class="btn-primary !bg-warning hover:!bg-yellow-400 text-ink">
-                            <i class="fas fa-crown mr-1"></i> Promote to SUPER
+                    ${currentUser.platformRole === 'SUPER_ADMIN' ? `
+                        <button onclick="openModal('manage-features-modal')" class="btn-primary !bg-purple-300 hover:!bg-purple-400 text-ink">
+                            <i class="fas fa-sliders-h mr-1"></i> Manage Features
                         </button>
                     ` : ''}
                     ${canManageTemplates ? `
@@ -156,7 +178,7 @@ export async function renderCommunity(id) {
                     
                     <!-- Metrics Card -->
                     <div class="bg-white border-2 border-ink shadow-[4px_4px_0_0_#0b0b0b] overflow-hidden">
-                        ${community.communityType === 'SUPER' ? `
+                        ${hasTransactions ? `
                         <div class="p-4 bg-canvas border-b-2 border-ink flex justify-between items-center font-mono">
                             <h2 class="font-black text-sm uppercase text-ink flex items-center gap-2">
                                 💰 Revenue &amp; Transactions
@@ -183,13 +205,13 @@ export async function renderCommunity(id) {
                                class="btn-secondary flex-1">
                                 <i class="fas fa-table"></i> Open Transactions
                             </a>
-                            ${canManageTemplates ? `
+                            ${hasApiAccess && canManageTemplates ? `
                             <button onclick="openApiIntegrations('${id}')" class="btn-secondary flex-1">
                                 <i class="fas fa-code"></i> API Integrations
                             </button>
                             ` : ''}
                         </div>
-                        ` : community.communityType === 'B2B' ? `
+                        ` : hasApiAccess ? `
                         <div class="p-4 bg-canvas border-b-2 border-ink flex justify-between items-center font-mono">
                             <h2 class="font-black text-sm uppercase text-ink flex items-center gap-2">
                                 🔑 Credits &amp; API Usage
@@ -310,7 +332,7 @@ export async function renderCommunity(id) {
                             </div>
                         </div>
 
-                        ${canManageTemplates ? `
+                        ${(canManageTemplates && hasApiAccess) ? `
                         <div class="mt-4 pt-4 border-t-2 border-ink">
                             <span class="block text-xs font-bold text-neutral-700 uppercase tracking-wide mb-2">B2B API Access</span>
                             <div class="flex items-center justify-between bg-canvas border-2 border-ink p-3">
@@ -342,7 +364,7 @@ export async function renderCommunity(id) {
                         <input type="text" id="ev-name" name="name" placeholder="e.g. CyberSecurity Summit 2026" class="input" required>
                     </div>
                     
-                    ${community.communityType === 'SUPER' ? `
+                    ${hasFullEvents ? `
                         <div class="bg-canvas border-2 border-ink p-3 my-3">
                             <label class="flex items-center gap-3 cursor-pointer">
                                 <input type="checkbox" name="isApiOnly" id="is-api-only-toggle" onchange="window.toggleEventTypeUI()" class="w-4 h-4 accent-cyan border-2 border-ink"> 
@@ -352,17 +374,17 @@ export async function renderCommunity(id) {
                         </div>
                     ` : `
                         <div class="bg-canvas border-2 border-ink p-3 my-3">
-                            <span class="text-xs font-bold text-ink uppercase flex items-center gap-2"><i class="fas fa-info-circle text-cyan"></i> Standard Community Mode</span>
-                            <p class="text-[11px] text-neutral-700 mt-1">Standard communities can only create API-Only events. Upgrade to SUPER for full-featured ticketed events.</p>
+                            <span class="text-xs font-bold text-ink uppercase flex items-center gap-2"><i class="fas fa-info-circle text-cyan"></i> API-Only Mode Active</span>
+                            <p class="text-[11px] text-neutral-700 mt-1">Full public events module is disabled for this community. Events are created in headless API-Only mode.</p>
                             <input type="hidden" name="isApiOnly" value="on">
                         </div>
                     `}
 
-                    <div id="full-feature-fields" class="${community.communityType !== 'SUPER' ? 'hidden' : ''}">
+                    <div id="full-feature-fields" class="${!hasFullEvents ? 'hidden' : ''}">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                             <div>
                                 <label class="label" for="input-event-date">Date & Time</label>
-                                <input type="datetime-local" id="input-event-date" name="date" class="input !p-2" ${community.communityType === 'SUPER' ? 'required' : ''}>
+                                <input type="datetime-local" id="input-event-date" name="date" class="input !p-2" ${hasFullEvents ? 'required' : ''}>
                             </div>
                             <div>
                                 <label class="label" for="ev-timezone">Timezone</label>
@@ -383,7 +405,7 @@ export async function renderCommunity(id) {
                             <label class="label" for="input-custom-slug">Custom Link</label>
                             <div class="flex">
                                 <span class="bg-canvas border-2 border-r-0 border-ink p-3 text-ink text-xs font-bold select-none">haxnation.org/</span>
-                                <input type="text" name="customSlug" id="input-custom-slug" placeholder="my-event-slug" class="input !border-l-0" ${community.communityType === 'SUPER' ? 'required' : ''}>
+                                <input type="text" name="customSlug" id="input-custom-slug" placeholder="my-event-slug" class="input !border-l-0" ${hasFullEvents ? 'required' : ''}>
                             </div>
                         </div>
                         
@@ -490,6 +512,62 @@ export async function renderCommunity(id) {
                     </div>
                 </form>
             `)}
+
+            ${modalTemplate('manage-features-modal', 'Manage Community Features (RBAC)', `
+                <form onsubmit="handleUpdateCommunityFeatures(event, '${id}')" class="space-y-4 font-mono">
+                    <p class="text-xs text-neutral-700 font-semibold mb-2">Configure which feature modules are enabled for this community.</p>
+                    
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-start gap-3 p-3 bg-canvas border-2 border-ink cursor-pointer hover:bg-neutral-100 transition">
+                            <input type="checkbox" name="feat_full_events" ${hasFullEvents ? 'checked' : ''} class="w-5 h-5 accent-cyan border-2 border-ink mt-0.5">
+                            <div>
+                                <div class="font-black text-ink uppercase">Full Public Events</div>
+                                <div class="text-[11px] text-neutral-600">Public event landing pages, custom URLs, ticketing, registration approvals, and waitlists.</div>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 bg-canvas border-2 border-ink cursor-pointer hover:bg-neutral-100 transition">
+                            <input type="checkbox" name="feat_posts" ${hasPosts ? 'checked' : ''} class="w-5 h-5 accent-cyan border-2 border-ink mt-0.5">
+                            <div>
+                                <div class="font-black text-ink uppercase">Social Posts</div>
+                                <div class="text-[11px] text-neutral-600">Publish and schedule community updates and announcements.</div>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 bg-canvas border-2 border-ink cursor-pointer hover:bg-neutral-100 transition">
+                            <input type="checkbox" name="feat_certificates" ${hasCertificates ? 'checked' : ''} class="w-5 h-5 accent-cyan border-2 border-ink mt-0.5">
+                            <div>
+                                <div class="font-black text-ink uppercase">Certificate Designer</div>
+                                <div class="text-[11px] text-neutral-600">Customize community default certificate templates and issue certificates.</div>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 bg-canvas border-2 border-ink cursor-pointer hover:bg-neutral-100 transition">
+                            <input type="checkbox" name="feat_api_access" ${hasApiAccess ? 'checked' : ''} class="w-5 h-5 accent-cyan border-2 border-ink mt-0.5">
+                            <div>
+                                <div class="font-black text-ink uppercase">B2B API &amp; Credits</div>
+                                <div class="text-[11px] text-neutral-600">Headless API keys, automated certificate issuance, and credit quotas.</div>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 bg-canvas border-2 border-ink cursor-pointer hover:bg-neutral-100 transition">
+                            <input type="checkbox" name="feat_transactions" ${hasTransactions ? 'checked' : ''} class="w-5 h-5 accent-cyan border-2 border-ink mt-0.5">
+                            <div>
+                                <div class="font-black text-ink uppercase">Revenue &amp; Transactions</div>
+                                <div class="text-[11px] text-neutral-600">Collect event payments, view transaction ledgers, and track revenue.</div>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 bg-canvas border-2 border-ink cursor-pointer hover:bg-neutral-100 transition">
+                            <input type="checkbox" name="feat_ctf" ${hasCtf ? 'checked' : ''} class="w-5 h-5 accent-cyan border-2 border-ink mt-0.5">
+                            <div>
+                                <div class="font-black text-ink uppercase">CTF Challenges</div>
+                                <div class="text-[11px] text-neutral-600">Security challenge builder, solution approval workflows, and scoreboards.</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="pt-4 border-t-2 border-ink flex justify-end gap-3">
+                        <button type="button" onclick="closeModal('manage-features-modal')" class="btn-secondary">Cancel</button>
+                        <button type="submit" class="btn-primary">Save Features</button>
+                    </div>
+                </form>
+            `)}
         `;
 
     } catch(e) {
@@ -581,6 +659,27 @@ window.handleSaveCommunitySettings = async (e, id) => {
     }
 };
 
+window.handleUpdateCommunityFeatures = async (e, cid) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const features = {
+        full_events: fd.get('feat_full_events') === 'on',
+        posts: fd.get('feat_posts') === 'on',
+        certificates: fd.get('feat_certificates') === 'on',
+        api_access: fd.get('feat_api_access') === 'on',
+        transactions: fd.get('feat_transactions') === 'on',
+        ctf: fd.get('feat_ctf') === 'on',
+    };
+
+    const res = await api(`/community/${cid}/features`, 'PUT', { features });
+    if (res && res.success) {
+        window.closeModal('manage-features-modal');
+        renderCommunity(cid);
+    } else {
+        alert(res?.error || 'Failed to update community features');
+    }
+};
+
 window.handleRemoveRole = async (cid, uid) => {
     if(!confirm('Are you sure you want to remove this team member? Their access will be revoked immediately.')) return;
     const res = await api('/role/remove', 'POST', { communityId: cid, userId: uid });
@@ -620,12 +719,4 @@ window.toggleEventTypeUI = () => {
         if (slugInput) slugInput.required = true;
         if (dateInput) dateInput.required = true;
     }
-};
-
-window.promoteCommunity = async (id) => {
-    if(!confirm("Promote this community to SUPER?")) return;
-    const res = await api(`/community/${id}/type`, 'PUT');
-    if(res && res.success) {
-        renderCommunity(id);
-    } else alert(res?.error || 'Failed to promote');
 };
