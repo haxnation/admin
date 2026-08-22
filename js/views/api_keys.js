@@ -1,4 +1,4 @@
-import { api, modalTemplate } from '../utils.js';
+import { api, modalTemplate, escapeHtml } from '../utils.js';
 
 let state = {
     keys: []
@@ -18,17 +18,20 @@ export async function renderApiKeys(communityId) {
     app.innerHTML = `
         <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-4 border-ink pb-6 font-mono">
             <div class="flex items-center gap-4">
-                <a href="#/community/${state.communityId}" class="btn-secondary !px-3 !py-2" aria-label="Back to community">
+                <a href="#/community/${encodeURIComponent(state.communityId)}" class="btn-secondary !px-3 !py-2" aria-label="Back to community">
                     <i class="fas fa-arrow-left"></i>
                 </a>
                 <div>
                     <h1 class="text-3xl sm:text-5xl font-black tracking-tighter uppercase leading-none text-ink">
                         API Keys<span class="inline-block w-3 h-[0.7em] bg-cyan animate-pulse align-baseline ml-2"></span>
                     </h1>
-                    <p class="text-xs text-neutral-700 font-bold mt-1">Manage API credentials & certificate generation credits.</p>
+                    <p class="text-xs text-neutral-700 font-bold mt-1">Manage API credentials & certificate generation credits (certificates valid & stored for 2 years).</p>
                 </div>
             </div>
             <div class="flex flex-wrap gap-2 items-center">
+                <a href="api-docs.html" target="_blank" class="btn-secondary">
+                    <i class="fas fa-book mr-1"></i> API Docs
+                </a>
                 <button onclick="window.openBuyCredits()" class="btn-primary !bg-warning hover:!bg-yellow-400 text-ink">
                     <i class="fas fa-coins mr-1"></i> Buy Credits
                 </button>
@@ -100,6 +103,7 @@ export async function renderApiKeys(communityId) {
                     <input type="number" id="credit-quantity" min="100" value="100" class="input" required>
                     <p class="text-[11px] text-neutral-600 mt-1 font-bold">Minimum order batch: 100 certificates</p>
                 </div>
+                <p class="text-[11px] text-neutral-600 font-bold">Policy: Certificates generated with credits are valid and stored for 2 years from date of issue.</p>
                 <div class="bg-canvas border-2 border-ink p-4 shadow-[2px_2px_0_0_#0b0b0b]">
                     <div class="flex justify-between mb-2">
                         <span class="text-xs text-neutral-700 font-bold uppercase">Rate per cert:</span>
@@ -137,21 +141,21 @@ function renderKeysList() {
         <div class="bg-white border-2 border-ink shadow-[4px_4px_0_0_#0b0b0b] overflow-hidden flex flex-col justify-between font-mono ${k.status === 'REVOKED' ? 'opacity-70 bg-neutral-100' : ''}">
             <div class="p-5 flex-1">
                 <div class="flex justify-between items-start mb-3 gap-2">
-                    <h3 class="text-base font-black uppercase tracking-tight text-ink">${k.name}</h3>
+                    <h3 class="text-base font-black uppercase tracking-tight text-ink">${escapeHtml(k.name)}</h3>
                     ${k.status === 'REVOKED' ? '<span class="badge bg-danger text-white">REVOKED</span>' : '<span class="badge bg-success text-ink">ACTIVE</span>'}
                 </div>
-                <p class="text-[11px] text-neutral-600 mb-3 font-semibold">Created: ${new Date(k.createdAt).toLocaleDateString()}</p>
+                <p class="text-[11px] text-neutral-600 mb-3 font-semibold">Created: ${escapeHtml(new Date(k.createdAt).toLocaleDateString())}</p>
                 
                 <div class="mb-3">
-                    <span class="badge bg-canvas text-neutral-800">TYPE: ${k.keyType || 'PUBLIC'}</span>
+                    <span class="badge bg-canvas text-neutral-800">TYPE: ${escapeHtml(k.keyType || 'PUBLIC')}</span>
                 </div>
                 <div class="text-xs text-neutral-700 mt-2">
-                    <span class="font-bold uppercase">Domains:</span> ${k.allowedDomains ? `<code class="bg-canvas border border-ink/40 px-1 py-0.5 text-[11px]">${k.allowedDomains}</code>` : '<span class="italic font-bold">Any origin (*)</span>'}
+                    <span class="font-bold uppercase">Domains:</span> ${k.allowedDomains ? `<code class="bg-canvas border border-ink/40 px-1 py-0.5 text-[11px]">${escapeHtml(k.allowedDomains)}</code>` : '<span class="italic font-bold">Any origin (*)</span>'}
                 </div>
             </div>
             ${k.status !== 'REVOKED' ? `
             <div class="bg-canvas p-3 border-t-2 border-ink">
-                <button onclick="window.revokeKey('${k.hash}')" class="w-full btn-danger !text-xs !py-2">
+                <button onclick="window.revokeKey('${escapeHtml(k.hash)}')" class="w-full btn-danger !text-xs !py-2">
                     <i class="fas fa-trash mr-1"></i> Delete Key
                 </button>
             </div>

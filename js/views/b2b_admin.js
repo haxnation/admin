@@ -1,4 +1,4 @@
-import { api, modalTemplate } from '../utils.js';
+import { api, modalTemplate, escapeHtml } from '../utils.js';
 
 let state = {
     applications: [],
@@ -88,14 +88,14 @@ function renderApplications() {
     return state.applications.map(app => `
         <div class="border-2 border-ink p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-canvas shadow-[3px_3px_0_0_#0b0b0b]">
             <div>
-                <p class="font-black text-sm text-ink uppercase">${app.name}</p>
-                <p class="text-[11px] text-neutral-600 font-mono mt-0.5 font-bold">ID: ${app.id}</p>
+                <p class="font-black text-sm text-ink uppercase">${escapeHtml(app.name)}</p>
+                <p class="text-[11px] text-neutral-600 font-mono mt-0.5 font-bold">ID: ${escapeHtml(app.id)}</p>
             </div>
             <div class="flex gap-2 w-full sm:w-auto justify-end">
-                <button onclick="window.updateB2BStatus('${app.id}', 'APPROVED')" class="btn-primary !text-xs !px-3 !py-1">
+                <button onclick="window.updateB2BStatus('${escapeHtml(app.id)}', 'APPROVED')" class="btn-primary !text-xs !px-3 !py-1">
                     <i class="fas fa-check mr-1"></i> Approve
                 </button>
-                <button onclick="window.updateB2BStatus('${app.id}', 'REJECTED')" class="btn-danger !text-xs !px-3 !py-1">
+                <button onclick="window.updateB2BStatus('${escapeHtml(app.id)}', 'REJECTED')" class="btn-danger !text-xs !px-3 !py-1">
                     <i class="fas fa-times mr-1"></i> Reject
                 </button>
             </div>
@@ -109,15 +109,15 @@ function renderApproved() {
     return state.communities.map(comm => `
         <div class="border-2 border-ink p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white shadow-[3px_3px_0_0_#0b0b0b]">
             <div>
-                <p class="font-black text-sm text-ink uppercase">${comm.name}</p>
-                <p class="text-[11px] text-neutral-600 font-mono mb-2 font-bold">ID: ${comm.id}</p>
-                <span class="badge bg-cyan text-ink">Credits: ${comm.credits || 0}</span>
+                <p class="font-black text-sm text-ink uppercase">${escapeHtml(comm.name)}</p>
+                <p class="text-[11px] text-neutral-600 font-mono mb-2 font-bold">ID: ${escapeHtml(comm.id)}</p>
+                <span class="badge bg-cyan text-ink">Credits: ${escapeHtml(comm.credits || 0)}</span>
             </div>
             <div class="flex flex-wrap sm:flex-col gap-2 w-full sm:w-auto justify-end">
-                <button onclick="window.openOverrideCredits('${comm.id}')" class="btn-secondary !text-xs !px-3 !py-1 whitespace-nowrap">
+                <button onclick="window.openOverrideCredits('${escapeHtml(comm.id)}')" class="btn-secondary !text-xs !px-3 !py-1 whitespace-nowrap">
                     <i class="fas fa-coins mr-1"></i> Manage Credits
                 </button>
-                <button onclick="window.updateB2BStatus('${comm.id}', 'REVOKED')" class="btn-danger !text-xs !px-3 !py-1">
+                <button onclick="window.updateB2BStatus('${escapeHtml(comm.id)}', 'REVOKED')" class="btn-danger !text-xs !px-3 !py-1">
                     <i class="fas fa-ban mr-1"></i> Revoke Access
                 </button>
             </div>

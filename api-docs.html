@@ -124,26 +124,47 @@
                         <span class="w-2 h-2 bg-ink"></span> Overview
                     </h3>
                     <a href="#introduction" class="nav-link">Introduction</a>
-                    <a href="#authentication" class="nav-link">Authentication</a>
+                    <a href="#authentication" class="nav-link">Authentication &amp; Keys</a>
                 </div>
                 
                 <div class="mb-5">
                     <h3 class="font-black uppercase text-xs tracking-widest text-ink mb-2 border-b-2 border-ink pb-1 flex items-center gap-1.5">
                         <span class="w-2 h-2 bg-cyan"></span> Events API
                     </h3>
-                    <a href="#list-events" class="nav-link">List Events</a>
-                    <a href="#get-event" class="nav-link">Get Event Details</a>
-                    <a href="#check-eligibility" class="nav-link">Check Eligibility</a>
+                    <a href="#list-events" class="nav-link flex items-center justify-between gap-1">
+                        <span>List Events</span>
+                        <span class="badge bg-canvas text-ink !text-[9px] !px-1.5 !py-0 shrink-0">PUBLIC</span>
+                    </a>
+                    <a href="#get-event" class="nav-link flex items-center justify-between gap-1">
+                        <span>Get Event Details</span>
+                        <span class="badge bg-canvas text-ink !text-[9px] !px-1.5 !py-0 shrink-0">PUBLIC</span>
+                    </a>
+                    <a href="#check-eligibility" class="nav-link flex items-center justify-between gap-1">
+                        <span>Check Eligibility</span>
+                        <span class="badge bg-canvas text-ink !text-[9px] !px-1.5 !py-0 shrink-0">PUBLIC</span>
+                    </a>
                 </div>
 
                 <div class="mb-2">
                     <h3 class="font-black uppercase text-xs tracking-widest text-ink mb-2 border-b-2 border-ink pb-1 flex items-center gap-1.5">
                         <span class="w-2 h-2 bg-warning"></span> Certificates API
                     </h3>
-                    <a href="#event-certificate-by-email" class="nav-link">Event Cert by Email</a>
-                    <a href="#b2b-generate-certificate" class="nav-link">B2B Template Cert</a>
-                    <a href="#verify-certificate" class="nav-link">Verify Certificate</a>
-                    <a href="#redirect-certificate" class="nav-link">Redirect to Cert</a>
+                    <a href="#event-certificate-by-email" class="nav-link flex items-center justify-between gap-1">
+                        <span>Cert by Email</span>
+                        <span class="badge bg-warning text-ink !text-[9px] !px-1.5 !py-0 shrink-0">PRIVATE</span>
+                    </a>
+                    <a href="#b2b-generate-certificate" class="nav-link flex items-center justify-between gap-1">
+                        <span>B2B Template Cert</span>
+                        <span class="badge bg-warning text-ink !text-[9px] !px-1.5 !py-0 shrink-0">PRIVATE</span>
+                    </a>
+                    <a href="#verify-certificate" class="nav-link flex items-center justify-between gap-1">
+                        <span>Verify Certificate</span>
+                        <span class="badge bg-canvas text-ink !text-[9px] !px-1.5 !py-0 shrink-0">PUBLIC</span>
+                    </a>
+                    <a href="#redirect-certificate" class="nav-link flex items-center justify-between gap-1">
+                        <span>Redirect to Cert</span>
+                        <span class="badge bg-canvas text-ink !text-[9px] !px-1.5 !py-0 shrink-0">PUBLIC</span>
+                    </a>
                 </div>
             </div>
         </aside>
@@ -184,24 +205,129 @@
 
             <!-- Authentication -->
             <section id="authentication">
-                <h2 class="text-2xl font-black mb-4 uppercase border-b-2 border-ink pb-2 text-ink">Authentication &amp; Security</h2>
+                <h2 class="text-2xl font-black mb-4 uppercase border-b-2 border-ink pb-2 text-ink">Authentication &amp; API Key Types</h2>
                 <div class="bg-danger text-white border-2 border-ink p-4 font-bold mb-6 shadow-[4px_4px_0_0_#0b0b0b] text-xs uppercase flex items-center gap-2">
                     <i class="fas fa-shield-alt text-base"></i> ALL THIRD-PARTY REQUESTS REQUIRE AUTHENTICATION VIA API KEY
                 </div>
                 <p class="mb-4 text-xs text-neutral-800 leading-relaxed font-sans font-medium">All incoming requests from external domains or backend servers must include your API Key in the <code class="bg-canvas border border-ink px-1.5 py-0.5 font-bold">X-API-KEY</code> header.</p>
                 
-                <div class="mb-6 card-static bg-canvas space-y-3">
-                    <h4 class="font-black text-xs uppercase text-ink">API Key Types</h4>
-                    <ul class="space-y-3 text-xs text-neutral-800 font-sans">
-                        <li class="flex items-start gap-2">
-                            <span class="badge bg-canvas text-ink shrink-0 font-mono">PUBLIC</span>
-                            <span>Designed for browser / client-side web apps. Restricted to <b>read-only</b> operations (e.g. checking eligibility, querying event lists). Enforces <b>Allowed Domains</b> origin whitelisting to prevent unauthorized cross-domain usage.</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="badge bg-warning text-ink shrink-0 font-mono">PRIVATE</span>
-                            <span>Designed for secure server-to-server calls. Grants full capabilities, including certificate generation and credit deduction. <b>Must remain strictly confidential and never exposed in client-side code.</b></span>
-                        </li>
-                    </ul>
+                <div class="mb-6 card-static bg-canvas space-y-4">
+                    <h4 class="font-black text-xs uppercase text-ink border-b border-ink/20 pb-2">API Key Types &amp; Permissions</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white border-2 border-ink p-4 shadow-[2px_2px_0_0_#0b0b0b] space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="badge bg-canvas text-ink font-mono"><i class="fas fa-globe text-[10px] mr-1"></i> PUBLIC KEY</span>
+                                <span class="text-[10px] font-mono font-bold text-neutral-500 uppercase">Client-Side Safe</span>
+                            </div>
+                            <p class="text-xs text-neutral-800 font-sans leading-relaxed">
+                                Designed for frontend browser applications, SPAs, and public integration widgets. Restricted strictly to <b>read-only</b> operations (such as listing public events, retrieving event details, checking email eligibility, and verifying certificates).
+                            </p>
+                            <div class="text-[11px] text-neutral-600 font-sans bg-canvas p-2 border border-ink/30">
+                                <span class="font-bold font-mono text-ink uppercase">Security:</span> Enforces <b>Allowed Domains</b> origin whitelisting to block unauthorized cross-site domain access.
+                            </div>
+                        </div>
+
+                        <div class="bg-white border-2 border-ink p-4 shadow-[2px_2px_0_0_#0b0b0b] space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="badge bg-warning text-ink font-mono font-bold"><i class="fas fa-lock text-[10px] mr-1"></i> PRIVATE KEY</span>
+                                <span class="text-[10px] font-mono font-bold text-danger uppercase">Server-Side Only</span>
+                            </div>
+                            <p class="text-xs text-neutral-800 font-sans leading-relaxed">
+                                Designed exclusively for confidential server-to-server backend integrations. Grants access to <b>all endpoints</b>, including high-privilege operations like attendee certificate issuance and B2B template rendering with credit deduction.
+                            </p>
+                            <div class="text-[11px] text-neutral-600 font-sans bg-amber-50 p-2 border border-warning">
+                                <span class="font-bold font-mono text-ink uppercase">Security:</span> <b>Must NEVER be exposed</b> in frontend client JavaScript, mobile apps, or public repositories.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Compatibility Matrix Table -->
+                    <div class="mt-4 pt-2">
+                        <h5 class="font-black text-xs uppercase text-ink mb-2">Endpoint API Key Compatibility Matrix</h5>
+                        <div class="overflow-x-auto">
+                            <table class="w-full border-2 border-ink text-xs font-mono">
+                                <thead class="bg-ink text-white">
+                                    <tr>
+                                        <th class="p-2 text-left font-bold uppercase">Endpoint</th>
+                                        <th class="p-2 text-left font-bold uppercase">Method</th>
+                                        <th class="p-2 text-left font-bold uppercase">Path</th>
+                                        <th class="p-2 text-left font-bold uppercase">Supported Key</th>
+                                        <th class="p-2 text-left font-bold uppercase">Usage Context</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-ink/10 text-[11px]">
+                                    <tr>
+                                        <td class="p-2 font-bold font-sans">List Events</td>
+                                        <td class="p-2"><span class="badge bg-cyan text-ink !text-[9px]">GET</span></td>
+                                        <td class="p-2 font-mono">/events/api/events</td>
+                                        <td class="p-2 whitespace-nowrap">
+                                            <span class="badge bg-canvas text-ink !text-[9px]">PUBLIC</span>
+                                            <span class="badge bg-warning text-ink !text-[9px]">PRIVATE</span>
+                                        </td>
+                                        <td class="p-2 text-neutral-700 font-sans">Client widget or backend</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2 font-bold font-sans">Get Event Details</td>
+                                        <td class="p-2"><span class="badge bg-cyan text-ink !text-[9px]">GET</span></td>
+                                        <td class="p-2 font-mono">/events/api/events/{id}</td>
+                                        <td class="p-2 whitespace-nowrap">
+                                            <span class="badge bg-canvas text-ink !text-[9px]">PUBLIC</span>
+                                            <span class="badge bg-warning text-ink !text-[9px]">PRIVATE</span>
+                                        </td>
+                                        <td class="p-2 text-neutral-700 font-sans">Client widget or backend</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2 font-bold font-sans">Check Eligibility</td>
+                                        <td class="p-2"><span class="badge bg-cyan text-ink !text-[9px]">GET</span></td>
+                                        <td class="p-2 font-mono">/events/api/events/eligibility</td>
+                                        <td class="p-2 whitespace-nowrap">
+                                            <span class="badge bg-canvas text-ink !text-[9px]">PUBLIC</span>
+                                            <span class="badge bg-warning text-ink !text-[9px]">PRIVATE</span>
+                                        </td>
+                                        <td class="p-2 text-neutral-700 font-sans">Frontend lookup widgets</td>
+                                    </tr>
+                                    <tr class="bg-amber-50/60">
+                                        <td class="p-2 font-bold font-sans text-ink">Event Cert by Email</td>
+                                        <td class="p-2"><span class="badge bg-danger text-white !text-[9px]">POST</span></td>
+                                        <td class="p-2 font-mono">/events/api/events/{id}/certificate-by-email</td>
+                                        <td class="p-2 whitespace-nowrap">
+                                            <span class="badge bg-warning text-ink font-bold !text-[9px]"><i class="fas fa-lock text-[8px] mr-1"></i>PRIVATE ONLY</span>
+                                        </td>
+                                        <td class="p-2 text-danger font-sans font-bold">Backend server only</td>
+                                    </tr>
+                                    <tr class="bg-amber-50/60">
+                                        <td class="p-2 font-bold font-sans text-ink">B2B Template Cert</td>
+                                        <td class="p-2"><span class="badge bg-danger text-white !text-[9px]">POST</span></td>
+                                        <td class="p-2 font-mono">/admin/api/v1/certificates/generate</td>
+                                        <td class="p-2 whitespace-nowrap">
+                                            <span class="badge bg-warning text-ink font-bold !text-[9px]"><i class="fas fa-lock text-[8px] mr-1"></i>PRIVATE ONLY</span>
+                                        </td>
+                                        <td class="p-2 text-danger font-sans font-bold">Backend server only (1 credit/cert)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2 font-bold font-sans">Verify Certificate</td>
+                                        <td class="p-2"><span class="badge bg-cyan text-ink !text-[9px]">GET</span></td>
+                                        <td class="p-2 font-mono">/events/api/events/certificate/verify/{certId}</td>
+                                        <td class="p-2 whitespace-nowrap">
+                                            <span class="badge bg-canvas text-ink !text-[9px]">PUBLIC</span>
+                                            <span class="badge bg-warning text-ink !text-[9px]">PRIVATE</span>
+                                        </td>
+                                        <td class="p-2 text-neutral-700 font-sans">Public verification page or backend</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2 font-bold font-sans">Redirect to Cert</td>
+                                        <td class="p-2"><span class="badge bg-cyan text-ink !text-[9px]">GET</span></td>
+                                        <td class="p-2 font-mono">/events/api/events/certificate/redirect/{certId}</td>
+                                        <td class="p-2 whitespace-nowrap">
+                                            <span class="badge bg-canvas text-ink !text-[9px]">PUBLIC</span>
+                                            <span class="badge bg-warning text-ink !text-[9px]">PRIVATE</span>
+                                        </td>
+                                        <td class="p-2 text-neutral-700 font-sans">QR code scan &amp; browser redirect</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="card-static space-y-4">
@@ -230,14 +356,28 @@ x-amz-content-sha256: &lt;SHA256_HEX_HASH_OF_REQUEST_BODY&gt;</div>
                 <p class="mb-4 text-xs text-neutral-800 leading-relaxed font-sans font-medium">Retrieves public events hosted by the community associated with your API Key.</p>
                 
                 <div class="card-static space-y-4">
-                    <div class="flex items-center gap-3 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
-                        <span class="badge bg-cyan text-ink">GET</span>
-                        <span class="font-bold text-xs text-ink">https://api.haxnation.org/events/api/events</span>
+                    <div class="flex flex-wrap items-center justify-between gap-3 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                        <div class="flex items-center gap-3">
+                            <span class="badge bg-cyan text-ink">GET</span>
+                            <span class="font-bold text-xs text-ink break-all">https://api.haxnation.org/events/api/events</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="badge bg-canvas text-ink" title="Works with Public API Keys"><i class="fas fa-globe text-[10px] mr-1"></i> PUBLIC</span>
+                            <span class="badge bg-warning text-ink" title="Works with Private API Keys"><i class="fas fa-key text-[10px] mr-1"></i> PRIVATE</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 p-2 bg-neutral-50 border border-ink text-xs font-mono">
+                        <span class="font-bold uppercase text-neutral-700">Supported Keys:</span>
+                        <span class="badge bg-canvas text-ink">PUBLIC</span>
+                        <span class="text-neutral-500 font-sans">or</span>
+                        <span class="badge bg-warning text-ink">PRIVATE</span>
+                        <span class="text-[11px] text-neutral-600 font-sans ml-1">(Read-only; safe for client frontend widgets or backend servers)</span>
                     </div>
 
                     <h3 class="font-black text-xs uppercase text-ink">Example cURL</h3>
                     <div class="brutal-code">curl -X GET "https://api.haxnation.org/events/api/events" \
-  -H "X-API-KEY: HAX_your_api_key_here"</div>
+  -H "X-API-KEY: HAX_your_public_or_private_key"</div>
 
                     <h3 class="font-black text-xs uppercase text-ink">Response (200 OK)</h3>
                     <div class="brutal-code">{
@@ -262,9 +402,23 @@ x-amz-content-sha256: &lt;SHA256_HEX_HASH_OF_REQUEST_BODY&gt;</div>
                 <p class="mb-4 text-xs text-neutral-800 leading-relaxed font-sans font-medium">Retrieves metadata, scheduling, and registration configuration for a specific event by ID or custom URL slug.</p>
                 
                 <div class="card-static space-y-4">
-                    <div class="flex items-center gap-3 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
-                        <span class="badge bg-cyan text-ink">GET</span>
-                        <span class="font-bold text-xs text-ink">https://api.haxnation.org/events/api/events/{id}</span>
+                    <div class="flex flex-wrap items-center justify-between gap-3 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                        <div class="flex items-center gap-3">
+                            <span class="badge bg-cyan text-ink">GET</span>
+                            <span class="font-bold text-xs text-ink break-all">https://api.haxnation.org/events/api/events/{id}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="badge bg-canvas text-ink" title="Works with Public API Keys"><i class="fas fa-globe text-[10px] mr-1"></i> PUBLIC</span>
+                            <span class="badge bg-warning text-ink" title="Works with Private API Keys"><i class="fas fa-key text-[10px] mr-1"></i> PRIVATE</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 p-2 bg-neutral-50 border border-ink text-xs font-mono">
+                        <span class="font-bold uppercase text-neutral-700">Supported Keys:</span>
+                        <span class="badge bg-canvas text-ink">PUBLIC</span>
+                        <span class="text-neutral-500 font-sans">or</span>
+                        <span class="badge bg-warning text-ink">PRIVATE</span>
+                        <span class="text-[11px] text-neutral-600 font-sans ml-1">(Read-only; safe for client frontend widgets or backend servers)</span>
                     </div>
 
                     <h3 class="font-black text-xs uppercase text-ink">Path Parameters</h3>
@@ -309,9 +463,23 @@ x-amz-content-sha256: &lt;SHA256_HEX_HASH_OF_REQUEST_BODY&gt;</div>
                 <p class="mb-4 text-xs text-neutral-800 leading-relaxed font-sans font-medium">Checks an attendee's email address against the community's events to find which certificates they are eligible to claim or download. Ideal for client-side search widgets.</p>
                 
                 <div class="card-static space-y-4">
-                    <div class="flex items-center gap-3 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
-                        <span class="badge bg-cyan text-ink">GET</span>
-                        <span class="font-bold text-xs text-ink">https://api.haxnation.org/events/api/events/eligibility?email={email}</span>
+                    <div class="flex flex-wrap items-center justify-between gap-3 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                        <div class="flex items-center gap-3">
+                            <span class="badge bg-cyan text-ink">GET</span>
+                            <span class="font-bold text-xs text-ink break-all">https://api.haxnation.org/events/api/events/eligibility?email={email}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="badge bg-canvas text-ink" title="Works with Public API Keys"><i class="fas fa-globe text-[10px] mr-1"></i> PUBLIC</span>
+                            <span class="badge bg-warning text-ink" title="Works with Private API Keys"><i class="fas fa-key text-[10px] mr-1"></i> PRIVATE</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 p-2 bg-neutral-50 border border-ink text-xs font-mono">
+                        <span class="font-bold uppercase text-neutral-700">Supported Keys:</span>
+                        <span class="badge bg-canvas text-ink">PUBLIC</span>
+                        <span class="text-neutral-500 font-sans">or</span>
+                        <span class="badge bg-warning text-ink">PRIVATE</span>
+                        <span class="text-[11px] text-neutral-600 font-sans ml-1">(Read-only; ideal for client-side widgets with Allowed Domains configured)</span>
                     </div>
 
                     <h3 class="font-black text-xs uppercase text-ink">Query Parameters</h3>
@@ -357,12 +525,28 @@ x-amz-content-sha256: &lt;SHA256_HEX_HASH_OF_REQUEST_BODY&gt;</div>
             <!-- Event Certificate by Email -->
             <section id="event-certificate-by-email">
                 <h2 class="text-2xl font-black mb-4 uppercase border-b-2 border-ink pb-2 text-ink">Generate Event Certificate by Email</h2>
-                <p class="mb-4 text-xs text-neutral-800 leading-relaxed font-sans font-medium">Issues or retrieves the generated certificate for a registered attendee by Event ID and email address. <b>Requires a PRIVATE key on your backend.</b></p>
+                <p class="mb-4 text-xs text-neutral-800 leading-relaxed font-sans font-medium">Issues or retrieves the generated certificate for a registered attendee by Event ID and email address. Generates official certificates valid for 2 years.</p>
                 
+                <div class="p-3 bg-cyan/10 border-2 border-cyan text-ink text-xs font-sans mb-4">
+                    <p class="font-bold font-mono uppercase text-[11px] mb-1"><i class="fas fa-calendar-check text-neutral-800 mr-1"></i> Validity &amp; Retention Policy</p>
+                    <p>All certificates generated on Haxnation are valid and stored for <b>2 years</b> from date of issuance.</p>
+                </div>
+
                 <div class="card-static space-y-4">
-                    <div class="flex items-center gap-3 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
-                        <span class="badge bg-danger text-white">POST</span>
-                        <span class="font-bold text-xs text-ink">https://api.haxnation.org/events/api/events/{id}/certificate-by-email</span>
+                    <div class="flex flex-wrap items-center justify-between gap-3 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                        <div class="flex items-center gap-3">
+                            <span class="badge bg-danger text-white">POST</span>
+                            <span class="font-bold text-xs text-ink break-all">https://api.haxnation.org/events/api/events/{id}/certificate-by-email</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="badge bg-warning text-ink font-bold" title="Private API Key Required"><i class="fas fa-lock text-[10px] mr-1"></i> PRIVATE KEY ONLY</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 p-2.5 bg-amber-50 border-2 border-warning text-xs font-mono">
+                        <span class="font-bold uppercase text-ink"><i class="fas fa-shield-alt text-warning mr-1"></i> Key Requirement:</span>
+                        <span class="badge bg-warning text-ink font-bold">PRIVATE KEY ONLY</span>
+                        <span class="text-[11px] text-neutral-800 font-sans ml-1 font-medium">(Server-to-server calls only. Public keys will receive HTTP 401 Unauthorized)</span>
                     </div>
 
                     <h3 class="font-black text-xs uppercase text-ink">Request Body</h3>
@@ -383,7 +567,7 @@ async function issueCertificate(eventId, email, name) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-API-KEY': process.env.HAXNATION_PRIVATE_KEY,
+      'X-API-KEY': process.env.HAXNATION_PRIVATE_KEY, // Use your PRIVATE key here
       'x-amz-content-sha256': hash
     },
     body: payload
@@ -400,7 +584,9 @@ async function issueCertificate(eventId, email, name) {
     "eventName": "CyberSecurity Summit 2026",
     "userName": "Jane Doe",
     "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg...",
-    "issuedAt": "2026-10-24T18:30:00Z"
+    "issuedAt": "2026-10-24T18:30:00Z",
+    "expiresAt": "2028-10-24T18:30:00Z",
+    "validity": "2 years from date of issue"
   }
 }</div>
                 </div>
@@ -409,12 +595,23 @@ async function issueCertificate(eventId, email, name) {
             <!-- B2B Generate Certificate -->
             <section id="b2b-generate-certificate">
                 <h2 class="text-2xl font-black mb-4 uppercase border-b-2 border-ink pb-2 text-ink">B2B Headless Template Certificate</h2>
-                <p class="mb-4 text-xs text-neutral-800 leading-relaxed font-sans font-medium">Renders a high-resolution certificate based on your community's active default template using dynamic variable substitution. Deducts 1 credit from your account per generation. <b>Requires a PRIVATE key.</b></p>
+                <p class="mb-4 text-xs text-neutral-800 leading-relaxed font-sans font-medium">Renders a high-resolution certificate based on your community's active default template using dynamic variable substitution. Deducts 1 credit from your account per generation. Generated certificates are valid and stored for 2 years from date of issue.</p>
                 
                 <div class="card-static space-y-4">
-                    <div class="flex items-center gap-3 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
-                        <span class="badge bg-danger text-white">POST</span>
-                        <span class="font-bold text-xs text-ink">https://api.haxnation.org/admin/api/v1/certificates/generate</span>
+                    <div class="flex flex-wrap items-center justify-between gap-3 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                        <div class="flex items-center gap-3">
+                            <span class="badge bg-danger text-white">POST</span>
+                            <span class="font-bold text-xs text-ink break-all">https://api.haxnation.org/admin/api/v1/certificates/generate</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="badge bg-warning text-ink font-bold" title="Private API Key Required"><i class="fas fa-lock text-[10px] mr-1"></i> PRIVATE KEY ONLY</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 p-2.5 bg-amber-50 border-2 border-warning text-xs font-mono">
+                        <span class="font-bold uppercase text-ink"><i class="fas fa-shield-alt text-warning mr-1"></i> Key Requirement:</span>
+                        <span class="badge bg-warning text-ink font-bold">PRIVATE KEY ONLY</span>
+                        <span class="text-[11px] text-neutral-800 font-sans ml-1 font-medium">(Server-to-server calls only. Public keys will receive HTTP 403 Forbidden)</span>
                     </div>
 
                     <h3 class="font-black text-xs uppercase text-ink">Request Body</h3>
@@ -428,11 +625,21 @@ async function issueCertificate(eventId, email, name) {
   }
 }</div>
 
+                    <h3 class="font-black text-xs uppercase text-ink">Example cURL</h3>
+                    <div class="brutal-code">curl -X POST "https://api.haxnation.org/admin/api/v1/certificates/generate" \
+  -H "Content-Type: application/json" \
+  -H "X-API-KEY: HAX_your_private_key_here" \
+  -H "x-amz-content-sha256: &lt;SHA256_HEX_HASH&gt;" \
+  -d '{"data": {"name": "Jane Doe", "course": "Threat Intelligence"}}'</div>
+
                     <h3 class="font-black text-xs uppercase text-ink">Response (200 OK)</h3>
                     <div class="brutal-code">{
   "success": true,
   "data": {
     "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg...",
+    "issuedAt": "2026-10-24T18:30:00Z",
+    "expiresAt": "2028-10-24T18:30:00Z",
+    "validity": "2 years from date of issue",
     "creditsRemaining": 42
   }
 }</div>
@@ -442,12 +649,26 @@ async function issueCertificate(eventId, email, name) {
             <!-- Verify Certificate -->
             <section id="verify-certificate">
                 <h2 class="text-2xl font-black mb-4 uppercase border-b-2 border-ink pb-2 text-ink">Verify Certificate</h2>
-                <p class="mb-4 text-xs text-neutral-800 leading-relaxed font-sans font-medium">Validates the authenticity and issuance metadata of any certificate issued by Haxnation using its unique Certificate ID or hash.</p>
+                <p class="mb-4 text-xs text-neutral-800 leading-relaxed font-sans font-medium">Validates the authenticity and issuance metadata of any certificate issued by Haxnation using its unique Certificate ID or hash. Certificates are valid for 2 years from date of issue; expired certificates return HTTP 403 Forbidden.</p>
                 
                 <div class="card-static space-y-4">
-                    <div class="flex items-center gap-3 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
-                        <span class="badge bg-cyan text-ink">GET</span>
-                        <span class="font-bold text-xs text-ink">https://api.haxnation.org/events/api/events/certificate/verify/{certId}</span>
+                    <div class="flex flex-wrap items-center justify-between gap-3 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                        <div class="flex items-center gap-3">
+                            <span class="badge bg-cyan text-ink">GET</span>
+                            <span class="font-bold text-xs text-ink break-all">https://api.haxnation.org/events/api/events/certificate/verify/{certId}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="badge bg-canvas text-ink" title="Works with Public API Keys"><i class="fas fa-globe text-[10px] mr-1"></i> PUBLIC</span>
+                            <span class="badge bg-warning text-ink" title="Works with Private API Keys"><i class="fas fa-key text-[10px] mr-1"></i> PRIVATE</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 p-2 bg-neutral-50 border border-ink text-xs font-mono">
+                        <span class="font-bold uppercase text-neutral-700">Supported Keys:</span>
+                        <span class="badge bg-canvas text-ink">PUBLIC</span>
+                        <span class="text-neutral-500 font-sans">or</span>
+                        <span class="badge bg-warning text-ink">PRIVATE</span>
+                        <span class="text-[11px] text-neutral-600 font-sans ml-1">(Public verification; callable from browser verification tools or backend systems)</span>
                     </div>
 
                     <h3 class="font-black text-xs uppercase text-ink">Response (200 OK)</h3>
@@ -458,7 +679,9 @@ async function issueCertificate(eventId, email, name) {
     "owner": "Jane Doe",
     "event": "CyberSecurity Summit 2026",
     "eventId": "e_abc12345",
-    "issuedAt": "2026-10-24T18:30:00Z"
+    "issuedAt": "2026-10-24T18:30:00Z",
+    "expiresAt": "2028-10-24T18:30:00Z",
+    "validity": "2 years from date of issue"
   }
 }</div>
                 </div>
@@ -470,9 +693,23 @@ async function issueCertificate(eventId, email, name) {
                 <p class="mb-4 text-xs text-neutral-800 leading-relaxed font-sans font-medium">Direct HTTP 302 redirect endpoint embedded in QR codes on certificates to route visitors directly to the certificate's public verification page.</p>
                 
                 <div class="card-static space-y-4">
-                    <div class="flex items-center gap-3 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
-                        <span class="badge bg-cyan text-ink">GET</span>
-                        <span class="font-bold text-xs text-ink">https://api.haxnation.org/events/api/events/certificate/redirect/{certId}</span>
+                    <div class="flex flex-wrap items-center justify-between gap-3 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                        <div class="flex items-center gap-3">
+                            <span class="badge bg-cyan text-ink">GET</span>
+                            <span class="font-bold text-xs text-ink break-all">https://api.haxnation.org/events/api/events/certificate/redirect/{certId}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="badge bg-canvas text-ink" title="Works with Public API Keys"><i class="fas fa-globe text-[10px] mr-1"></i> PUBLIC</span>
+                            <span class="badge bg-warning text-ink" title="Works with Private API Keys"><i class="fas fa-key text-[10px] mr-1"></i> PRIVATE</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 p-2 bg-neutral-50 border border-ink text-xs font-mono">
+                        <span class="font-bold uppercase text-neutral-700">Supported Keys:</span>
+                        <span class="badge bg-canvas text-ink">PUBLIC</span>
+                        <span class="text-neutral-500 font-sans">or</span>
+                        <span class="badge bg-warning text-ink">PRIVATE</span>
+                        <span class="text-[11px] text-neutral-600 font-sans ml-1">(Public QR destination; browser redirect)</span>
                     </div>
 
                     <p class="text-xs text-neutral-700 font-sans">Returns an HTTP <code class="font-mono font-bold">302 Found</code> with a <code class="font-mono font-bold">Location</code> header directing to the live validation web interface.</p>

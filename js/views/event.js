@@ -1,4 +1,4 @@
-import { api, modalTemplate } from '../utils.js';
+import { api, modalTemplate, escapeHtml } from '../utils.js';
 import { currentUser } from '../auth.js';
 
 let currentAttendees = [];
@@ -73,17 +73,17 @@ export async function renderEvent(communityId, eventId) {
             <!-- Top navigation & header -->
             <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-4 border-ink pb-6 font-mono">
                 <div class="flex items-center gap-4">
-                    <a href="#/community/${communityId}" class="btn-secondary !px-3 !py-2" aria-label="Back to community">
+                    <a href="#/community/${encodeURIComponent(communityId)}" class="btn-secondary !px-3 !py-2" aria-label="Back to community">
                         <i class="fas fa-arrow-left"></i>
                     </a>
                     <div>
                         <h1 class="text-2xl sm:text-4xl font-black font-mono text-ink uppercase tracking-tight flex items-center flex-wrap gap-2">
-                            ${currentEvent.name}
+                            ${escapeHtml(currentEvent.name)}
                             ${currentEvent.eventType === 'API_ONLY' ? '<span class="bg-ink text-cyan border-2 border-ink text-xs px-2.5 py-0.5 font-bold uppercase tracking-wider"><i class="fas fa-network-wired mr-1"></i> API-ONLY</span>' : ''}
                         </h1>
                         <div class="flex items-center gap-2 mt-1">
-                            <span class="badge bg-cyan text-ink">${currentEvent.status || 'Active'}</span>
-                            <span class="text-xs text-neutral-700 font-bold">ID: ${eventId}</span>
+                            <span class="badge bg-cyan text-ink">${escapeHtml(currentEvent.status || 'Active')}</span>
+                            <span class="text-xs text-neutral-700 font-bold">ID: ${escapeHtml(eventId)}</span>
                         </div>
                     </div>
                 </div>
@@ -114,7 +114,7 @@ export async function renderEvent(communityId, eventId) {
                 <!-- Certificate Settings -->
                 <div class="card-static flex flex-col justify-between">
                     <div>
-                        <div class="flex justify-between items-center mb-4 border-b-2 border-ink pb-3">
+                        <div class="flex justify-between items-center mb-2 border-b-2 border-ink pb-3">
                             <h2 class="text-lg font-black uppercase text-ink flex items-center gap-2">
                                 📜 Certificates
                                 ${certSettings.enabled ? '<span class="bg-success text-ink border-2 border-ink text-[10px] px-2 py-0.5 font-bold uppercase shadow-[1px_1px_0_0_#0b0b0b]">Active</span>' : '<span class="bg-canvas text-neutral-600 border border-ink text-[10px] px-2 py-0.5 font-bold uppercase">Disabled</span>'}
@@ -123,6 +123,7 @@ export async function renderEvent(communityId, eventId) {
                                 <i class="fas fa-palette mr-1"></i> Designer
                             </a>
                         </div>
+                        <p class="font-mono text-[11px] text-neutral-600 font-bold mb-4">Notice: Certificates are valid & stored for 2 years from date of issue.</p>
                         <form onsubmit="handleCertSettings(event, '${eventId}')" class="space-y-4">
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
@@ -417,11 +418,11 @@ function renderCtfDashboard(ctf, isSuperAdmin, cid, eid) {
         const challengesList = ctfChallenges.map(c => `
             <div class="flex justify-between items-center bg-canvas p-3 mb-2 border-2 border-ink font-mono shadow-[2px_2px_0_0_#0b0b0b]">
                 <div>
-                    <span class="font-black text-xs uppercase text-ink">${c.name}</span>
-                    <span class="text-[10px] text-neutral-700 ml-2 border border-ink px-1.5 py-0.5 bg-white uppercase font-bold">${c.scoringType}</span>
+                    <span class="font-black text-xs uppercase text-ink">${escapeHtml(c.name)}</span>
+                    <span class="text-[10px] text-neutral-700 ml-2 border border-ink px-1.5 py-0.5 bg-white uppercase font-bold">${escapeHtml(c.scoringType)}</span>
                 </div>
                 <div>
-                    ${c.status === 'APPROVED' ? '<span class="text-success font-black text-xs">APPROVED</span>' : `<button onclick="approveChallenge('${cid}', '${eid}', '${c.id}')" class="btn-primary !text-[10px] !px-2 !py-1">Approve</button>`}
+                    ${c.status === 'APPROVED' ? '<span class="text-success font-black text-xs">APPROVED</span>' : `<button onclick="approveChallenge('${escapeHtml(cid)}', '${escapeHtml(eid)}', '${escapeHtml(c.id)}')" class="btn-primary !text-[10px] !px-2 !py-1">Approve</button>`}
                 </div>
             </div>
         `).join('');
@@ -574,20 +575,22 @@ function renderAttendeeList(list) {
     }
 
     container.innerHTML = list.map(a => {
-        const uid = a.UserID.replace('USER#', '');
+        const uid = a.UserID ? a.UserID.replace('USER#', '') : '';
         const statusBadge = a.status === 'APPROVED' ? '<span class="badge bg-success text-ink">APPROVED</span>' : a.status === 'REJECTED' ? '<span class="badge bg-danger text-white">REJECTED</span>' : '<span class="badge bg-warning text-ink">PENDING</span>';
+        const attendeeName = a.userInfo?.name || a.userInfo?.Name || a.userInfo?.['Full Name'] || 'Unknown';
+        const attendeeEmail = a.userInfo?.email || a.userInfo?.Email || 'No Email';
                             
         return `
             <tr class="hover:bg-canvas transition text-ink font-mono">
                 <td class="p-3.5">
-                    <div class="font-black text-xs text-ink uppercase">${a.userInfo?.name || a.userInfo?.Name || a.userInfo?.['Full Name'] || 'Unknown'}</div>
-                    <div class="text-[11px] text-neutral-700">${a.userInfo?.email || a.userInfo?.Email || 'No Email'}</div>
+                    <div class="font-black text-xs text-ink uppercase">${escapeHtml(attendeeName)}</div>
+                    <div class="text-[11px] text-neutral-700">${escapeHtml(attendeeEmail)}</div>
                 </td>
                 <td class="p-3.5">${statusBadge}</td>
                 <td class="p-3.5">${a.checkedIn ? '<span class="text-success font-black text-xs">✅ YES</span>' : '<span class="text-neutral-500 font-bold text-xs">NO</span>'}</td>
                 <td class="p-3.5">${a.certificateIssuedAt ? '<span class="text-success font-black text-xs">📜 ISSUED</span>' : '<span class="text-neutral-500 font-bold text-xs">NO</span>'}</td>
                 <td class="p-3.5 text-right">
-                    <button onclick="viewAttendee('${uid}')" class="btn-secondary !text-[10px] !px-2.5 !py-1">Details</button>
+                    <button onclick="viewAttendee('${escapeHtml(uid)}')" class="btn-secondary !text-[10px] !px-2.5 !py-1">Details</button>
                 </td>
             </tr>
         `;
@@ -614,20 +617,20 @@ window.viewAttendee = (userId) => {
     if (currentEvent.settings?.requiresApproval && status === 'PENDING') {
         actionButtons += `
             <div class="flex gap-3 w-full mb-3 pb-3 border-b-2 border-ink">
-                <button onclick="updateStatus('${userId}', 'APPROVED')" class="btn-primary !bg-success text-ink flex-1">Approve</button>
-                <button onclick="updateStatus('${userId}', 'REJECTED')" class="btn-danger flex-1">Reject</button>
+                <button onclick="updateStatus('${escapeHtml(userId)}', 'APPROVED')" class="btn-primary !bg-success text-ink flex-1">Approve</button>
+                <button onclick="updateStatus('${escapeHtml(userId)}', 'REJECTED')" class="btn-danger flex-1">Reject</button>
             </div>
         `;
     }
 
     if (status === 'APPROVED' || !currentEvent.settings?.requiresApproval) {
         if (!user.checkedIn) {
-            actionButtons += `<button onclick="doCheckIn('${userId}', true)" class="btn-primary w-full">✅ Check In User</button>`;
+            actionButtons += `<button onclick="doCheckIn('${escapeHtml(userId)}', true)" class="btn-primary w-full">✅ Check In User</button>`;
         } else {
             actionButtons += `
                 <div class="w-full flex justify-between items-center bg-white border-2 border-success p-3 mt-2 shadow-[2px_2px_0_0_#0b0b0b]">
                     <span class="text-success font-black text-xs uppercase">✅ Checked In</span>
-                    <button onclick="doCheckIn('${userId}', false)" class="btn-danger !text-[10px] !px-2.5 !py-1">Undo Check-In</button>
+                    <button onclick="doCheckIn('${escapeHtml(userId)}', false)" class="btn-danger !text-[10px] !px-2.5 !py-1">Undo Check-In</button>
                 </div>
             `;
         }
@@ -636,8 +639,11 @@ window.viewAttendee = (userId) => {
     if (user.certificateIssuedAt) {
         actionButtons += `
             <div class="w-full flex justify-between items-center bg-white border-2 border-warning p-3 mt-2 shadow-[2px_2px_0_0_#0b0b0b]">
-                <span class="text-ink font-black text-xs uppercase">📜 Certificate Issued</span>
-                <button onclick="invalidateCertificate('${userId}')" class="btn-danger !text-[10px] !px-2.5 !py-1">Invalidate</button>
+                <div>
+                    <span class="text-ink font-black text-xs uppercase block">📜 Certificate Issued</span>
+                    <span class="text-[10px] text-neutral-600 font-bold block">Issued: ${escapeHtml(new Date(user.certificateIssuedAt).toLocaleDateString())} (Valid 2 Yrs)</span>
+                </div>
+                <button onclick="invalidateCertificate('${escapeHtml(userId)}')" class="btn-danger !text-[10px] !px-2.5 !py-1">Invalidate</button>
             </div>
         `;
     }
@@ -645,9 +651,9 @@ window.viewAttendee = (userId) => {
     const modalHtml = modalTemplate('attendee-modal', 'Attendee Details', `
         <div class="space-y-4 font-mono">
             <div class="p-4 bg-canvas border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
-                <h3 class="font-black text-base uppercase text-ink">${user.userInfo?.name || user.userInfo?.Name || user.userInfo?.['Full Name'] || 'Unknown'}</h3>
-                <p class="text-xs text-neutral-700 mt-1">${user.userInfo?.email || user.userInfo?.Email || 'No Email'}</p>
-                <p class="text-[11px] text-neutral-500 mt-2 select-all">User ID: ${userId}</p>
+                <h3 class="font-black text-base uppercase text-ink">${escapeHtml(user.userInfo?.name || user.userInfo?.Name || user.userInfo?.['Full Name'] || 'Unknown')}</h3>
+                <p class="text-xs text-neutral-700 mt-1">${escapeHtml(user.userInfo?.email || user.userInfo?.Email || 'No Email')}</p>
+                <p class="text-[11px] text-neutral-500 mt-2 select-all">User ID: ${escapeHtml(userId)}</p>
             </div>
             <div class="pt-2">${actionButtons}</div>
         </div>

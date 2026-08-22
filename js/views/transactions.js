@@ -1,4 +1,4 @@
-import { api } from '../utils.js';
+import { api, escapeHtml } from '../utils.js';
 
 export async function renderTransactions(communityId) {
     const app = document.getElementById('app');
@@ -34,14 +34,14 @@ function renderView(communityId, allTxns) {
         <!-- Header -->
         <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-4 border-ink pb-6 font-mono">
             <div class="flex items-center gap-4">
-                <a href="#/community/${communityId}" class="btn-secondary !px-3 !py-2" aria-label="Back to community">
+                <a href="#/community/${encodeURIComponent(communityId)}" class="btn-secondary !px-3 !py-2" aria-label="Back to community">
                     <i class="fas fa-arrow-left"></i>
                 </a>
                 <div>
                     <h1 class="text-3xl sm:text-5xl font-black tracking-tighter uppercase leading-none text-ink">
                         Transactions<span class="inline-block w-3 h-[0.7em] bg-cyan animate-pulse align-baseline ml-2"></span>
                     </h1>
-                    <p class="text-xs text-neutral-700 font-bold mt-1">Community ID: ${communityId}</p>
+                    <p class="text-xs text-neutral-700 font-bold mt-1">Community ID: ${escapeHtml(communityId)}</p>
                 </div>
             </div>
         </div>
@@ -227,13 +227,13 @@ function renderView(communityId, allTxns) {
                 <tr class="hover:bg-canvas transition-colors">
                     <td class="px-4 py-3 text-neutral-800 whitespace-nowrap font-bold">${date}</td>
                     <td class="px-4 py-3">
-                        <div class="font-black text-ink uppercase">${t.userName || '—'}</div>
-                        <div class="text-[10px] text-neutral-600 font-mono">${t.userId || ''}</div>
+                        <div class="font-black text-ink uppercase">${escapeHtml(t.userName || '—')}</div>
+                        <div class="text-[10px] text-neutral-600 font-mono">${escapeHtml(t.userId || '')}</div>
                     </td>
-                    <td class="px-4 py-3 text-neutral-800 font-bold max-w-[160px] truncate" title="${t.eventName || ''}">${t.eventName || '—'}</td>
+                    <td class="px-4 py-3 text-neutral-800 font-bold max-w-[160px] truncate" title="${escapeHtml(t.eventName || '')}">${escapeHtml(t.eventName || '—')}</td>
                     <td class="px-4 py-3">${typeBadge}</td>
                     <td class="px-4 py-3">
-                        <span class="font-mono text-[11px] text-neutral-600 font-bold select-all" title="${orderId}">${shortOrderId}</span>
+                        <span class="font-mono text-[11px] text-neutral-600 font-bold select-all" title="${escapeHtml(orderId)}">${escapeHtml(shortOrderId)}</span>
                     </td>
                     <td class="px-4 py-3 text-right ${amountClass}">₹${parseFloat(t.amount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
                     <td class="px-4 py-3 text-center">${statusBadge}</td>

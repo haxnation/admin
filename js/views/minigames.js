@@ -1,4 +1,4 @@
-import { api, modalTemplate } from '../utils.js';
+import { api, modalTemplate, escapeHtml } from '../utils.js';
 import { currentUser } from '../auth.js';
 import { API_URL } from '../config.js';
 
@@ -28,27 +28,27 @@ export async function renderMiniGames() {
         return `
         <div class="bg-white border-2 border-ink p-5 shadow-[4px_4px_0_0_#0b0b0b] flex flex-col sm:flex-row justify-between items-start gap-4 font-mono">
             <div class="flex items-start gap-4">
-                ${isSuperAdmin ? `<input type="checkbox" class="game-checkbox w-5 h-5 mt-1 accent-cyan border-2 border-ink cursor-pointer" value="${g.id}" onchange="toggleGameSelection(this)" aria-label="Select ${g.name}">` : ''}
+                ${isSuperAdmin ? `<input type="checkbox" class="game-checkbox w-5 h-5 mt-1 accent-cyan border-2 border-ink cursor-pointer" value="${escapeHtml(g.id)}" onchange="toggleGameSelection(this)" aria-label="Select ${escapeHtml(g.name)}">` : ''}
                 <div>
                     <h3 class="font-black text-lg text-ink uppercase flex items-center flex-wrap gap-2">
-                        ${g.name} 
+                        ${escapeHtml(g.name)} 
                         ${statusBadge}
                         ${expText}
                     </h3>
                     <div class="text-xs font-semibold text-neutral-700 mt-2 flex flex-wrap gap-2 items-center">
-                        <span class="bg-canvas border border-ink/40 px-2 py-0.5 font-bold">Diff: ${g.difficulty}</span>
-                        <span class="bg-canvas border border-ink/40 px-2 py-0.5 font-bold">Cat: ${(g.category || []).join(', ')}</span>
-                        ${isSuperAdmin ? `<span class="bg-cyan/20 text-ink border border-ink/40 px-2 py-0.5 font-bold">Pts: ${g.points || 0}</span>` : ''}
+                        <span class="bg-canvas border border-ink/40 px-2 py-0.5 font-bold">Diff: ${escapeHtml(g.difficulty)}</span>
+                        <span class="bg-canvas border border-ink/40 px-2 py-0.5 font-bold">Cat: ${escapeHtml((g.category || []).join(', '))}</span>
+                        ${isSuperAdmin ? `<span class="bg-cyan/20 text-ink border border-ink/40 px-2 py-0.5 font-bold">Pts: ${escapeHtml(g.points || 0)}</span>` : ''}
                     </div>
-                    ${isSuperAdmin ? `<p class="text-[11px] text-neutral-500 font-mono mt-1.5 select-all">ID: ${g.gameId || g.id}</p>` : ''}
+                    ${isSuperAdmin ? `<p class="text-[11px] text-neutral-500 font-mono mt-1.5 select-all">ID: ${escapeHtml(g.gameId || g.id)}</p>` : ''}
                 </div>
             </div>
             <div class="flex flex-wrap sm:flex-col gap-2 w-full sm:w-auto justify-end">
                 ${isSuperAdmin ? `
-                    <button onclick="openEditModal('${g.id}')" class="btn-secondary !text-xs !px-3 !py-1.5">
+                    <button onclick="openEditModal('${escapeHtml(g.id)}')" class="btn-secondary !text-xs !px-3 !py-1.5">
                         <i class="fas fa-edit mr-1"></i> Review / Edit
                     </button>
-                    <button onclick="generateJson('${g.id}')" class="btn-secondary !text-xs !px-3 !py-1.5">
+                    <button onclick="generateJson('${escapeHtml(g.id)}')" class="btn-secondary !text-xs !px-3 !py-1.5">
                         <i class="fas fa-file-code mr-1"></i> Quick JSON
                     </button>
                 ` : '<span class="text-xs font-bold text-neutral-500 bg-canvas border border-ink px-2.5 py-1">Read Only</span>'}

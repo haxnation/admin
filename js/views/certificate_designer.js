@@ -125,6 +125,10 @@ export async function renderCertificateDesigner(type, id, communityId = null) {
                         <button id="btn-save" class="btn-primary !text-xs !px-3 !py-1.5">Save</button>
                     </div>
                 </div>
+
+                <div class="bg-cyan/20 border-2 border-ink p-2 text-[10px] font-bold text-ink uppercase shadow-[1px_1px_0_0_#0b0b0b]">
+                    <i class="fas fa-info-circle mr-1"></i> Policy: Certificates are valid &amp; stored for 2 years from issue date.
+                </div>
                 
                 <!-- Background Image Section -->
                 <div class="p-4 bg-canvas border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">

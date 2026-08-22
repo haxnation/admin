@@ -1,4 +1,4 @@
-import { api, modalTemplate } from '../utils.js';
+import { api, modalTemplate, escapeHtml } from '../utils.js';
 import { currentUser } from '../auth.js';
 
 function renderFeatureBadges(features) {
@@ -31,17 +31,19 @@ export async function renderDashboard() {
     const communities = data.data.communities || [];
     const isSuperAdmin = currentUser.platformRole === 'SUPER_ADMIN';
 
-    const listHtml = communities.map(c => `
-        <a href="#/community/${c.PK.split('#')[1]}" class="card flex flex-col justify-between group block">
+    const listHtml = communities.map(c => {
+        const commId = c.PK ? c.PK.split('#')[1] : '';
+        return `
+        <a href="#/community/${encodeURIComponent(commId)}" class="card flex flex-col justify-between group block">
             <div>
                 <div class="flex items-start justify-between gap-3 mb-2">
                     <h3 class="font-mono font-black text-xl text-ink uppercase tracking-tight group-hover:text-cyan transition-colors">
-                        ${c.name}
+                        ${escapeHtml(c.name)}
                     </h3>
                     <i class="fas fa-chevron-right text-ink/40 group-hover:text-ink group-hover:translate-x-1 transition-all mt-1"></i>
                 </div>
                 <div class="font-mono text-xs font-bold text-neutral-700 bg-canvas border border-ink/40 px-2 py-1 inline-block">
-                    ID: ${c.PK.split('#')[1]}
+                    ID: ${escapeHtml(commId)}
                 </div>
             </div>
             
@@ -52,7 +54,7 @@ export async function renderDashboard() {
                 <span class="font-mono text-xs font-bold uppercase text-ink underline group-hover:text-cyan transition-colors whitespace-nowrap self-end sm:self-auto">Manage →</span>
             </div>
         </a>
-    `).join('');
+    `;}).join('');
 
     document.getElementById('app').innerHTML = `
         <div class="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b-4 border-ink pb-6">

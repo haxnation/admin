@@ -21,6 +21,18 @@ export async function api(endpoint, method = 'GET', body = null) {
     return res.json();
 }
 
+// --- XSS SANITIZATION ---
+export function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+window.escapeHtml = escapeHtml;
+
 // --- UI HELPERS ---
 export function modalTemplate(id, title, content) {
     return `

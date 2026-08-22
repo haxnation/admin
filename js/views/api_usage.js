@@ -1,4 +1,4 @@
-import { api } from '../utils.js';
+import { api, escapeHtml } from '../utils.js';
 
 export async function renderApiUsage(communityId) {
     const app = document.getElementById('app');
@@ -35,14 +35,14 @@ function renderView(communityId, allLogs) {
         <!-- Header -->
         <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-4 border-ink pb-6 font-mono">
             <div class="flex items-center gap-4">
-                <a href="#/community/${communityId}" class="btn-secondary !px-3 !py-2" aria-label="Back to community">
+                <a href="#/community/${encodeURIComponent(communityId)}" class="btn-secondary !px-3 !py-2" aria-label="Back to community">
                     <i class="fas fa-arrow-left"></i>
                 </a>
                 <div>
                     <h1 class="text-3xl sm:text-5xl font-black tracking-tighter uppercase leading-none text-ink">
                         Credits & Usage<span class="inline-block w-3 h-[0.7em] bg-cyan animate-pulse align-baseline ml-2"></span>
                     </h1>
-                    <p class="text-xs text-neutral-700 font-bold mt-1">Community ID: ${communityId}</p>
+                    <p class="text-xs text-neutral-700 font-bold mt-1">Community ID: ${escapeHtml(communityId)}</p>
                 </div>
             </div>
         </div>
@@ -177,20 +177,20 @@ function renderTableBody(logs) {
         if (log.type === 'CREDIT_PURCHASE') {
             actionHtml = `<span class="badge bg-success text-ink whitespace-nowrap"><i class="fas fa-plus mr-1"></i> Credits Added</span>`;
             detailsHtml = `
-                <div class="font-black text-ink uppercase">Order ID: <span class="font-mono text-xs text-neutral-700 font-bold select-all">${log.SK?.replace('TXN#', '')}</span></div>
-                <div class="text-[11px] text-neutral-600 mt-0.5 font-bold">Gateway: ${log.gateway} | Amount: ₹${log.amount}</div>
+                <div class="font-black text-ink uppercase">Order ID: <span class="font-mono text-xs text-neutral-700 font-bold select-all">${escapeHtml(log.SK?.replace('TXN#', ''))}</span></div>
+                <div class="text-[11px] text-neutral-600 mt-0.5 font-bold">Gateway: ${escapeHtml(log.gateway)} | Amount: ₹${escapeHtml(log.amount)}</div>
             `;
-            impactHtml = `<span class="text-success font-black text-sm">+${log.quantity} Credits</span>`;
+            impactHtml = `<span class="text-success font-black text-sm">+${escapeHtml(log.quantity)} Credits</span>`;
         } else if (log.type === 'CERTIFICATE_USAGE') {
             actionHtml = `<span class="badge bg-cyan text-ink whitespace-nowrap"><i class="fas fa-file-invoice mr-1"></i> Cert Generated</span>`;
             detailsHtml = `
-                <div class="font-black text-ink uppercase">Recipient: ${log.recipientName || 'Unknown'}</div>
-                <div class="text-[11px] text-neutral-600 mt-0.5 font-bold">Event ID: <span class="font-mono text-neutral-700 font-bold select-all">${log.eventId || 'N/A'}</span></div>
+                <div class="font-black text-ink uppercase">Recipient: ${escapeHtml(log.recipientName || 'Unknown')}</div>
+                <div class="text-[11px] text-neutral-600 mt-0.5 font-bold">Event ID: <span class="font-mono text-neutral-700 font-bold select-all">${escapeHtml(log.eventId || 'N/A')}</span></div>
             `;
-            impactHtml = `<span class="text-danger font-black text-sm">-${log.creditsDeducted || 1} Credit</span>`;
+            impactHtml = `<span class="text-danger font-black text-sm">-${escapeHtml(log.creditsDeducted || 1)} Credit</span>`;
         } else {
-            actionHtml = `<span class="badge bg-canvas text-neutral-800">${log.type}</span>`;
-            detailsHtml = `<div class="text-neutral-700 text-xs break-all font-mono">${JSON.stringify(log)}</div>`;
+            actionHtml = `<span class="badge bg-canvas text-neutral-800">${escapeHtml(log.type)}</span>`;
+            detailsHtml = `<div class="text-neutral-700 text-xs break-all font-mono">${escapeHtml(JSON.stringify(log))}</div>`;
             impactHtml = `<span class="text-neutral-600 font-bold">-</span>`;
         }
 

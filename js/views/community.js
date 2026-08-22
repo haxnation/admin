@@ -1,4 +1,4 @@
-import { api, modalTemplate } from '../utils.js';
+import { api, modalTemplate, escapeHtml } from '../utils.js';
 import { currentUser } from '../auth.js';
 
 function renderCommunityFeaturePills(features) {
@@ -67,39 +67,41 @@ export async function renderCommunity(id) {
         const canManageTemplates = (has('MANAGE_COMMUNITY') || has('ALL')) && hasCertificates;
 
         // --- 3. RENDER EVENTS ---
-        const eventsHtml = events.map(e => `
+        const eventsHtml = events.map(e => {
+            const eventPkId = e.PK ? e.PK.split('#')[1] : '';
+            return `
             <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white border-2 border-ink shadow-[3px_3px_0_0_#0b0b0b] mb-3 hover:translate-x-[1px] hover:translate-y-[1px] transition-all gap-4">
                 <div>
                     <div class="font-black text-lg text-ink font-mono uppercase flex items-center flex-wrap gap-2">
-                        ${e.name}
+                        ${escapeHtml(e.name)}
                         ${e.certificateSettings?.enabled ? '<span title="Certificates Enabled" class="bg-warning text-ink border-2 border-ink text-[10px] font-mono font-bold px-1.5 py-0.5 shadow-[1px_1px_0_0_#0b0b0b]">📜 CERTIFICATE</span>' : ''}
                         ${e.eventType === 'API_ONLY' ? '<span class="bg-ink text-cyan border-2 border-ink text-[10px] font-mono font-bold px-1.5 py-0.5">API-ONLY</span>' : ''}
                     </div>
                     <div class="text-xs font-mono font-semibold text-neutral-700 flex flex-wrap gap-3 mt-1.5">
-                        <span><i class="far fa-calendar text-ink mr-1"></i> ${e.date ? e.date.replace('T', ' ') : 'N/A'}</span>
-                        <span><i class="fas fa-globe text-ink mr-1"></i> ${e.timezone || 'UTC'}</span>
-                        <span><i class="fas fa-map-marker-alt text-ink mr-1"></i> ${e.location || 'Online'}</span>
-                        ${e.eventType !== 'API_ONLY' ? `<span><i class="fas fa-users text-ink mr-1"></i> Cap: ${e.capacity || '∞'}</span>` : ''}
+                        <span><i class="far fa-calendar text-ink mr-1"></i> ${e.date ? escapeHtml(e.date.replace('T', ' ')) : 'N/A'}</span>
+                        <span><i class="fas fa-globe text-ink mr-1"></i> ${escapeHtml(e.timezone || 'UTC')}</span>
+                        <span><i class="fas fa-map-marker-alt text-ink mr-1"></i> ${escapeHtml(e.location || 'Online')}</span>
+                        ${e.eventType !== 'API_ONLY' ? `<span><i class="fas fa-users text-ink mr-1"></i> Cap: ${escapeHtml(e.capacity || '∞')}</span>` : ''}
                     </div>
                 </div>
                 
                 <div class="flex items-center gap-2 self-end sm:self-center">
                     ${canManageEvents ? `
-                        <a href="#/community/${id}/event/${e.PK.split('#')[1]}" class="btn-secondary !text-xs !px-4 !py-2">
+                        <a href="#/community/${encodeURIComponent(id)}/event/${encodeURIComponent(eventPkId)}" class="btn-secondary !text-xs !px-4 !py-2">
                             Manage <i class="fas fa-arrow-right ml-1"></i>
                         </a>
                     ` : '<span class="text-xs font-mono font-bold text-neutral-500 bg-canvas border border-ink px-2.5 py-1">Read Only</span>'}
                 </div>
             </div>
-        `).join('');
+        `;}).join('');
 
         // --- 4. RENDER POSTS ---
         const postsHtml = (posts || []).map(p => `
             <div class="border-2 border-ink p-4 mb-3 bg-white shadow-[2px_2px_0_0_#0b0b0b]">
-                <div class="font-sans font-medium text-ink text-sm leading-relaxed">${p.content}</div>
+                <div class="font-sans font-medium text-ink text-sm leading-relaxed">${escapeHtml(p.content)}</div>
                 <div class="font-mono text-xs font-bold text-neutral-700 mt-3 pt-2 border-t border-ink/20 flex justify-between items-center">
-                    <span><i class="far fa-clock text-ink mr-1"></i> Scheduled: ${p.scheduledDate || 'Immediate'}</span>
-                    <span class="px-2 py-0.5 bg-canvas border border-ink text-ink uppercase text-[10px]">${p.status || 'DRAFT'}</span>
+                    <span><i class="far fa-clock text-ink mr-1"></i> Scheduled: ${escapeHtml(p.scheduledDate || 'Immediate')}</span>
+                    <span class="px-2 py-0.5 bg-canvas border border-ink text-ink uppercase text-[10px]">${escapeHtml(p.status || 'DRAFT')}</span>
                 </div>
             </div>
         `).join('');
@@ -111,16 +113,16 @@ export async function renderCommunity(id) {
             const rolesList = (team || []).map(member => `
                 <div class="flex justify-between items-start p-3 border-b-2 border-ink/20 last:border-0 hover:bg-canvas transition">
                     <div>
-                        <div class="font-bold text-sm text-ink font-mono">${member.name}</div>
-                        <div class="text-xs text-neutral-700 font-sans">${member.email}</div>
-                        <div class="text-[11px] text-neutral-500 font-mono mt-0.5 select-all">ID: ${member.id}</div>
+                        <div class="font-bold text-sm text-ink font-mono">${escapeHtml(member.name)}</div>
+                        <div class="text-xs text-neutral-700 font-sans">${escapeHtml(member.email)}</div>
+                        <div class="text-[11px] text-neutral-500 font-mono mt-0.5 select-all">ID: ${escapeHtml(member.id)}</div>
                     </div>
                     <div class="text-right">
                         <span class="text-[10px] uppercase font-mono font-bold tracking-wider bg-cyan border-2 border-ink text-ink px-2 py-0.5 mb-1 inline-block shadow-[1px_1px_0_0_#0b0b0b]">
-                            ${member.role.replace(/_/g, ' ')}
+                            ${escapeHtml(member.role ? member.role.replace(/_/g, ' ') : '')}
                         </span>
                         <br>
-                        <button onclick="handleRemoveRole('${id}', '${member.id}')" class="btn-danger !text-[10px] !px-2 !py-0.5 mt-1">
+                        <button onclick="handleRemoveRole('${escapeHtml(id)}', '${escapeHtml(member.id)}')" class="btn-danger !text-[10px] !px-2 !py-0.5 mt-1">
                             <i class="fas fa-trash"></i> Remove
                         </button>
                     </div>
@@ -151,10 +153,10 @@ export async function renderCommunity(id) {
                     </a>
                     <div>
                         <h1 class="text-2xl sm:text-4xl font-black font-mono text-ink uppercase tracking-tight flex items-center flex-wrap gap-2">
-                            ${community.name}
+                            ${escapeHtml(community.name)}
                             ${renderCommunityFeaturePills(features)}
                         </h1>
-                        <p class="text-xs text-neutral-700 font-mono font-bold mt-1">ID: ${id}</p>
+                        <p class="text-xs text-neutral-700 font-mono font-bold mt-1">ID: ${escapeHtml(id)}</p>
                     </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
@@ -314,11 +316,11 @@ export async function renderCommunity(id) {
                             <span class="block text-xs font-bold text-neutral-700 uppercase tracking-wide mb-1">Owner</span>
                             <div class="flex items-center gap-3 bg-canvas border-2 border-ink p-3 shadow-[2px_2px_0_0_#0b0b0b]">
                                 <div class="w-8 h-8 bg-cyan border-2 border-ink flex items-center justify-center text-ink font-black text-sm">
-                                    ${community.ownerDetails?.name?.charAt(0) || 'U'}
+                                    ${escapeHtml(community.ownerDetails?.name?.charAt(0) || 'U')}
                                 </div>
                                 <div class="overflow-hidden">
-                                    <span class="font-bold text-ink text-xs uppercase block truncate">${community.ownerDetails?.name || 'Unknown'}</span>
-                                    <span class="text-[11px] text-neutral-700 block truncate">${community.ownerDetails?.email || ''}</span>
+                                    <span class="font-bold text-ink text-xs uppercase block truncate">${escapeHtml(community.ownerDetails?.name || 'Unknown')}</span>
+                                    <span class="text-[11px] text-neutral-700 block truncate">${escapeHtml(community.ownerDetails?.email || '')}</span>
                                 </div>
                             </div>
                         </div>
@@ -328,7 +330,7 @@ export async function renderCommunity(id) {
                             <div class="flex flex-wrap gap-1.5">
                                 ${myPerms.length ? myPerms.map(p => `
                                     <span class="bg-canvas text-ink border-2 border-ink px-2 py-0.5 text-[10px] font-bold uppercase shadow-[1px_1px_0_0_#0b0b0b]">
-                                        ${p}
+                                        ${escapeHtml(p)}
                                     </span>
                                 `).join('') : '<span class="text-neutral-600 text-xs italic">Read Only</span>'}
                             </div>
@@ -538,14 +540,14 @@ export async function renderCommunity(id) {
                             <input type="checkbox" name="feat_certificates" ${hasCertificates ? 'checked' : ''} class="w-5 h-5 accent-cyan border-2 border-ink mt-0.5">
                             <div>
                                 <div class="font-black text-ink uppercase">Certificate Designer</div>
-                                <div class="text-[11px] text-neutral-600">Customize community default certificate templates and issue certificates.</div>
+                                <div class="text-[11px] text-neutral-600">Customize community default templates and issue certificates (stored &amp; valid for 2 years).</div>
                             </div>
                         </label>
                         <label class="flex items-start gap-3 p-3 bg-canvas border-2 border-ink cursor-pointer hover:bg-neutral-100 transition">
                             <input type="checkbox" name="feat_api_access" ${hasApiAccess ? 'checked' : ''} class="w-5 h-5 accent-cyan border-2 border-ink mt-0.5">
                             <div>
                                 <div class="font-black text-ink uppercase">B2B API &amp; Credits</div>
-                                <div class="text-[11px] text-neutral-600">Headless API keys, automated certificate issuance, and credit quotas.</div>
+                                <div class="text-[11px] text-neutral-600">Headless API keys, automated certificate issuance (2-year validity), and credit quotas.</div>
                             </div>
                         </label>
                         <label class="flex items-start gap-3 p-3 bg-canvas border-2 border-ink cursor-pointer hover:bg-neutral-100 transition">
