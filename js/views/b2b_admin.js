@@ -7,26 +7,39 @@ let state = {
 
 export async function renderB2BAdmin() {
     const app = document.getElementById('app');
-    app.innerHTML = '<div class="loader ease-linear rounded-none border-4 border-t-4 border-ink h-12 w-12 mx-auto"></div>';
+    app.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-20 gap-4 font-mono">
+            <div class="w-10 h-10 bg-ink border-4 border-cyan shadow-[4px_4px_0_0_#5ce1e6] animate-[spin_1s_steps(4)_infinite]"></div>
+            <p class="text-xs uppercase font-bold text-ink tracking-widest animate-pulse">[ LOADING B2B CONSOLE... ]</p>
+        </div>`;
 
     await loadData();
 
     app.innerHTML = `
-        <div class="mb-6 border-b pb-4">
-            <h1 class="text-3xl font-black uppercase font-mono border-b-4 border-ink pb-2 inline-block mb-4 text-ink">SuperAdmin: B2B Management</h1>
-            <p class="text-sm text-ink/50">Manage B2B API applications and Community Credits</p>
+        <div class="mb-8 border-b-4 border-ink pb-6 font-mono">
+            <p class="text-xs uppercase tracking-widest text-ink font-bold mb-1">[ SUPERADMIN CONSOLE ]</p>
+            <h1 class="text-3xl sm:text-5xl font-black tracking-tighter uppercase leading-none text-ink">
+                B2B Management<span class="inline-block w-3 h-[0.7em] bg-cyan animate-pulse align-baseline ml-2"></span>
+            </h1>
+            <p class="text-xs text-neutral-700 font-bold mt-2">Manage enterprise API applications and override community credit quotas.</p>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="bg-card border border-ink p-5">
-                <h2 class="text-lg font-bold text-ink mb-4 border-b pb-2">Pending Applications</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 font-mono">
+            <div class="bg-white border-2 border-ink p-6 shadow-[6px_6px_0_0_#0b0b0b]">
+                <div class="flex items-center gap-2 border-b-2 border-ink pb-3 mb-4">
+                    <div class="w-2.5 h-2.5 bg-warning border border-ink"></div>
+                    <h2 class="font-black text-sm uppercase text-ink">Pending Applications (${state.applications.length})</h2>
+                </div>
                 <div class="space-y-3" id="applications-list">
                     ${renderApplications()}
                 </div>
             </div>
 
-            <div class="bg-card border border-ink p-5">
-                <h2 class="text-lg font-bold text-ink mb-4 border-b pb-2">Approved Communities</h2>
+            <div class="bg-white border-2 border-ink p-6 shadow-[6px_6px_0_0_#0b0b0b]">
+                <div class="flex items-center gap-2 border-b-2 border-ink pb-3 mb-4">
+                    <div class="w-2.5 h-2.5 bg-success border border-ink"></div>
+                    <h2 class="font-black text-sm uppercase text-ink">Approved Communities (${state.communities.length})</h2>
+                </div>
                 <div class="space-y-3" id="approved-communities-list">
                     ${renderApproved()}
                 </div>
@@ -37,14 +50,17 @@ export async function renderB2BAdmin() {
     const modals = document.getElementById('modals');
     modals.innerHTML = `
         ${modalTemplate('override-credits-modal', 'Override Community Credits', `
-            <form id="override-credits-form">
+            <form id="override-credits-form" class="space-y-4 font-mono text-xs">
                 <input type="hidden" id="override-community-id">
-                <div class="mb-4">
-                    <label class="label">Adjust Credits (Add/Remove)</label>
+                <div>
+                    <label class="label" for="override-quantity">Adjust Credits (Add/Remove)</label>
                     <input type="number" id="override-quantity" class="input" required placeholder="e.g. 500 or -100">
-                    <p class="text-xs text-ink/50 mt-1">Positive number to add, negative to remove.</p>
+                    <p class="text-[11px] text-neutral-600 mt-1 font-bold">Enter a positive number to add credits, or negative to deduct.</p>
                 </div>
-                <button type="submit" class="btn-primary w-full">Update Credits</button>
+                <div class="pt-3 border-t-2 border-ink flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('override-credits-modal')" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Update Credits</button>
+                </div>
             </form>
         `)}
     `;
@@ -67,35 +83,43 @@ async function loadData() {
 }
 
 function renderApplications() {
-    if (state.applications.length === 0) return `<p class="text-ink/50 text-sm italic">No pending applications.</p>`;
+    if (state.applications.length === 0) return `<div class="card-static text-center py-8 font-mono text-xs font-bold uppercase text-neutral-500">No pending applications.</div>`;
 
     return state.applications.map(app => `
-        <div class="border p-3 flex justify-between items-center bg-canvas">
+        <div class="border-2 border-ink p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-canvas shadow-[3px_3px_0_0_#0b0b0b]">
             <div>
-                <p class="font-bold text-ink">${app.name}</p>
-                <p class="text-xs text-ink/50 font-mono">ID: ${app.id}</p>
+                <p class="font-black text-sm text-ink uppercase">${app.name}</p>
+                <p class="text-[11px] text-neutral-600 font-mono mt-0.5 font-bold">ID: ${app.id}</p>
             </div>
-            <div class="flex gap-2">
-                <button onclick="window.updateB2BStatus('${app.id}', 'APPROVED')" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1.5 font-bold transition">Approve</button>
-                <button onclick="window.updateB2BStatus('${app.id}', 'REJECTED')" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 font-bold transition">Reject</button>
+            <div class="flex gap-2 w-full sm:w-auto justify-end">
+                <button onclick="window.updateB2BStatus('${app.id}', 'APPROVED')" class="btn-primary !text-xs !px-3 !py-1">
+                    <i class="fas fa-check mr-1"></i> Approve
+                </button>
+                <button onclick="window.updateB2BStatus('${app.id}', 'REJECTED')" class="btn-danger !text-xs !px-3 !py-1">
+                    <i class="fas fa-times mr-1"></i> Reject
+                </button>
             </div>
         </div>
     `).join('');
 }
 
 function renderApproved() {
-    if (state.communities.length === 0) return `<p class="text-ink/50 text-sm italic">No approved communities.</p>`;
+    if (state.communities.length === 0) return `<div class="card-static text-center py-8 font-mono text-xs font-bold uppercase text-neutral-500">No approved communities.</div>`;
 
     return state.communities.map(comm => `
-        <div class="border p-3 flex justify-between items-center bg-card">
+        <div class="border-2 border-ink p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white shadow-[3px_3px_0_0_#0b0b0b]">
             <div>
-                <p class="font-bold text-ink">${comm.name}</p>
-                <p class="text-xs text-ink/50 font-mono mb-1">ID: ${comm.id}</p>
-                <span class="bg-cyan/20 text-cyan text-[10px] px-2 py-0.5 rounded-none font-bold">Credits: ${comm.credits || 0}</span>
+                <p class="font-black text-sm text-ink uppercase">${comm.name}</p>
+                <p class="text-[11px] text-neutral-600 font-mono mb-2 font-bold">ID: ${comm.id}</p>
+                <span class="badge bg-cyan text-ink">Credits: ${comm.credits || 0}</span>
             </div>
-            <div class="flex flex-col gap-2">
-                <button onclick="window.openOverrideCredits('${comm.id}')" class="bg-purple-600 hover:bg-purple-700 text-white text-[10px] px-2 py-1 font-bold transition whitespace-nowrap">Manage Credits</button>
-                <button onclick="window.updateB2BStatus('${comm.id}', 'REVOKED')" class="bg-red-100 text-red-700 hover:bg-red-200 text-[10px] px-2 py-1 font-bold transition">Revoke Access</button>
+            <div class="flex flex-wrap sm:flex-col gap-2 w-full sm:w-auto justify-end">
+                <button onclick="window.openOverrideCredits('${comm.id}')" class="btn-secondary !text-xs !px-3 !py-1 whitespace-nowrap">
+                    <i class="fas fa-coins mr-1"></i> Manage Credits
+                </button>
+                <button onclick="window.updateB2BStatus('${comm.id}', 'REVOKED')" class="btn-danger !text-xs !px-3 !py-1">
+                    <i class="fas fa-ban mr-1"></i> Revoke Access
+                </button>
             </div>
         </div>
     `).join('');
@@ -138,3 +162,4 @@ window.openOverrideCredits = (cid) => {
     document.getElementById('override-quantity').value = '';
     window.openModal('override-credits-modal');
 };
+

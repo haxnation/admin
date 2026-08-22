@@ -2,13 +2,18 @@ import { api, modalTemplate } from '../utils.js';
 import { currentUser } from '../auth.js';
 
 export async function renderCommunity(id) {
-    document.getElementById('app').innerHTML = '<div class="text-center mt-10">Loading Community...</div>';
+    document.getElementById('app').innerHTML = `
+        <div class="flex flex-col items-center justify-center py-20 gap-4">
+            <div class="w-10 h-10 bg-ink border-4 border-cyan shadow-[4px_4px_0_0_#5ce1e6] animate-[spin_1s_steps(4)_infinite]"></div>
+            <p class="font-mono text-xs uppercase font-bold text-ink tracking-widest animate-pulse">[ LOADING COMMUNITY DATA... ]</p>
+        </div>
+    `;
     
     // --- 1. FETCH DATA (Community + Transactions) ---
     try {
         const res = await api(`/community/${id}`);
         if(!res || !res.success) {
-            document.getElementById('app').innerHTML = '<div class="text-danger text-center">Community not found</div>';
+            document.getElementById('app').innerHTML = '<div class="card-static border-2 border-danger text-danger text-center font-mono font-bold uppercase p-8 my-8">Community not found</div>';
             return;
         }
 
@@ -39,38 +44,38 @@ export async function renderCommunity(id) {
 
         // --- 3. RENDER EVENTS ---
         const eventsHtml = events.map(e => `
-            <div class="flex justify-between items-center p-4 bg-card border hover:bg-canvas mb-2 transition">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white border-2 border-ink shadow-[3px_3px_0_0_#0b0b0b] mb-3 hover:translate-x-[1px] hover:translate-y-[1px] transition-all gap-4">
                 <div>
-                    <div class="font-bold text-ink">
+                    <div class="font-black text-lg text-ink font-mono uppercase flex items-center flex-wrap gap-2">
                         ${e.name}
-                        ${e.certificateSettings?.enabled ? '<span title="Certificates Enabled" class="ml-2 text-[10px] bg-warning text-ink border-2 border-ink px-1.5 py-0.5">📜</span>' : ''}
+                        ${e.certificateSettings?.enabled ? '<span title="Certificates Enabled" class="bg-warning text-ink border-2 border-ink text-[10px] font-mono font-bold px-1.5 py-0.5 shadow-[1px_1px_0_0_#0b0b0b]">📜 CERTIFICATE</span>' : ''}
+                        ${e.eventType === 'API_ONLY' ? '<span class="bg-ink text-cyan border-2 border-ink text-[10px] font-mono font-bold px-1.5 py-0.5">API-ONLY</span>' : ''}
                     </div>
-                    <div class="text-xs text-ink/50 flex gap-2 mt-1">
-                        <span><i class="far fa-calendar"></i> ${e.date.replace('T', ' ')}</span>
-                        <span><i class="fas fa-globe"></i> ${e.timezone || 'UTC'}</span>
-                    </div>
-                    <div class="text-xs text-ink/40 mt-1">
-                         <i class="fas fa-map-marker-alt"></i> ${e.location || 'Online'} ${e.eventType !== 'API_ONLY' ? `| <i class="fas fa-users"></i> Cap: ${e.capacity || '∞'}` : ''}
+                    <div class="text-xs font-mono font-semibold text-neutral-700 flex flex-wrap gap-3 mt-1.5">
+                        <span><i class="far fa-calendar text-ink mr-1"></i> ${e.date ? e.date.replace('T', ' ') : 'N/A'}</span>
+                        <span><i class="fas fa-globe text-ink mr-1"></i> ${e.timezone || 'UTC'}</span>
+                        <span><i class="fas fa-map-marker-alt text-ink mr-1"></i> ${e.location || 'Online'}</span>
+                        ${e.eventType !== 'API_ONLY' ? `<span><i class="fas fa-users text-ink mr-1"></i> Cap: ${e.capacity || '∞'}</span>` : ''}
                     </div>
                 </div>
                 
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 self-end sm:self-center">
                     ${canManageEvents ? `
-                        <a href="#/community/${id}/event/${e.PK.split('#')[1]}" class="text-xs font-bold bg-canvas text-cyan px-3 py-2 hover:bg-cyan/20 transition">
-                            MANAGE
+                        <a href="#/community/${id}/event/${e.PK.split('#')[1]}" class="btn-secondary !text-xs !px-4 !py-2">
+                            Manage <i class="fas fa-arrow-right ml-1"></i>
                         </a>
-                    ` : '<span class="text-xs text-ink/40 select-none bg-canvas px-2 py-1">View Only</span>'}
+                    ` : '<span class="text-xs font-mono font-bold text-neutral-500 bg-canvas border border-ink px-2.5 py-1">Read Only</span>'}
                 </div>
             </div>
         `).join('');
 
         // --- 4. RENDER POSTS ---
         const postsHtml = (posts || []).map(p => `
-            <div class="border p-3 mb-2 text-sm bg-card">
-                <div class="font-medium text-ink">${p.content}</div>
-                <div class="text-xs text-ink/50 mt-2 flex justify-between">
-                    <span><i class="far fa-clock"></i> Scheduled: ${p.scheduledDate || 'Immediate'}</span>
-                    <span class="px-2 py-0.5 bg-canvas text-ink/70">${p.status || 'DRAFT'}</span>
+            <div class="border-2 border-ink p-4 mb-3 bg-white shadow-[2px_2px_0_0_#0b0b0b]">
+                <div class="font-sans font-medium text-ink text-sm leading-relaxed">${p.content}</div>
+                <div class="font-mono text-xs font-bold text-neutral-700 mt-3 pt-2 border-t border-ink/20 flex justify-between items-center">
+                    <span><i class="far fa-clock text-ink mr-1"></i> Scheduled: ${p.scheduledDate || 'Immediate'}</span>
+                    <span class="px-2 py-0.5 bg-canvas border border-ink text-ink uppercase text-[10px]">${p.status || 'DRAFT'}</span>
                 </div>
             </div>
         `).join('');
@@ -80,18 +85,18 @@ export async function renderCommunity(id) {
         let rolesHtml = '';
         if (canManageTeam) {
             const rolesList = (team || []).map(member => `
-                <div class="flex justify-between items-start p-3 border-b last:border-0 hover:bg-canvas transition">
+                <div class="flex justify-between items-start p-3 border-b-2 border-ink/20 last:border-0 hover:bg-canvas transition">
                     <div>
-                        <div class="font-bold text-sm text-ink">${member.name}</div>
-                        <div class="text-xs text-ink/50">${member.email}</div>
-                        <div class="text-xs text-ink/40 font-mono mt-0.5 select-all">${member.id}</div>
+                        <div class="font-bold text-sm text-ink font-mono">${member.name}</div>
+                        <div class="text-xs text-neutral-700 font-sans">${member.email}</div>
+                        <div class="text-[11px] text-neutral-500 font-mono mt-0.5 select-all">ID: ${member.id}</div>
                     </div>
                     <div class="text-right">
-                        <span class="text-[10px] uppercase font-bold tracking-wider bg-cyan/20 text-cyan px-2 py-1 mb-1 inline-block">
+                        <span class="text-[10px] uppercase font-mono font-bold tracking-wider bg-cyan border-2 border-ink text-ink px-2 py-0.5 mb-1 inline-block shadow-[1px_1px_0_0_#0b0b0b]">
                             ${member.role.replace(/_/g, ' ')}
                         </span>
                         <br>
-                        <button onclick="handleRemoveRole('${id}', '${member.id}')" class="text-danger hover:text-red-700 text-xs font-bold mt-1 transition">
+                        <button onclick="handleRemoveRole('${id}', '${member.id}')" class="btn-danger !text-[10px] !px-2 !py-0.5 mt-1">
                             <i class="fas fa-trash"></i> Remove
                         </button>
                     </div>
@@ -99,15 +104,15 @@ export async function renderCommunity(id) {
             `).join('');
 
             rolesHtml = `
-                <div class="bg-card border border-ink mb-6 overflow-hidden">
-                    <div class="p-4 bg-canvas border-b border-ink flex justify-between items-center">
-                        <h3 class="font-bold text-xs text-ink/50 uppercase tracking-wider">Team Members</h3>
-                        <button onclick="openModal('add-team-member')" class="btn-primary">
+                <div class="bg-white border-2 border-ink shadow-[4px_4px_0_0_#0b0b0b] mb-6 overflow-hidden">
+                    <div class="p-4 bg-canvas border-b-2 border-ink flex justify-between items-center">
+                        <h3 class="font-mono font-bold text-xs text-ink uppercase tracking-wider">Team Members (${(team || []).length})</h3>
+                        <button onclick="openModal('add-team-member')" class="btn-primary !text-xs !px-3 !py-1.5">
                             <i class="fas fa-plus"></i> Add Member
                         </button>
                     </div>
                     <div>
-                        ${rolesList.length ? rolesList : '<p class="p-4 text-ink/40 text-xs italic text-center">No additional team members.</p>'}
+                        ${rolesList.length ? rolesList : '<p class="p-6 text-neutral-600 text-xs font-mono italic text-center">No additional team members assigned.</p>'}
                     </div>
                 </div>
             `;
@@ -115,29 +120,31 @@ export async function renderCommunity(id) {
 
         // --- 7. MAIN LAYOUT ASSEMBLY ---
         document.getElementById('app').innerHTML = `
-            <div class="mb-8 flex justify-between items-center border-b pb-4">
+            <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-4 border-ink pb-6">
                 <div class="flex items-center gap-4">
-                    <a href="#/dashboard" class="text-ink/40 hover:text-ink transition"><i class="fas fa-arrow-left"></i></a>
+                    <a href="#/dashboard" class="btn-secondary !px-3 !py-2" aria-label="Back to dashboard">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
                     <div>
-                        <h1 class="text-2xl font-bold text-ink flex items-center gap-2">
+                        <h1 class="text-2xl sm:text-4xl font-black font-mono text-ink uppercase tracking-tight flex items-center flex-wrap gap-2">
                             ${community.name}
-                            ${community.communityType === 'SUPER' ? '<span class="bg-warning text-ink border-2 border-ink text-[10px] px-2 py-0.5 border border-yellow-200 uppercase font-black tracking-widest"><i class="fas fa-crown text-yellow-600 mr-1"></i> SUPER</span>' : '<span class="bg-canvas text-ink/50 text-[10px] px-2 py-0.5 border border-ink uppercase font-black tracking-widest">STANDARD</span>'}
+                            ${community.communityType === 'SUPER' ? '<span class="bg-warning text-ink border-2 border-ink text-xs px-2.5 py-1 font-mono font-black tracking-wider uppercase shadow-[2px_2px_0_0_#0b0b0b]"><i class="fas fa-crown text-ink mr-1"></i> SUPER</span>' : '<span class="bg-canvas text-ink border-2 border-ink text-xs px-2.5 py-1 font-mono font-bold tracking-wider uppercase shadow-[2px_2px_0_0_#0b0b0b]">STANDARD</span>'}
                         </h1>
-                        <p class="text-xs text-ink/40 font-mono mt-1">ID: ${id}</p>
+                        <p class="text-xs text-neutral-700 font-mono font-bold mt-1">ID: ${id}</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                     ${(currentUser.platformRole === 'SUPER_ADMIN' && community.communityType !== 'SUPER') ? `
-                        <button onclick="window.promoteCommunity('${id}')" class="bg-yellow-500 text-white px-4 py-2 hover:bg-yellow-600 text-sm flex items-center gap-2 transition font-bold">
-                            <i class="fas fa-crown"></i> Promote to SUPER
+                        <button onclick="window.promoteCommunity('${id}')" class="btn-primary !bg-warning hover:!bg-yellow-400 text-ink">
+                            <i class="fas fa-crown mr-1"></i> Promote to SUPER
                         </button>
                     ` : ''}
                     ${canManageTemplates ? `
                         <button onclick="window.openModal('community-settings-modal')" class="btn-secondary">
-                            <i class="fas fa-cog"></i> Settings
+                            <i class="fas fa-cog mr-1"></i> Settings
                         </button>
-                        <a href="#/community/${id}/design" class="bg-indigo-600 text-white px-4 py-2 hover:bg-indigo-700 text-sm flex items-center gap-2 transition">
-                            <span>🎨</span> Manage Default Template
+                        <a href="#/community/${id}/design" class="btn-primary">
+                            <i class="fas fa-palette mr-1"></i> Default Template
                         </a>
                     ` : ''}
                 </div>
@@ -147,123 +154,124 @@ export async function renderCommunity(id) {
                 
                 <div class="lg:col-span-2 space-y-8">
                     
-                    <div class="bg-card border border-ink overflow-hidden">
+                    <!-- Metrics Card -->
+                    <div class="bg-white border-2 border-ink shadow-[4px_4px_0_0_#0b0b0b] overflow-hidden">
                         ${community.communityType === 'SUPER' ? `
-                        <div class="p-4 bg-canvas border-b border-ink flex justify-between items-center">
-                            <h2 class="font-bold text-ink flex items-center gap-2">
+                        <div class="p-4 bg-canvas border-b-2 border-ink flex justify-between items-center font-mono">
+                            <h2 class="font-black text-sm uppercase text-ink flex items-center gap-2">
                                 💰 Revenue &amp; Transactions
                             </h2>
                             <a href="#/community/${id}/transactions"
-                               class="text-xs font-semibold text-cyan hover:text-cyan flex items-center gap-1.5 transition">
+                               class="text-xs font-bold text-ink hover:text-cyan underline flex items-center gap-1.5 uppercase transition">
                                 View All <i class="fas fa-arrow-right text-[10px]"></i>
                             </a>
                         </div>
-                        <div class="p-5 grid grid-cols-2 gap-4">
-                            <div>
-                                <p class="text-xs text-ink/40 uppercase tracking-wider font-semibold mb-1">Total Revenue</p>
-                                <p class="text-2xl font-black text-success">₹${totalRevenue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-                                <p class="text-xs text-ink/40 mt-1">${completedTxns.length} completed payment${completedTxns.length !== 1 ? 's' : ''}</p>
+                        <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6 font-mono">
+                            <div class="bg-canvas border-2 border-ink p-4 shadow-[2px_2px_0_0_#0b0b0b]">
+                                <p class="text-xs text-neutral-700 uppercase tracking-wider font-bold mb-1">Total Revenue</p>
+                                <p class="text-3xl font-black text-success">₹${totalRevenue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                                <p class="text-xs text-neutral-600 mt-1 font-semibold">${completedTxns.length} completed payment${completedTxns.length !== 1 ? 's' : ''}</p>
                             </div>
-                            <div>
-                                <p class="text-xs text-ink/40 uppercase tracking-wider font-semibold mb-1">All Transactions</p>
-                                <p class="text-2xl font-black text-ink">${transactions.length}</p>
-                                <p class="text-xs text-ink/40 mt-1">across all statuses</p>
+                            <div class="bg-canvas border-2 border-ink p-4 shadow-[2px_2px_0_0_#0b0b0b]">
+                                <p class="text-xs text-neutral-700 uppercase tracking-wider font-bold mb-1">All Transactions</p>
+                                <p class="text-3xl font-black text-ink">${transactions.length}</p>
+                                <p class="text-xs text-neutral-600 mt-1 font-semibold">across all statuses</p>
                             </div>
                         </div>
-                        <div class="border-t border-gray-100 p-3 flex gap-2">
+                        <div class="border-t-2 border-ink p-4 flex flex-col sm:flex-row gap-3">
                             <a href="#/community/${id}/transactions"
-                               class="flex items-center justify-center gap-2 w-1/2 py-2 text-sm font-semibold text-cyan hover:bg-canvas border-2 border-ink transition">
+                               class="btn-secondary flex-1">
                                 <i class="fas fa-table"></i> Open Transactions
                             </a>
                             ${canManageTemplates ? `
-                            <button onclick="openApiIntegrations('${id}')" class="flex items-center justify-center gap-2 w-1/2 py-2 text-sm font-semibold text-purple-600 hover:bg-purple-50 transition">
+                            <button onclick="openApiIntegrations('${id}')" class="btn-secondary flex-1">
                                 <i class="fas fa-code"></i> API Integrations
                             </button>
                             ` : ''}
                         </div>
                         ` : community.communityType === 'B2B' ? `
-                        <div class="p-4 bg-canvas border-b border-ink flex justify-between items-center">
-                            <h2 class="font-bold text-ink flex items-center gap-2">
+                        <div class="p-4 bg-canvas border-b-2 border-ink flex justify-between items-center font-mono">
+                            <h2 class="font-black text-sm uppercase text-ink flex items-center gap-2">
                                 🔑 Credits &amp; API Usage
                             </h2>
                         </div>
-                        <div class="p-5 grid grid-cols-2 gap-4">
-                            <div>
-                                <p class="text-xs text-ink/40 uppercase tracking-wider font-semibold mb-1">Remaining Credits</p>
-                                <p class="text-2xl font-black text-cyan">${community.credits || 0}</p>
-                                <p class="text-xs text-ink/40 mt-1">available for API</p>
+                        <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6 font-mono">
+                            <div class="bg-canvas border-2 border-ink p-4 shadow-[2px_2px_0_0_#0b0b0b]">
+                                <p class="text-xs text-neutral-700 uppercase tracking-wider font-bold mb-1">Remaining Credits</p>
+                                <p class="text-3xl font-black text-cyan">${community.credits || 0}</p>
+                                <p class="text-xs text-neutral-600 mt-1 font-semibold">available for API</p>
                             </div>
-                            <div>
-                                <p class="text-xs text-ink/40 uppercase tracking-wider font-semibold mb-1">Certificates Generated</p>
-                                <p class="text-2xl font-black text-ink">${usages.length}</p>
-                                <p class="text-xs text-ink/40 mt-1">deducted via API</p>
+                            <div class="bg-canvas border-2 border-ink p-4 shadow-[2px_2px_0_0_#0b0b0b]">
+                                <p class="text-xs text-neutral-700 uppercase tracking-wider font-bold mb-1">Certificates Generated</p>
+                                <p class="text-3xl font-black text-ink">${usages.length}</p>
+                                <p class="text-xs text-neutral-600 mt-1 font-semibold">deducted via API</p>
                             </div>
                         </div>
-                        <div class="border-t border-gray-100 p-3 flex flex-col gap-2">
+                        <div class="border-t-2 border-ink p-4 flex flex-col sm:flex-row gap-3">
                             ${canManageTemplates ? `
-                            <button onclick="openApiIntegrations('${id}')" class="flex items-center justify-center gap-2 w-full py-2 text-sm font-semibold text-purple-600 hover:bg-purple-50 transition">
+                            <button onclick="openApiIntegrations('${id}')" class="btn-secondary flex-1">
                                 <i class="fas fa-code"></i> Manage API Integrations
                             </button>
                             ` : ''}
-                            <a href="#/community/${id}/api-usage" class="flex items-center justify-center gap-2 w-full py-2 text-sm font-semibold text-cyan hover:bg-canvas border-2 border-ink transition">
+                            <a href="#/community/${id}/api-usage" class="btn-secondary flex-1">
                                 <i class="fas fa-list-alt"></i> View Detailed Logs
                             </a>
                         </div>
                         ` : `
-                        <div class="p-4 bg-canvas border-b border-ink flex justify-between items-center">
-                            <h2 class="font-bold text-ink flex items-center gap-2">
+                        <div class="p-4 bg-canvas border-b-2 border-ink flex justify-between items-center font-mono">
+                            <h2 class="font-black text-sm uppercase text-ink flex items-center gap-2">
                                 📊 Events &amp; Attendees
                             </h2>
                         </div>
-                        <div class="p-5 grid grid-cols-2 gap-4">
-                            <div>
-                                <p class="text-xs text-ink/40 uppercase tracking-wider font-semibold mb-1">Total Events</p>
-                                <p class="text-2xl font-black text-cyan">${events.length}</p>
-                                <p class="text-xs text-ink/40 mt-1">hosted by community</p>
+                        <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6 font-mono">
+                            <div class="bg-canvas border-2 border-ink p-4 shadow-[2px_2px_0_0_#0b0b0b]">
+                                <p class="text-xs text-neutral-700 uppercase tracking-wider font-bold mb-1">Total Events</p>
+                                <p class="text-3xl font-black text-cyan">${events.length}</p>
+                                <p class="text-xs text-neutral-600 mt-1 font-semibold">hosted by community</p>
                             </div>
-                            <div>
-                                <p class="text-xs text-ink/40 uppercase tracking-wider font-semibold mb-1">Total Attendees</p>
-                                <p class="text-2xl font-black text-ink">${events.reduce((sum, e) => sum + (parseInt(e.stats?.registered) || 0), 0)}</p>
-                                <p class="text-xs text-ink/40 mt-1">across all events</p>
+                            <div class="bg-canvas border-2 border-ink p-4 shadow-[2px_2px_0_0_#0b0b0b]">
+                                <p class="text-xs text-neutral-700 uppercase tracking-wider font-bold mb-1">Total Attendees</p>
+                                <p class="text-3xl font-black text-ink">${events.reduce((sum, e) => sum + (parseInt(e.stats?.registered) || 0), 0)}</p>
+                                <p class="text-xs text-neutral-600 mt-1 font-semibold">across all events</p>
                             </div>
-                        </div>
-                        <div class="border-t border-gray-100 p-3 flex flex-col gap-2">
                         </div>
                         `}
                     </div>
 
-                    <div class="bg-canvas p-6 border border-ink">
-                        <div class="flex justify-between items-center mb-6">
-                            <h2 class="font-bold text-lg text-ink">Events</h2>
+                    <!-- Events List -->
+                    <div class="bg-white border-2 border-ink shadow-[4px_4px_0_0_#0b0b0b] p-6">
+                        <div class="flex justify-between items-center mb-6 border-b-2 border-ink pb-4">
+                            <h2 class="font-mono font-black text-xl text-ink uppercase">Events (${events.length})</h2>
                             ${canManageEvents ? `
-                                <button onclick="openModal('create-event')" class="text-sm bg-card border border-ink text-ink px-4 py-2 hover:bg-canvas transition">
-                                    <i class="fas fa-plus text-cyan"></i> New Event
+                                <button onclick="openModal('create-event')" class="btn-primary !text-xs !px-4 !py-2">
+                                    <i class="fas fa-plus"></i> New Event
                                 </button>
                             ` : ''}
                         </div>
-                        <div class="space-y-2">
+                        <div>
                             ${eventsHtml.length ? eventsHtml : `
-                                <div class="text-center py-8 text-ink/40 border-2 border-dashed">
-                                    <i class="far fa-calendar-times text-2xl mb-2"></i><br>No events found
+                                <div class="text-center py-12 text-neutral-600 font-mono font-bold uppercase border-2 border-dashed border-ink p-6">
+                                    <i class="far fa-calendar-times text-3xl mb-3 text-ink"></i><br>No events found for this community
                                 </div>
                             `}
                         </div>
                     </div>
 
+                    <!-- Social Posts Section -->
                     ${community.features?.posts ? `
-                        <div class="bg-canvas p-6 border border-ink">
-                            <div class="flex justify-between items-center mb-6">
-                                <h2 class="font-bold text-lg text-ink">Social Posts</h2>
+                        <div class="bg-white border-2 border-ink shadow-[4px_4px_0_0_#0b0b0b] p-6">
+                            <div class="flex justify-between items-center mb-6 border-b-2 border-ink pb-4">
+                                <h2 class="font-mono font-black text-xl text-ink uppercase">Social Posts</h2>
                                 ${canManagePosts ? `
-                                    <button onclick="openModal('create-post')" class="text-sm bg-slate-800 text-white px-4 py-2 hover:bg-slate-700 transition">
+                                    <button onclick="openModal('create-post')" class="btn-primary !text-xs !px-4 !py-2">
                                         <i class="fas fa-pen"></i> Create Post
                                     </button>
-                                ` : '<span class="text-xs text-ink/40 bg-ink/10 px-2 py-1">View Only</span>'}
+                                ` : '<span class="text-xs font-mono font-bold text-neutral-500 bg-canvas border border-ink px-2 py-1">View Only</span>'}
                             </div>
-                            <div class="space-y-2">
+                            <div>
                                 ${postsHtml.length ? postsHtml : `
-                                    <div class="text-center py-8 text-ink/40 border-2 border-dashed">
-                                        <i class="far fa-comment-alt text-2xl mb-2"></i><br>No posts yet
+                                    <div class="text-center py-12 text-neutral-600 font-mono font-bold uppercase border-2 border-dashed border-ink p-6">
+                                        <i class="far fa-comment-alt text-3xl mb-3 text-ink"></i><br>No social posts yet
                                     </div>
                                 `}
                             </div>
@@ -271,53 +279,54 @@ export async function renderCommunity(id) {
                     ` : ''}
                 </div>
 
+                <!-- Right Sidebar -->
                 <div class="lg:col-span-1">
                     ${rolesHtml}
                     
-                    <div class="bg-card p-5 border border-ink text-sm text-ink/70">
-                        <h4 class="font-bold text-ink mb-4 pb-2 border-b">Community Details</h4>
+                    <div class="bg-white p-6 border-2 border-ink shadow-[4px_4px_0_0_#0b0b0b] font-mono">
+                        <h4 class="font-black text-base text-ink uppercase mb-4 pb-2 border-b-2 border-ink">Community Details</h4>
                         
                         <div class="mb-4">
-                            <span class="block text-xs text-ink/40 uppercase tracking-wide mb-1">Owner</span>
-                            <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-none bg-cyan/20 flex items-center justify-center text-cyan font-bold text-xs">
+                            <span class="block text-xs font-bold text-neutral-700 uppercase tracking-wide mb-1">Owner</span>
+                            <div class="flex items-center gap-3 bg-canvas border-2 border-ink p-3 shadow-[2px_2px_0_0_#0b0b0b]">
+                                <div class="w-8 h-8 bg-cyan border-2 border-ink flex items-center justify-center text-ink font-black text-sm">
                                     ${community.ownerDetails?.name?.charAt(0) || 'U'}
                                 </div>
-                                <div>
-                                    <span class="font-medium text-ink block">${community.ownerDetails?.name || 'Unknown'}</span>
-                                    <span class="text-xs text-ink/40">${community.ownerDetails?.email || ''}</span>
+                                <div class="overflow-hidden">
+                                    <span class="font-bold text-ink text-xs uppercase block truncate">${community.ownerDetails?.name || 'Unknown'}</span>
+                                    <span class="text-[11px] text-neutral-700 block truncate">${community.ownerDetails?.email || ''}</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="mb-4">
-                            <span class="block text-xs text-ink/40 uppercase tracking-wide mb-1">Your Capabilities</span>
-                            <div class="flex flex-wrap gap-1">
+                            <span class="block text-xs font-bold text-neutral-700 uppercase tracking-wide mb-1.5">Your Capabilities</span>
+                            <div class="flex flex-wrap gap-1.5">
                                 ${myPerms.length ? myPerms.map(p => `
-                                    <span class="bg-success/10 text-green-700 border border-green-100 px-2 py-0.5 text-[10px] font-mono">
+                                    <span class="bg-canvas text-ink border-2 border-ink px-2 py-0.5 text-[10px] font-bold uppercase shadow-[1px_1px_0_0_#0b0b0b]">
                                         ${p}
                                     </span>
-                                `).join('') : '<span class="text-ink/40 text-xs">Read Only</span>'}
+                                `).join('') : '<span class="text-neutral-600 text-xs italic">Read Only</span>'}
                             </div>
                         </div>
 
                         ${canManageTemplates ? `
-                        <div class="mt-4 pt-4 border-t border-gray-100">
-                            <span class="block text-xs text-ink/40 uppercase tracking-wide mb-2">B2B API Access</span>
-                            <div class="flex items-center justify-between">
-                                <span class="font-bold text-sm ${ community.b2bStatus === 'APPROVED' ? 'text-success' : community.b2bStatus === 'PENDING' ? 'text-yellow-600' : community.b2bStatus === 'REJECTED' || community.b2bStatus === 'REVOKED' ? 'text-danger' : 'text-ink/50' }">${community.b2bStatus || 'UNAPPLIED'}</span>
+                        <div class="mt-4 pt-4 border-t-2 border-ink">
+                            <span class="block text-xs font-bold text-neutral-700 uppercase tracking-wide mb-2">B2B API Access</span>
+                            <div class="flex items-center justify-between bg-canvas border-2 border-ink p-3">
+                                <span class="font-black text-xs uppercase ${ community.b2bStatus === 'APPROVED' ? 'text-success' : community.b2bStatus === 'PENDING' ? 'text-warning bg-ink px-1.5 py-0.5' : community.b2bStatus === 'REJECTED' || community.b2bStatus === 'REVOKED' ? 'text-danger' : 'text-neutral-700' }">${community.b2bStatus || 'UNAPPLIED'}</span>
                                 
                                 ${(!community.b2bStatus || community.b2bStatus === 'UNAPPLIED') ? `
-                                    <button onclick="window.applyForB2B('${id}')" class="btn-primary text-[10px] px-2 py-1">Apply Now</button>
+                                    <button onclick="window.applyForB2B('${id}')" class="btn-primary !text-[10px] !px-2.5 !py-1">Apply Now</button>
                                 ` : ''}
                             </div>
                         </div>
                         
-                        <div class="mt-4 pt-4 border-t border-gray-100">
-                            <span class="block text-xs text-ink/40 uppercase tracking-wide mb-2">Account Credits</span>
-                            <div class="flex items-center justify-between">
-                                <span class="font-bold text-lg text-ink"><i class="fas fa-coins text-yellow-500 mr-2"></i>${community.credits || 0}</span>
-                                <a href="#/community/${id}/api-keys" class="text-cyan text-[10px] font-bold hover:underline uppercase">Manage API Keys</a>
+                        <div class="mt-4 pt-4 border-t-2 border-ink">
+                            <span class="block text-xs font-bold text-neutral-700 uppercase tracking-wide mb-2">Account Credits</span>
+                            <div class="flex items-center justify-between bg-canvas border-2 border-ink p-3">
+                                <span class="font-black text-lg text-ink"><i class="fas fa-coins text-yellow-500 mr-1.5"></i>${community.credits || 0}</span>
+                                <a href="#/community/${id}/api-keys" class="btn-secondary !text-[10px] !px-2.5 !py-1">Manage Keys</a>
                             </div>
                         </div>
                         ` : ''}
@@ -325,155 +334,159 @@ export async function renderCommunity(id) {
                 </div>
             </div>
 
+            <!-- Modals -->
             ${modalTemplate('create-event', 'Create New Event', `
-                <form onsubmit="handleCreateEvent(event, '${id}')">
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Event Name</label>
-                            <input type="text" name="name" placeholder="e.g. Hackathon 2024" class="w-full border border-ink p-2 focus:ring-2 focus:ring-blue-500 outline-none" required>
+                <form onsubmit="handleCreateEvent(event, '${id}')" class="space-y-4 font-mono">
+                    <div>
+                        <label class="label" for="ev-name">Event Name</label>
+                        <input type="text" id="ev-name" name="name" placeholder="e.g. CyberSecurity Summit 2026" class="input" required>
+                    </div>
+                    
+                    ${community.communityType === 'SUPER' ? `
+                        <div class="bg-canvas border-2 border-ink p-3 my-3">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" name="isApiOnly" id="is-api-only-toggle" onchange="window.toggleEventTypeUI()" class="w-4 h-4 accent-cyan border-2 border-ink"> 
+                                <span class="text-xs font-bold text-ink uppercase">API-Only Event</span>
+                            </label>
+                            <p class="text-[11px] text-neutral-700 mt-1 ml-7">Hides public pages and check-ins. Tailored for headless API-driven certificate generation.</p>
+                        </div>
+                    ` : `
+                        <div class="bg-canvas border-2 border-ink p-3 my-3">
+                            <span class="text-xs font-bold text-ink uppercase flex items-center gap-2"><i class="fas fa-info-circle text-cyan"></i> Standard Community Mode</span>
+                            <p class="text-[11px] text-neutral-700 mt-1">Standard communities can only create API-Only events. Upgrade to SUPER for full-featured ticketed events.</p>
+                            <input type="hidden" name="isApiOnly" value="on">
+                        </div>
+                    `}
+
+                    <div id="full-feature-fields" class="${community.communityType !== 'SUPER' ? 'hidden' : ''}">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="label" for="input-event-date">Date & Time</label>
+                                <input type="datetime-local" id="input-event-date" name="date" class="input !p-2" ${community.communityType === 'SUPER' ? 'required' : ''}>
+                            </div>
+                            <div>
+                                <label class="label" for="ev-timezone">Timezone</label>
+                                <select id="ev-timezone" name="timezone" class="input !p-2 bg-white">
+                                    <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                                    <option value="UTC">UTC</option>
+                                    <option value="America/New_York">New York (EST)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="label" for="ev-location">Location / Venue</label>
+                            <input type="text" id="ev-location" name="location" placeholder="e.g. IIT Bombay, Auditorium 1 or Online" class="input">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="label" for="input-custom-slug">Custom Link</label>
+                            <div class="flex">
+                                <span class="bg-canvas border-2 border-r-0 border-ink p-3 text-ink text-xs font-bold select-none">haxnation.org/</span>
+                                <input type="text" name="customSlug" id="input-custom-slug" placeholder="my-event-slug" class="input !border-l-0" ${community.communityType === 'SUPER' ? 'required' : ''}>
+                            </div>
                         </div>
                         
-                        ${community.communityType === 'SUPER' ? `
-                            <div class="mb-4 bg-canvas p-3 border">
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" name="isApiOnly" id="is-api-only-toggle" onchange="window.toggleEventTypeUI()" class="text-cyan focus:ring-blue-500"> 
-                                    <span class="text-sm font-bold text-ink">API-Only Event</span>
-                                </label>
-                                <p class="text-xs text-ink/50 mt-1 ml-6">Hides public pages, check-ins, and rendering settings. Perfect for headless integrations.</p>
-                            </div>
-                        ` : `
-                            <div class="mb-4 bg-canvas p-3 border">
-                                <span class="text-sm font-bold text-ink"><i class="fas fa-info-circle text-cyan"></i> Standard Community Restriction</span>
-                                <p class="text-xs text-ink/50 mt-1">Standard communities can only create API-Only events. Upgrade to a SUPER community for full-feature events.</p>
-                                <input type="hidden" name="isApiOnly" value="on">
-                            </div>
-                        `}
+                        <div class="grid grid-cols-2 gap-3 my-3 bg-canvas border-2 border-ink p-3">
+                            <label class="flex items-center gap-2 cursor-pointer text-xs font-bold uppercase text-ink">
+                                <input type="checkbox" name="requiresApproval" class="w-4 h-4 accent-cyan border-2 border-ink"> 
+                                <span>Approval Required</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer text-xs font-bold uppercase text-ink">
+                                <input type="checkbox" name="enableWaitlist" class="w-4 h-4 accent-cyan border-2 border-ink"> 
+                                <span>Enable Waitlist</span>
+                            </label>
+                        </div>
 
-                        <div id="full-feature-fields" class="${community.communityType !== 'SUPER' ? 'hidden' : ''}">
-                            <div class="grid grid-cols-2 gap-3 mb-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Date & Time</label>
-                                    <input type="datetime-local" id="input-event-date" name="date" class="w-full border border-ink p-2 text-sm" ${community.communityType === 'SUPER' ? 'required' : ''}>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Timezone</label>
-                                    <select name="timezone" class="w-full border border-ink p-2 text-sm bg-card">
-                                        <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
-                                        <option value="UTC">UTC</option>
-                                        <option value="America/New_York">New York (EST)</option>
-                                    </select>
-                                </div>
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="label" for="ev-cap">Capacity</label>
+                                <input type="number" id="ev-cap" name="capacity" placeholder="e.g. 100 (Blank = ∞)" class="input">
                             </div>
-
-                            <div class="mb-4">
-                                <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Location</label>
-                                <input type="text" name="location" placeholder="Venue Address or 'Online'" class="w-full border border-ink p-2">
-                            </div>
-
-                            <div class="mb-3">
-                                 <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Custom Link</label>
-                                <div class="flex">
-                                     <span class="bg-canvas border border-r-0 border-ink p-2 -l text-ink/50 text-sm">haxnation.org/</span>
-                                     <input type="text" name="customSlug" id="input-custom-slug" placeholder="my-event-slug" class="w-full border border-ink p-2 -r" ${community.communityType === 'SUPER' ? 'required' : ''}>
-                                </div>
-                            </div>
-                            
-                            <div class="flex gap-4 pt-2 mb-3">
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" name="requiresApproval" class="text-cyan focus:ring-blue-500"> 
-                                    <span class="text-sm text-ink">Approval Required</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" name="enableWaitlist" class="text-cyan focus:ring-blue-500"> 
-                                    <span class="text-sm text-ink">Enable Waitlist</span>
-                                </label>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-3 mb-3">
-                                 <div>
-                                    <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Capacity</label>
-                                    <input type="number" name="capacity" placeholder="e.g. 100" class="w-full border border-ink p-2">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Ticket Price</label>
-                                    <input type="number" name="ticketPrice" placeholder="0 = Free" class="w-full border border-ink p-2">
-                                </div>
-                            </div>
-
-                            <div class="flex gap-4 pt-2">
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" name="isCertificateOnly" class="text-cyan focus:ring-blue-500"> 
-                                    <span class="text-sm text-ink font-bold">Certificate Only Event</span>
-                                </label>
+                            <div>
+                                <label class="label" for="ev-price">Ticket Price (INR)</label>
+                                <input type="number" id="ev-price" name="ticketPrice" placeholder="0 = Free" class="input">
                             </div>
                         </div>
 
-                        <button class="btn-primary">Create Event</button>
+                        <div class="bg-canvas border-2 border-ink p-3 mb-3">
+                            <label class="flex items-center gap-2 cursor-pointer text-xs font-bold uppercase text-ink">
+                                <input type="checkbox" name="isCertificateOnly" class="w-4 h-4 accent-cyan border-2 border-ink"> 
+                                <span>Certificate-Only Event</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t-2 border-ink flex justify-end gap-3">
+                        <button type="button" onclick="closeModal('create-event')" class="btn-secondary">Cancel</button>
+                        <button type="submit" class="btn-primary">Create Event</button>
                     </div>
                 </form>
             `)}
 
             ${modalTemplate('create-post', 'Create Social Post', `
-                <form onsubmit="handleCreatePost(event, '${id}')">
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Post Content</label>
-                            <textarea name="content" placeholder="What's happening?" class="w-full border border-ink p-2 h-32 focus:ring-2 focus:ring-slate-500 outline-none" required></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Schedule Date</label>
-                            <input type="date" name="scheduledDate" class="w-full border border-ink p-2">
-                            <p class="text-xs text-ink/40 mt-1">Leave blank to post immediately.</p>
-                        </div>
-                        <button class="w-full bg-slate-800 text-white font-bold py-3 hover:bg-slate-900 transition">Schedule Post</button>
+                <form onsubmit="handleCreatePost(event, '${id}')" class="space-y-4 font-mono">
+                    <div>
+                        <label class="label" for="post-content">Post Content</label>
+                        <textarea id="post-content" name="content" placeholder="Share updates with your community..." class="input h-32" required></textarea>
+                    </div>
+                    <div>
+                        <label class="label" for="post-date">Schedule Date</label>
+                        <input type="date" id="post-date" name="scheduledDate" class="input">
+                        <p class="font-mono text-[11px] text-neutral-600 mt-1">Leave blank to publish immediately.</p>
+                    </div>
+                    <div class="pt-3 border-t-2 border-ink flex justify-end gap-3">
+                        <button type="button" onclick="closeModal('create-post')" class="btn-secondary">Cancel</button>
+                        <button type="submit" class="btn-primary">Publish Post</button>
                     </div>
                 </form>
             `)}
 
             ${modalTemplate('add-team-member', 'Add Team Member', `
-                <form onsubmit="handleAssignRole(event, '${id}')">
-                    <div class="mb-6">
-                        <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Lookup User</label>
+                <form onsubmit="handleAssignRole(event, '${id}')" class="space-y-4 font-mono">
+                    <div>
+                        <label class="label" for="input-user-id">Lookup User</label>
                         <div class="flex gap-2">
-                            <input type="text" id="input-user-id" name="userId" placeholder="Enter User ID (e.g. user_...)" class="flex-1 border border-ink p-2 focus:ring-2 focus:ring-blue-500 outline-none" required>
-                            <button type="button" onclick="verifyUser('${id}')" class="bg-canvas border border-ink text-ink px-4 hover:bg-ink/10 text-sm font-medium transition">
+                            <input type="text" id="input-user-id" name="userId" placeholder="Enter User ID (e.g. user_...)" class="input flex-1" required>
+                            <button type="button" onclick="verifyUser('${id}')" class="btn-secondary">
                                 Verify
                             </button>
                         </div>
-                        <div id="user-verify-result" class="text-sm mt-2 min-h-[20px]"></div>
+                        <div id="user-verify-result" class="text-xs mt-2 min-h-[20px]"></div>
                     </div>
 
-                    <div class="mb-6">
-                        <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Assign Role</label>
-                        <select name="role" class="w-full border border-ink p-2 bg-card focus:ring-2 focus:ring-blue-500 outline-none">
+                    <div>
+                        <label class="label" for="member-role">Assign Role</label>
+                        <select id="member-role" name="role" class="input bg-white">
                             <option value="COMMUNITY_MANAGER">Community Manager (Events, Posts, Settings)</option>
                             <option value="USER_MANAGER">User Manager (Approve/Reject Attendees)</option>
                             <option value="SOCIAL_MEDIA_MANAGER">Social Media Manager (Posts Only)</option>
                             <option value="CHECKIN_MANAGER">Check-in Manager (Gate Access Only)</option>
                             <option value="CTF_MAKER">CTF Maker (Create Challenges)</option>
-                            <option value="CTF_APPROVER">CTF Approver (Create & Approve Challenges)</option>
+                            <option value="CTF_APPROVER">CTF Approver (Create &amp; Approve Challenges)</option>
                             <option value="CTF_SPECTATOR">CTF Spectator (View Stats Only)</option>
                         </select>
                     </div>
 
-                    <button id="btn-add-member" class="w-full bg-green-600 text-white font-bold py-3 opacity-50 cursor-not-allowed transition" disabled>
-                        Add Member
-                    </button>
+                    <div class="pt-3 border-t-2 border-ink flex justify-end gap-3">
+                        <button type="button" onclick="closeModal('add-team-member')" class="btn-secondary">Cancel</button>
+                        <button id="btn-add-member" type="submit" class="btn-primary opacity-50 cursor-not-allowed" disabled>
+                            Add Member
+                        </button>
+                    </div>
                 </form>
             `)}
 
             ${modalTemplate('community-settings-modal', 'Community Settings', `
-                <form onsubmit="handleSaveCommunitySettings(event, '${id}')">
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Custom Certificate URL Prefix</label>
-                            <input type="text" name="customCertificateUrlPrefix" value="${community.settings?.customCertificateUrlPrefix || ''}" placeholder="e.g. https://my-frontend.com/validate?id=" class="w-full border border-ink p-2 focus:ring-2 focus:ring-blue-500 outline-none">
-                            <p class="text-[10px] text-ink/40 mt-1">Used to override the default verification link on generated certificates for API-Only events.</p>
-                        </div>
+                <form onsubmit="handleSaveCommunitySettings(event, '${id}')" class="space-y-4 font-mono">
+                    <div>
+                        <label class="label" for="cert-prefix">Custom Certificate URL Prefix</label>
+                        <input type="text" id="cert-prefix" name="customCertificateUrlPrefix" value="${community.settings?.customCertificateUrlPrefix || ''}" placeholder="e.g. https://my-domain.com/validate?id=" class="input">
+                        <p class="font-mono text-[11px] text-neutral-600 mt-1.5">Overrides the default verification link embedded on generated certificates for API-Only events.</p>
                     </div>
-                    <div class="mt-6 flex justify-end gap-3">
-                        <button type="button" onclick="closeModal('community-settings-modal')" class="px-4 py-2 text-ink/70 font-bold">Cancel</button>
-                        <button type="submit" class="btn-primary">Save</button>
+                    <div class="pt-4 border-t-2 border-ink flex justify-end gap-3">
+                        <button type="button" onclick="closeModal('community-settings-modal')" class="btn-secondary">Cancel</button>
+                        <button type="submit" class="btn-primary">Save Settings</button>
                     </div>
                 </form>
             `)}
@@ -481,7 +494,7 @@ export async function renderCommunity(id) {
 
     } catch(e) {
         console.error(e);
-        document.getElementById('app').innerHTML = '<div class="text-danger text-center mt-10">Error loading community data.</div>';
+        document.getElementById('app').innerHTML = '<div class="card-static border-2 border-danger text-danger text-center font-mono font-bold uppercase p-8 my-8">Error loading community data.</div>';
     }
 }
 
@@ -493,34 +506,32 @@ window.verifyUser = async (cid) => {
     const addBtn = document.getElementById('btn-add-member');
     
     if (!input.value) {
-        resultDiv.innerHTML = '<span class="text-danger text-xs">Please enter an ID first.</span>';
+        resultDiv.innerHTML = '<span class="text-danger font-mono font-bold text-xs">Please enter an ID first.</span>';
         return;
     }
 
-    resultDiv.innerHTML = '<span class="text-ink/50 flex items-center gap-2"><i class="fas fa-spinner fa-spin"></i> Searching...</span>';
+    resultDiv.innerHTML = '<span class="text-ink font-mono text-xs font-bold flex items-center gap-2"><i class="fas fa-spinner fa-spin"></i> Searching user records...</span>';
     
     const res = await api('/users/lookup', 'POST', { userId: input.value });
     
     if (res && res.success) {
         resultDiv.innerHTML = `
-            <div class="flex items-start gap-3 bg-success/10 border border-success p-2 mt-2">
-                <div class="text-success mt-0.5"><i class="fas fa-check-circle"></i></div>
+            <div class="flex items-start gap-3 bg-white border-2 border-success p-2.5 mt-2 font-mono shadow-[2px_2px_0_0_#0b0b0b]">
+                <div class="text-success text-sm mt-0.5"><i class="fas fa-check-circle"></i></div>
                 <div>
-                    <div class="font-bold text-green-800 text-sm">${res.data.name}</div>
-                    <div class="text-xs text-success">${res.data.email}</div>
+                    <div class="font-black text-ink text-xs uppercase">${res.data.name}</div>
+                    <div class="text-[11px] text-neutral-700">${res.data.email}</div>
                 </div>
             </div>`;
         addBtn.disabled = false;
         addBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-        addBtn.classList.add('hover:bg-green-700');
     } else {
         resultDiv.innerHTML = `
-            <div class="text-danger text-sm mt-1">
-                <i class="fas fa-times-circle"></i> User not found. Check ID.
+            <div class="text-danger font-mono font-bold text-xs mt-1">
+                <i class="fas fa-times-circle"></i> User not found. Please verify the User ID.
             </div>`;
         addBtn.disabled = true;
         addBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        addBtn.classList.remove('hover:bg-green-700');
     }
 };
 
@@ -602,12 +613,12 @@ window.toggleEventTypeUI = () => {
     const dateInput = document.getElementById('input-event-date');
     if (isApiOnly) {
         fullFields.classList.add('hidden');
-        slugInput.required = false;
-        dateInput.required = false;
+        if (slugInput) slugInput.required = false;
+        if (dateInput) dateInput.required = false;
     } else {
         fullFields.classList.remove('hidden');
-        slugInput.required = true;
-        dateInput.required = true;
+        if (slugInput) slugInput.required = true;
+        if (dateInput) dateInput.required = true;
     }
 };
 
@@ -617,4 +628,4 @@ window.promoteCommunity = async (id) => {
     if(res && res.success) {
         renderCommunity(id);
     } else alert(res?.error || 'Failed to promote');
-};
+};

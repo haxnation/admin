@@ -82,9 +82,6 @@ export async function renderCertificateDesigner(type, id, communityId = null) {
     state.targetId = id;
     state.communityId = communityId;
     state.fields = []; 
-
-    // Ensure state is fully reset when opening the designer
-    state.fields = []; 
     state.bgImage = null;
     state.scale = 1;
     state.selectedId = null;
@@ -97,27 +94,23 @@ export async function renderCertificateDesigner(type, id, communityId = null) {
         const style = document.createElement('style');
         style.id = styleId;
         style.textContent = `
-            #cert-root { display: flex; height: calc(100vh - 80px); background: #1e1e1e; color: #ddd; }
-            #sidebar { width: 320px; background: #2d2d2d; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; border-right: 1px solid #444; }
-            #workspace { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; overflow: auto; background: #333; }
-            #canvas-area { position: relative; box-: 0 0 30px rgba(0,0,0,0.8); background-size: contain; background-repeat: no-repeat; transition: all 0.2s; }
+            #cert-root { display: flex; flex-direction: column; md-flex-direction: row; min-height: calc(100vh - 120px); background: #fafafa; border: 2px solid #0b0b0b; box-shadow: 8px 8px 0 0 #0b0b0b; font-family: 'JetBrains Mono', monospace; }
+            @media (min-width: 768px) { #cert-root { flex-direction: row; } }
+            #sidebar { width: 100%; md-width: 360px; background: #ffffff; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; border-bottom: 2px solid #0b0b0b; border-right: none; }
+            @media (min-width: 768px) { #sidebar { width: 360px; border-bottom: none; border-right: 2px solid #0b0b0b; } }
+            #workspace { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; overflow: auto; background: #f0f0f0; padding: 24px; min-height: 480px; }
+            #canvas-area { position: relative; border: 2px solid #0b0b0b; box-shadow: 6px 6px 0 0 #0b0b0b; background: #ffffff; background-size: contain; background-repeat: no-repeat; transition: all 0.1s ease; }
             
-            .field-el { position: absolute; border: 1px dashed rgba(255,255,255,0.5); background: rgba(0, 123, 255, 0.1); cursor: move; display: flex; align-items: center; justify-content: center; color: white; text-: 0 0 2px black; font-size: 12px; overflow: hidden; white-space: nowrap; user-select: none; }
-            .field-el:hover { border-color: #007bff; }
-            .field-el.selected { border: 2px solid #00C853; background: rgba(0, 200, 83, 0.1); z-index: 100; }
+            .field-el { position: absolute; border: 2px dashed #0b0b0b; background: rgba(92, 225, 230, 0.15); cursor: move; display: flex; align-items: center; justify-content: center; color: #0b0b0b; font-size: 12px; font-weight: bold; overflow: hidden; white-space: nowrap; user-select: none; }
+            .field-el:hover { border-color: #5ce1e6; background: rgba(92, 225, 230, 0.3); }
+            .field-el.selected { border: 2px solid #00e676; background: rgba(0, 230, 118, 0.2); z-index: 100; box-shadow: 2px 2px 0 0 #0b0b0b; }
             
-            .resize-handle { width: 12px; height: 12px; background: #00C853; border: 1px solid white; position: absolute; bottom: -6px; right: -6px; cursor: se-resize; z-index: 101; border-radius: 50%; display:none; }
+            .resize-handle { width: 14px; height: 14px; background: #00e676; border: 2px solid #0b0b0b; position: absolute; bottom: -7px; right: -7px; cursor: se-resize; z-index: 101; display: none; }
             .field-el.selected .resize-handle { display: block; }
             
-            .control-group label { display: block; font-weight: bold; font-size: 12px; margin-top: 12px; color: #aaa; }
-            .control-group input, .control-group select { width: 100%; padding: 8px; font-size: 13px; background: #444; border: 1px solid #555; color: white; border-radius: 4px; margin-top: 4px; }
-            .control-group input:focus { border-color: #007bff; outline: none; }
-            
-            .var-tag { display: inline-block; padding: 2px 6px; background: #444; border-radius: 4px; font-size: 10px; margin: 2px; cursor: pointer; border: 1px solid #555; }
-            .var-tag:hover { background: #555; border-color: #888; }
-
-            .btn-tool { padding: 8px; border-radius: 4px; font-size: 12px; cursor: pointer; border: none; font-weight: bold; flex: 1; transition: opacity 0.2s; }
-            .btn-tool:hover { opacity: 0.9; }
+            .var-tag { display: inline-block; padding: 3px 8px; background: #fafafa; border: 2px solid #0b0b0b; font-size: 10px; font-weight: bold; text-transform: uppercase; margin: 2px; cursor: pointer; box-shadow: 2px 2px 0 0 #0b0b0b; transition: all 0.05s; }
+            .var-tag:hover { background: #5ce1e6; transform: translate(1px, 1px); box-shadow: 1px 1px 0 0 #0b0b0b; }
+            .var-tag:active { transform: translate(2px, 2px); box-shadow: none; }
         `;
         document.head.appendChild(style);
     }
@@ -125,86 +118,101 @@ export async function renderCertificateDesigner(type, id, communityId = null) {
     container.innerHTML = `
         <div id="cert-root">
             <div id="sidebar">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="font-bold text-lg text-white">Cert Designer</h2>
+                <div class="flex justify-between items-center pb-3 border-b-2 border-ink">
+                    <h2 class="font-black text-lg text-ink uppercase tracking-tight">Cert Designer</h2>
                     <div class="flex gap-2">
-                        <button id="btn-preview" class="btn-primary">👁️ Preview</button>
-                        <button id="btn-save" class="bg-green-600 text-white px-4 py-1.5 text-sm hover:bg-green-700 transition">Save</button>
+                        <button id="btn-preview" class="btn-secondary !text-xs !px-3 !py-1.5">Preview</button>
+                        <button id="btn-save" class="btn-primary !text-xs !px-3 !py-1.5">Save</button>
                     </div>
                 </div>
                 
-                <div class="p-3 bg-ink text-white border border-gray-700">
-                    <label class="text-xs font-bold uppercase tracking-wider text-ink/40 mb-2 block">1. Background Image</label>
-                    <div class="flex gap-2 mb-2">
-                        <input type="text" id="bgUrlInput" placeholder="https://..." class="text-xs text-ink w-full p-1.5 outline-none focus:ring-2 focus:ring-blue-500">
-                        <button id="btn-load-bg" class="btn-primary">Load</button>
+                <!-- Background Image Section -->
+                <div class="p-4 bg-canvas border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                    <label class="label mb-2">1. Background Image</label>
+                    <div class="flex gap-2 mb-3">
+                        <input type="text" id="bgUrlInput" placeholder="https://... URL or S3 link" class="input !p-2 text-xs flex-1">
+                        <button id="btn-load-bg" class="btn-secondary !text-xs !px-3 !py-2">Load</button>
                     </div>
-                    <div class="text-xs text-ink/40 text-center mb-1">- OR -</div>
-                    <div class="flex flex-col gap-2">
+                    <div class="text-[10px] text-neutral-600 text-center font-bold uppercase mb-2">[ OR CHOOSE LOCAL IMAGE ]</div>
+                    <div>
                         <input type="file" id="bgUploadInput" accept="image/png, image/jpeg" class="hidden">
-                        <button id="btn-upload-bg" class="w-full bg-purple-600 text-white px-3 py-1.5 text-xs hover:bg-purple-700 transition">📤 Upload to CDN</button>
-                        <div id="upload-status" class="text-[10px] text-ink/40 text-center hidden"></div>
+                        <button id="btn-upload-bg" class="btn-primary w-full !text-xs !py-2">
+                            <i class="fas fa-upload mr-1"></i> Upload Image
+                        </button>
+                        <div id="upload-status" class="text-[11px] font-bold text-ink text-center mt-2 hidden"></div>
                     </div>
                 </div>
 
-                <div>
-                    <label class="text-xs font-bold uppercase tracking-wider text-ink/40 mb-2 block">2. Add Elements</label>
-                    <div class="flex gap-2 mb-2">
-                        <button id="btn-add-text" class="btn-primary">+ Text</button>
-                        <button id="btn-add-var" class="btn-tool bg-purple-600 text-white">+ Variable</button>
+                <!-- Add Elements Section -->
+                <div class="p-4 bg-white border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                    <label class="label mb-2">2. Add Elements</label>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <button id="btn-add-text" class="btn-secondary !text-xs !py-2">+ Static Text</button>
+                        <button id="btn-add-var" class="btn-primary !text-xs !py-2">+ Variable</button>
                     </div>
-                    <div class="flex gap-2">
-                        <button id="btn-add-qr" class="btn-tool bg-ink text-white">+ QR Code</button>
-                        <button id="btn-add-img" class="btn-tool bg-orange-600 text-white">+ Image</button>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="btn-add-qr" class="btn-secondary !text-xs !py-2">+ QR Code</button>
+                        <button id="btn-add-img" class="btn-secondary !text-xs !py-2">+ User Avatar</button>
                     </div>
                 </div>
 
-                <div id="propertiesPanel" style="display:none;" class="border-t border-gray-600 pt-4 control-group animate-fade-in">
-                    <h3 class="font-bold mb-2 text-white flex justify-between">
-                        Properties 
-                        <span class="text-xs font-normal text-red-400 cursor-pointer hover:underline" id="btn-delete">Delete</span>
-                    </h3>
+                <!-- Properties Panel -->
+                <div id="propertiesPanel" style="display:none;" class="p-4 bg-white border-2 border-ink shadow-[4px_4px_0_0_#0b0b0b] animate-in fade-in duration-75">
+                    <div class="flex justify-between items-center mb-3 border-b-2 border-ink pb-2">
+                        <h3 class="font-black text-xs uppercase text-ink">Element Properties</h3>
+                        <button id="btn-delete" class="btn-danger !text-[10px] !px-2 !py-0.5">Delete</button>
+                    </div>
                     
-                    <label>Data Key / Content</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="propKey" placeholder="e.g. name">
+                    <div class="mb-3">
+                        <label class="label">Data Key / Text Content</label>
+                        <input type="text" id="propKey" placeholder="e.g. name" class="input !p-2 text-xs">
+                        <div class="mt-2 flex flex-wrap" id="var-list"></div>
                     </div>
-                    <div class="mt-2 flex flex-wrap" id="var-list"></div>
 
-                    <div id="textProps">
-                        <div class="flex gap-2">
-                            <div class="flex-1">
-                                <label>Size (px)</label>
-                                <input type="number" id="propSize">
+                    <div id="textProps" class="space-y-3">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="label">Font Size (px)</label>
+                                <input type="number" id="propSize" class="input !p-2 text-xs">
                             </div>
-                            <div class="flex-1">
-                                <label>Color</label>
-                                <input type="color" id="propColor" style="height: 38px; padding: 2px;">
+                            <div>
+                                <label class="label">Font Color</label>
+                                <input type="color" id="propColor" class="input !p-1 h-[38px] cursor-pointer">
                             </div>
                         </div>
-                        <label>Alignment</label>
-                        <select id="propAlignX">
-                            <option value="left">Left</option>
-                            <option value="center">Center</option>
-                            <option value="right">Right</option>
-                        </select>
-                        <label>Font Weight</label>
-                        <select id="propFontPath">
-                             <option value="">Regular</option>
-                             <option value="Bold">Bold</option>
-                        </select>
+                        <div>
+                            <label class="label">Text Alignment</label>
+                            <select id="propAlignX" class="input bg-white !p-2 text-xs">
+                                <option value="left">Left</option>
+                                <option value="center">Center</option>
+                                <option value="right">Right</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="label">Font Weight</label>
+                            <select id="propFontPath" class="input bg-white !p-2 text-xs">
+                                 <option value="">Regular</option>
+                                 <option value="Bold">Bold</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div id="imgProps" style="display:none;">
-                         <label>Corner Radius</label>
-                         <input type="number" id="propRadius">
-                         <label class="flex items-center gap-2 mt-3 cursor-pointer">
-                            <input type="checkbox" id="propCircle" style="width:auto; margin:0;"> Circular Mask
+                    <div id="imgProps" style="display:none;" class="space-y-3">
+                         <div>
+                             <label class="label">Corner Radius (px)</label>
+                             <input type="number" id="propRadius" class="input !p-2 text-xs">
+                         </div>
+                         <label class="flex items-center gap-2 cursor-pointer font-bold text-xs uppercase">
+                            <input type="checkbox" id="propCircle" class="w-4 h-4 accent-cyan border-2 border-ink"> Circular Mask
                          </label>
                     </div>
                 </div>
                 
-                <button onclick="history.back()" class="btn-secondary">Exit Designer</button>
+                <div class="mt-auto pt-3 border-t-2 border-ink">
+                    <button onclick="history.back()" class="btn-secondary w-full">
+                        <i class="fas fa-arrow-left mr-1"></i> Exit Designer
+                    </button>
+                </div>
             </div>
             
             <div id="workspace">
@@ -225,7 +233,7 @@ export async function renderCertificateDesigner(type, id, communityId = null) {
         tag.onclick = () => {
             const input = document.getElementById('propKey');
             input.value = v.key;
-            input.dispatchEvent(new Event('input')); // Trigger update
+            input.dispatchEvent(new Event('input'));
         };
         varList.appendChild(tag);
     });
@@ -287,7 +295,7 @@ function setupListeners() {
                 uploadBtn.disabled = true;
                 uploadStatus.style.display = 'block';
                 uploadStatus.innerText = 'Compressing image...';
-                uploadStatus.style.color = '#a855f7'; // purple-500
+                uploadStatus.className = 'text-[11px] font-bold text-ink text-center mt-2';
 
                 // 1. Compress Image (Lossless/Minimal Loss)
                 const options = {
@@ -310,7 +318,6 @@ function setupListeners() {
 
                 // 4. Update UI
                 uploadStatus.innerText = 'Previewing (Unsaved)';
-                uploadStatus.style.color = '#eab308'; // yellow-500
                 
                 document.getElementById('bgUrlInput').value = state.pendingBlobUrl;
                 document.getElementById('btn-load-bg').click();
@@ -318,10 +325,10 @@ function setupListeners() {
             } catch (err) {
                 console.error(err);
                 uploadStatus.innerText = err.message || 'Processing failed.';
-                uploadStatus.style.color = '#ef4444'; // red-500
+                uploadStatus.className = 'text-[11px] font-bold text-danger text-center mt-2';
             } finally {
                 uploadBtn.disabled = false;
-                uploadInput.value = ''; // reset
+                uploadInput.value = '';
                 setTimeout(() => { if(uploadStatus.innerText.includes('Previewing')) uploadStatus.style.display = 'none'; }, 3000);
             }
         });
@@ -367,7 +374,6 @@ function renderElement(field) {
     const el = document.createElement('div');
     el.id = field.id;
     el.className = 'field-el';
-    // Initial render
     updateElementVisuals(el, field);
     
     // Resize Handle
@@ -396,19 +402,20 @@ function updateElementVisuals(el, field) {
          el.style.fontSize = (field.fontSize * state.scale) + 'px'; 
          el.style.color = field.color;
          el.style.textAlign = field.alignX;
-         el.style.background = 'rgba(0,0,0,0.1)';
+         el.style.background = 'rgba(92, 225, 230, 0.15)';
          el.style.fontWeight = field.boldFont ? 'bold' : 'normal';
     } else if (field.type === 'qrcode') {
          el.innerText = 'QR: ' + field.key;
-         el.style.background = 'rgba(255,255,255,0.8)';
-         el.style.color = 'black';
-         el.style.border = '2px solid black';
+         el.style.background = 'rgba(255,255,255,0.9)';
+         el.style.color = '#0b0b0b';
+         el.style.border = '2px solid #0b0b0b';
          el.style.fontSize = '12px';
          el.style.display = 'flex'; el.style.alignItems = 'center'; el.style.justifyContent = 'center';
     } else {
          el.innerText = 'IMG: ' + field.key;
-         el.style.background = 'rgba(255,165,0,0.3)';
+         el.style.background = 'rgba(255,235,59,0.3)';
          el.style.fontSize = '12px';
+         el.style.color = '#0b0b0b';
          el.style.display = 'flex'; el.style.alignItems = 'center'; el.style.justifyContent = 'center';
     }
 }
@@ -547,7 +554,7 @@ function buildTemplate() {
 }
 
 async function previewTemplate() {
-    if(!state.bgImage) return alert("Canvas is empty");
+    if(!state.bgImage) return alert("Canvas is empty. Load a background image first.");
     
     const btn = document.getElementById('btn-preview');
     const originalText = btn.innerText;
@@ -560,7 +567,7 @@ async function previewTemplate() {
         // Dummy Data for Preview
         const dummyData = {
             name: "John Doe",
-            event_name: "Sample Event 2024",
+            event_name: "CyberSecurity Summit 2026",
             date: new Date().toISOString().split('T')[0],
             venue: "Tech Convention Center",
             certificate_id: "DEMO-123-ABC",
@@ -569,7 +576,6 @@ async function previewTemplate() {
             user_avatar: "https://ui-avatars.com/api/?name=John+Doe&background=random" 
         };
 
-        // Render purely via Frontend using the included JS Class
         const generator = new CertificateGenerator();
         generator.corsProxyUrl = 'https://api.haxnation.org/events/api/events/proxy?url=';
         const dataUrl = await generator.generate(template, dummyData);
@@ -588,12 +594,18 @@ function showPreviewModal(base64Img) {
     if(!modal) {
         modal = document.createElement('div');
         modal.id = 'preview-modal';
-        modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; align-items:center;";
+        modal.className = 'fixed inset-0 bg-ink/75 backdrop-blur-xs z-50 flex items-center justify-center p-4';
         modal.innerHTML = `
-            <div style="background:#222; padding:10px; border-radius:8px; max-width:90%; max-height:90%; display:flex; flex-direction:column; position:relative;">
-                <button id="close-prev" style="position:absolute; top:-15px; right:-15px; background:red; color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer;">X</button>
-                <img id="prev-img-el" style="max-width:100%; max-height:80vh; border:1px solid #444;">
-                <p style="color:#aaa; text-align:center; margin-top:10px; font-size:12px;">This is a sample with dummy data generated on the frontend.</p>
+            <div class="bg-white border-2 border-ink shadow-[8px_8px_0_0_#0b0b0b] max-w-4xl w-full p-6 relative max-h-[90vh] overflow-y-auto font-mono">
+                <button id="close-prev" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center font-mono font-black text-sm bg-white hover:bg-danger hover:text-white border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b] cursor-pointer">&times;</button>
+                <div class="flex items-center gap-2 border-b-2 border-ink pb-3 mb-4">
+                    <div class="w-2.5 h-2.5 bg-cyan border border-ink"></div>
+                    <h3 class="font-black text-base uppercase text-ink">Certificate Live Preview</h3>
+                </div>
+                <div class="border-2 border-ink shadow-[4px_4px_0_0_#0b0b0b] bg-canvas p-2 flex justify-center">
+                    <img id="prev-img-el" class="max-w-full max-h-[60vh] object-contain">
+                </div>
+                <p class="text-xs text-neutral-600 font-bold uppercase text-center mt-4">[ RENDERED ON CLIENT WITH MOCK DATA ]</p>
             </div>
         `;
         document.body.appendChild(modal);
@@ -618,19 +630,18 @@ async function saveTemplate() {
     }
     
     if (pendingBlob) {
-        // Show Progress Modal
         let progModal = document.getElementById('upload-progress-modal');
         if (!progModal) {
             progModal = document.createElement('div');
             progModal.id = 'upload-progress-modal';
-            progModal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; align-items:center;";
+            progModal.className = 'fixed inset-0 bg-ink/75 backdrop-blur-xs z-50 flex items-center justify-center p-4';
             progModal.innerHTML = `
-                <div style="background:#1f2937; padding:24px; border-radius:8px; width:300px; text-align:center; color:white; border: 1px solid #374151; box-: 0 10px 15px -3px rgba(0,0,0,0.5);">
-                    <h3 style="font-size:18px; font-weight:bold; margin-bottom:16px;">Uploading Background</h3>
-                    <div style="width:100%; background:#374151; border-radius:4px; height:8px; overflow:hidden; margin-bottom:8px;">
-                        <div id="upload-progress-bar" style="width:0%; height:100%; background:#a855f7; transition:width 0.1s;"></div>
+                <div class="bg-white border-2 border-ink shadow-[8px_8px_0_0_#0b0b0b] p-6 w-80 text-center font-mono">
+                    <h3 class="font-black text-sm uppercase text-ink mb-4">Uploading Background</h3>
+                    <div class="w-full bg-canvas border-2 border-ink h-4 overflow-hidden mb-2">
+                        <div id="upload-progress-bar" class="w-0 h-full bg-cyan transition-all duration-100"></div>
                     </div>
-                    <p id="upload-progress-text" style="color:#9ca3af; font-size:14px;">0%</p>
+                    <p id="upload-progress-text" class="text-xs font-bold text-neutral-700">0%</p>
                 </div>
             `;
             document.body.appendChild(progModal);
@@ -642,8 +653,7 @@ async function saveTemplate() {
         progText.innerText = '0%';
 
         try {
-            // Get Presigned URL
-            progText.innerText = 'Requesting secure link...';
+            progText.innerText = 'Requesting credentials...';
             const endpoint = state.targetType === 'community'
                 ? `/community/${state.targetId}/certificate-template/upload-url`
                 : `/event/${state.targetId}/certificate-template/upload-url`;
@@ -686,14 +696,13 @@ async function saveTemplate() {
                 }
             });
             
-            // Upload successful, inject s3Url
             templateObj.backgroundImage = res.s3Url;
             state.bgImage = res.s3Url; 
             
         } catch (e) {
             progModal.style.display = 'none';
             alert("Error uploading image: " + e.message);
-            return; // Abort save
+            return;
         } finally {
             progModal.style.display = 'none';
         }
@@ -711,12 +720,10 @@ async function saveTemplate() {
         body = { template, enabled: true };
     }
 
-    // Always backup locally before saving, in case of API failure (like 401)
     localStorage.setItem('cert_backup_' + state.targetId, template);
 
     try {
         await api(endpoint, 'PUT', body);
-        // Clear backup on success
         localStorage.removeItem('cert_backup_' + state.targetId);
         
         try {
@@ -729,15 +736,15 @@ async function saveTemplate() {
         if(!modal) {
             modal = document.createElement('div');
             modal.id = 'save-success-modal';
-            modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; align-items:center;";
+            modal.className = 'fixed inset-0 bg-ink/75 backdrop-blur-xs z-50 flex items-center justify-center p-4';
             modal.innerHTML = `
-                <div style="background:#1f2937; padding:24px; border-radius:8px; max-width:400px; width:90%; text-align:center; color:white; border: 1px solid #374151; box-: 0 10px 15px -3px rgba(0, 0, 0, 0.5);">
-                    <div style="font-size:48px; margin-bottom:16px;">✅</div>
-                    <h3 style="font-size:20px; font-weight:bold; margin-bottom:8px;">Template Saved!</h3>
-                    <p style="color:#9ca3af; margin-bottom:24px; font-size:14px;">Your certificate template has been saved successfully to the cloud.</p>
-                    <div style="display:flex; gap:12px; justify-content:center;">
-                        <button id="btn-ss-back" style="padding:8px 16px; background:#4b5563; border-radius:6px; font-weight:bold; transition:background 0.2s;" onmouseover="this.style.background='#6b7280'" onmouseout="this.style.background='#4b5563'">Go Back</button>
-                        <button id="btn-ss-stay" style="padding:8px 16px; background:#22c55e; border-radius:6px; font-weight:bold; transition:background 0.2s;" onmouseover="this.style.background='#16a34a'" onmouseout="this.style.background='#22c55e'">Keep Editing</button>
+                <div class="bg-white border-2 border-ink shadow-[8px_8px_0_0_#0b0b0b] p-6 max-w-sm w-full text-center font-mono">
+                    <div class="w-12 h-12 bg-success text-ink border-2 border-ink flex items-center justify-center text-xl font-black mx-auto mb-4 shadow-[2px_2px_0_0_#0b0b0b]">✓</div>
+                    <h3 class="font-black text-lg uppercase text-ink mb-2">Template Saved!</h3>
+                    <p class="text-xs text-neutral-700 font-bold mb-6">Certificate design specification successfully committed to cloud storage.</p>
+                    <div class="flex gap-3 justify-center">
+                        <button id="btn-ss-back" class="btn-secondary flex-1">Back</button>
+                        <button id="btn-ss-stay" class="btn-primary flex-1">Keep Editing</button>
                     </div>
                 </div>
             `;
@@ -752,7 +759,7 @@ async function saveTemplate() {
         }
         modal.style.display = 'flex';
     } catch(e) {
-        alert("Error saving: " + e.message + "\n\nDon't worry, a local backup was saved. Refresh or login again and it will ask to restore.");
+        alert("Error saving: " + e.message + "\n\nLocal backup retained.");
     }
 }
 
@@ -760,7 +767,6 @@ async function loadTemplateData(type, id) {
     try {
         let template = null;
         
-        // Fetch existing template
         if (type === 'community') {
             const res = await api(`/community/${id}`);
             template = res?.data?.community?.certificateTemplate;
@@ -778,7 +784,6 @@ async function loadTemplateData(type, id) {
             }
         }
 
-        // Check for local backup
         const backupStr = localStorage.getItem('cert_backup_' + id);
         if (backupStr) {
             if (confirm("You have an unsaved backup of this template from a previous session. Do you want to restore it?")) {
@@ -792,7 +797,6 @@ async function loadTemplateData(type, id) {
             }
         }
 
-        // Check for pending image in IndexedDB
         const dbKey = `pending_bg_${type}_${id}`;
         try {
             const pendingBlob = await getPendingImage(dbKey);
@@ -809,7 +813,6 @@ async function loadTemplateData(type, id) {
         if (template && template.backgroundImage) {
             state.bgImage = template.backgroundImage;
             
-            // Populate the input field
             const bgUrlInput = document.getElementById('bgUrlInput');
             if(bgUrlInput) bgUrlInput.value = state.bgImage;
 
@@ -823,7 +826,6 @@ async function loadTemplateData(type, id) {
                 srcUrl = (window.EVENTS_API_URL || API_URL.replace('admin', 'events')) + '/api/events/proxy?url=' + encodeURIComponent(srcUrl);
             }
             
-            // Once the background loads, calculate the scale and restore the fields
             templateImage.onload = () => {
                 const ws = document.getElementById('workspace');
                 const aspect = templateImage.naturalWidth / templateImage.naturalHeight;
@@ -840,21 +842,17 @@ async function loadTemplateData(type, id) {
                 canvasArea.style.height = h + 'px';
                 canvasArea.style.backgroundImage = `url(${srcUrl})`;
                 
-                // Calculate the scale ratio compared to the original image size
                 state.scale = w / templateImage.naturalWidth;
                 
-                // Clear any existing fields and state
                 document.querySelectorAll('.field-el').forEach(e => e.remove());
                 state.fields = [];
 
-                // Restore the saved fields
                 if (template.textFields) {
                     template.textFields.forEach((tf, index) => {
                         const f = {
                             id: 'field_' + Date.now() + '_' + index,
                             type: tf.type || 'box',
                             key: tf.key,
-                            // Convert saved absolute coordinates back to scaled canvas coordinates
                             x: tf.rect.x1 * state.scale,
                             y: tf.rect.y1 * state.scale,
                             w: (tf.rect.x2 - tf.rect.x1) * state.scale,
@@ -867,7 +865,7 @@ async function loadTemplateData(type, id) {
                             isCircle: tf.isCircle || false
                         };
                         state.fields.push(f);
-                        renderElement(f); // Redraw onto canvas
+                        renderElement(f);
                     });
                 }
             };
@@ -877,10 +875,9 @@ async function loadTemplateData(type, id) {
                 alert("Failed to load background image. Please try again.");
             };
             
-            // Set src AFTER attaching handlers, and append a cache buster
             templateImage.src = srcUrl + (srcUrl.includes('?') ? '&' : '?') + '_cb=' + Date.now();
         }
     } catch (e) {
         console.error("Error loading template data:", e);
     }
-}
+}

@@ -3,12 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Haxnation Admin Portal</title>
+    <meta name="description" content="Haxnation Admin Portal - Manage communities, events, certificates, and API infrastructure.">
+    <meta name="theme-color" content="#0b0b0b">
+    <title>Haxnation — Admin Portal</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+    
     <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
     <link rel="manifest" href="/favicons/site.webmanifest">
     <link rel="shortcut icon" href="/favicons/favicon.ico">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -21,7 +30,18 @@
                         cyan: '#5ce1e6',
                         danger: '#ff2a2a',
                         success: '#00e676',
-                        warning: '#ffeb3b'
+                        warning: '#ffeb3b',
+                        neutral: {
+                            100: '#f5f5f5',
+                            200: '#e5e5e5',
+                            300: '#d4d4d4',
+                            400: '#a3a3a3',
+                            500: '#737373',
+                            600: '#525252',
+                            700: '#404040',
+                            800: '#262626',
+                            900: '#171717'
+                        }
                     },
                     fontFamily: {
                         sans: ['"Inter"', 'sans-serif'],
@@ -31,72 +51,79 @@
             }
         }
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
     <style type="text/tailwindcss">
         @layer components {
             .btn-primary {
-                @apply font-mono uppercase tracking-widest font-bold bg-cyan text-ink border-2 border-ink px-6 py-3 shadow-[4px_4px_0_0_#0b0b0b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#0b0b0b] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all duration-75 focus:outline-none focus:ring-2 focus:ring-cyan focus:ring-offset-2;
-            }
-            .btn-danger {
-                @apply font-mono uppercase tracking-widest font-bold bg-danger text-white border-2 border-ink px-6 py-3 shadow-[4px_4px_0_0_#0b0b0b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#0b0b0b] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all duration-75 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2;
+                @apply font-mono uppercase tracking-widest font-bold bg-cyan text-ink border-2 border-ink px-4 py-2 sm:px-6 sm:py-3 shadow-[4px_4px_0_0_#0b0b0b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#0b0b0b] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all duration-75 focus:outline-none focus:ring-2 focus:ring-cyan focus:ring-offset-2 inline-flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer select-none;
             }
             .btn-secondary {
-                @apply font-mono text-xs font-bold uppercase tracking-widest bg-white text-ink border-2 border-ink px-4 py-2 hover:bg-ink hover:text-white transition-colors duration-0 shadow-[2px_2px_0_0_#0b0b0b] focus:outline-none focus:ring-2 focus:ring-ink focus:ring-offset-2;
+                @apply font-mono text-xs font-bold uppercase tracking-widest bg-white text-ink border-2 border-ink px-4 py-2 hover:bg-ink hover:text-white transition-colors duration-0 shadow-[2px_2px_0_0_#0b0b0b] focus:outline-none focus:ring-2 focus:ring-ink focus:ring-offset-2 inline-flex items-center justify-center gap-2 cursor-pointer select-none;
+            }
+            .btn-danger {
+                @apply font-mono uppercase tracking-widest font-bold bg-danger text-white border-2 border-ink px-4 py-2 sm:px-6 sm:py-3 shadow-[4px_4px_0_0_#0b0b0b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#0b0b0b] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all duration-75 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2 inline-flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer select-none;
             }
             .card {
                 @apply bg-white border-2 border-ink p-6 shadow-[6px_6px_0_0_#0b0b0b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0_0_#0b0b0b] transition-all duration-75;
             }
+            .card-static {
+                @apply bg-white border-2 border-ink p-6 shadow-[4px_4px_0_0_#0b0b0b];
+            }
             .input {
-                @apply border-2 border-ink bg-white p-3 font-mono text-sm rounded-none focus:outline-none focus:ring-0 focus:border-cyan focus:bg-ink focus:text-cyan transition-colors duration-75 w-full shadow-[inset_2px_2px_0_0_#e5e5e5];
+                @apply border-2 border-ink bg-white p-3 font-mono text-sm rounded-none focus:outline-none focus:ring-0 focus:border-cyan focus:bg-ink focus:text-cyan transition-colors duration-75 w-full shadow-[inset_2px_2px_0_0_#e5e5e5] text-ink placeholder:text-neutral-500;
             }
             .label {
-                @apply font-mono text-[10px] font-bold uppercase mb-1 block text-ink;
+                @apply font-mono text-xs font-bold uppercase mb-1.5 block text-ink tracking-wide;
+            }
+            .badge {
+                @apply font-mono text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 py-0.5 border-2 border-ink inline-flex items-center gap-1 shadow-[2px_2px_0_0_#0b0b0b];
             }
         }
     </style>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="js/aws-intercept.js"></script>
-    <style>
-        .loader { border-top-color: #3498db; -webkit-animation: spinner 1.5s linear infinite; animation: spinner 1.5s linear infinite; }
-        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
 </head>
-<body class="bg-canvas text-ink font-sans min-h-screen antialiased selection:bg-cyan selection:text-ink smooth-scroll">
-    <div class="fixed inset-0 pointer-events-none z-[-1] bg-[linear-gradient(to_right,#80808020_1px,transparent_1px),linear-gradient(to_bottom,#80808020_1px,transparent_1px)] bg-[size:32px_32px]"></div>
-    
-    <nav class="sticky top-0 z-50 border-b-2 border-[#0b0b0b] bg-[#0b0b0b] text-[#fafafa]">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-3 sm:gap-4 font-mono">
-            <div class="flex items-center gap-3 sm:gap-4">
-                <a href="#/dashboard" class="flex items-center gap-3 group">
-                    <img src="/logo.png" alt="Haxnation Admin" class="h-7 sm:h-8 w-auto object-contain">
-                    <span class="hidden sm:inline font-mono text-[10px] font-bold uppercase tracking-widest text-[#0b0b0b] border-2 border-[#0b0b0b] px-1.5 py-0.5 bg-[#5ce1e6]">ADMIN</span>
+<body class="bg-canvas text-ink font-sans min-h-screen antialiased selection:bg-cyan selection:text-ink bg-[linear-gradient(to_right,#80808020_1px,transparent_1px),linear-gradient(to_bottom,#80808020_1px,transparent_1px)] bg-[size:32px_32px]">
+
+    <nav class="sticky top-0 z-50 border-b-2 border-ink bg-white">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4 font-mono">
+            <div class="flex items-center gap-4">
+                <a href="#/dashboard" class="flex items-center gap-3 group" aria-label="Haxnation Admin Dashboard">
+                    <span class="flex items-center bg-ink border-2 border-ink px-2.5 py-1 shadow-[2px_2px_0_0_#0b0b0b] group-hover:translate-x-[1px] group-hover:translate-y-[1px] group-hover:shadow-[1px_1px_0_0_#0b0b0b] transition-all">
+                        <img src="/logo.png" alt="Haxnation Admin" class="h-6 sm:h-7 w-auto object-contain">
+                    </span>
+                    <span class="font-mono text-[10px] sm:text-xs font-black uppercase tracking-widest text-ink border-2 border-ink px-2 py-0.5 bg-cyan shadow-[2px_2px_0_0_#0b0b0b]">ADMIN</span>
                 </a>
-                <div class="hidden md:flex items-center gap-2">
-                    <a href="#/minigames" class="font-mono uppercase text-[10px] font-bold px-3 py-1.5 border-2 border-transparent text-[#fafafa] hover:border-[#fafafa] hover:bg-[#fafafa] hover:text-[#0b0b0b] transition-all duration-75" id="nav-minigames">Mini-Games</a>
-                    <a href="#/b2b-admin" class="font-mono uppercase text-[10px] font-bold px-3 py-1.5 border-2 border-transparent text-[#fafafa] hover:border-[#fafafa] hover:bg-[#fafafa] hover:text-[#0b0b0b] transition-all duration-75 hidden" id="nav-b2b-admin">B2B Admin</a>
-                    <a href="api-docs.html" target="_blank" class="font-mono uppercase text-[10px] font-bold px-3 py-1.5 border-2 border-transparent text-[#fafafa] hover:border-[#fafafa] hover:bg-[#fafafa] hover:text-[#0b0b0b] transition-all duration-75" id="nav-api-docs">API Docs</a>
+                
+                <div class="hidden md:flex items-center gap-2 ml-4">
+                    <a href="#/minigames" class="font-mono uppercase text-xs font-bold px-3 py-1.5 border-2 border-transparent text-ink hover:border-ink hover:bg-cyan transition-all" id="nav-minigames">Mini-Games</a>
+                    <a href="#/b2b-admin" class="font-mono uppercase text-xs font-bold px-3 py-1.5 border-2 border-transparent text-ink hover:border-ink hover:bg-cyan transition-all hidden" id="nav-b2b-admin">B2B Admin</a>
+                    <a href="api-docs.html" target="_blank" class="font-mono uppercase text-xs font-bold px-3 py-1.5 border-2 border-transparent text-ink hover:border-ink hover:bg-cyan transition-all" id="nav-api-docs">API Docs <i class="fas fa-external-link-alt text-[10px] ml-1"></i></a>
                 </div>
             </div>
+            
             <div id="nav-user" class="flex gap-3 items-center hidden">
-                <div class="flex items-center gap-2 border-2 border-[#fafafa] px-3 py-1">
-                    <div class="w-6 h-6 bg-[#5ce1e6] text-[#0b0b0b] flex items-center justify-center font-mono text-[10px] font-bold">
+                <div class="flex items-center gap-2 bg-white border-2 border-ink px-3 py-1 shadow-[2px_2px_0_0_#0b0b0b]">
+                    <div class="w-6 h-6 bg-cyan border-2 border-ink text-ink flex items-center justify-center font-mono text-xs font-black">
                         <span id="user-avatar-initials">U</span>
                     </div>
-                    <span id="user-name" class="hidden sm:inline font-mono text-xs font-bold uppercase">Loading...</span>
+                    <span id="user-name" class="hidden sm:inline font-mono text-xs text-ink font-bold uppercase"></span>
                 </div>
-                <button onclick="logout()" class="font-mono uppercase tracking-widest text-[10px] font-bold bg-[#ff2a2a] text-white border-2 border-[#0b0b0b] px-3 py-1.5 shadow-[3px_3px_0_0_#fafafa] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_#fafafa] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all duration-75">Logout</button>
+                <button onclick="logout()" class="btn-secondary !text-xs !px-3 !py-1.5 hover:!bg-danger hover:!text-white hover:!border-ink">
+                    <i class="fas fa-sign-out-alt"></i> <span class="hidden sm:inline">Logout</span>
+                </button>
             </div>
         </div>
     </nav>
 
-    <div id="app" class="container mx-auto p-6">
-        <div class="flex justify-center mt-20"><div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12"></div></div>
-    </div>
+    <main id="app" class="max-w-6xl mx-auto px-4 sm:px-6 py-8 relative z-10">
+        <div class="flex flex-col items-center justify-center min-h-[50vh] gap-6">
+            <div class="w-12 h-12 bg-ink border-4 border-cyan shadow-[4px_4px_0_0_#5ce1e6] animate-[spin_1s_steps(4)_infinite]"></div>
+            <p class="font-mono text-xs uppercase font-bold tracking-widest text-ink animate-pulse">[ INITIALIZING CONSOLE... ]</p>
+        </div>
+    </main>
 
     <div id="modals"></div>
 
@@ -125,17 +152,19 @@
         if (document.getElementById('pwa-install-toast')) return;
         
         const toastHtml = `
-            <div id="pwa-install-toast" style="position: fixed; bottom: 20px; left: 50%; transform: translate(-50%, 150%); opacity: 0; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 99999; background: #fff; border: 2px solid #0b0b0b; box-shadow: 4px 4px 0 0 #0b0b0b; padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 90vw; width: 350px; font-family: 'JetBrains Mono', monospace, sans-serif;">
+            <div id="pwa-install-toast" style="position: fixed; bottom: 20px; left: 50%; transform: translate(-50%, 150%); opacity: 0; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 99999; background: #fff; border: 2px solid #0b0b0b; box-shadow: 4px 4px 0 0 #0b0b0b; padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 92vw; width: 380px; font-family: 'JetBrains Mono', monospace;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <img src="/logo.png" alt="Logo" style="width: 32px; height: 32px; object-fit: contain;">
+                    <div style="background: #0b0b0b; padding: 6px; border: 2px solid #0b0b0b;">
+                        <img src="/logo.png" alt="Logo" style="width: 24px; height: 24px; object-fit: contain;">
+                    </div>
                     <div>
-                        <h4 style="margin: 0; font-size: 14px; font-weight: bold; color: #0b0b0b;">Install App</h4>
-                        <p style="margin: 4px 0 0; font-size: 11px; color: #666;">Add to Home Screen</p>
+                        <h4 style="margin: 0; font-size: 13px; font-weight: 800; color: #0b0b0b; text-transform: uppercase;">Install Admin App</h4>
+                        <p style="margin: 2px 0 0; font-size: 11px; color: #404040; font-weight: 600;">Standalone Desktop / Mobile Access</p>
                     </div>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <button id="btn-pwa-dismiss" style="background: transparent; border: none; font-size: 20px; cursor: pointer; color: #666;">&times;</button>
-                    <button id="btn-pwa-install" style="background: #5ce1e6; color: #0b0b0b; border: 2px solid #0b0b0b; padding: 6px 12px; font-weight: bold; font-size: 12px; cursor: pointer; box-shadow: 2px 2px 0 0 #0b0b0b;">Install</button>
+                    <button id="btn-pwa-dismiss" aria-label="Dismiss install" style="background: transparent; border: none; font-size: 20px; cursor: pointer; color: #0b0b0b; font-weight: bold; padding: 0 4px;">&times;</button>
+                    <button id="btn-pwa-install" class="btn-primary" style="padding: 6px 12px; font-size: 11px;">Install</button>
                 </div>
             </div>
         `;
@@ -155,7 +184,7 @@
             const toast = document.getElementById('pwa-install-toast');
             toast.style.transform = 'translate(-50%, 150%)';
             toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 500);
+            setTimeout(() => toast.remove(), 400);
         });
 
         document.getElementById('btn-pwa-install').addEventListener('click', async () => {

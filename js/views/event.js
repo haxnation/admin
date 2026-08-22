@@ -11,7 +11,12 @@ let currentAST = null;
 
 export async function renderEvent(communityId, eventId) {
     const container = document.getElementById('app');
-    container.innerHTML = '<div class="text-center mt-10">Loading Event Details...</div>';
+    container.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-20 gap-4">
+            <div class="w-10 h-10 bg-ink border-4 border-cyan shadow-[4px_4px_0_0_#5ce1e6] animate-[spin_1s_steps(4)_infinite]"></div>
+            <p class="font-mono text-xs uppercase font-bold text-ink tracking-widest animate-pulse">[ LOADING EVENT DETAILS... ]</p>
+        </div>
+    `;
 
     if (!document.getElementById('html5-qrcode-script')) {
         const script1 = document.createElement('script');
@@ -34,8 +39,8 @@ export async function renderEvent(communityId, eventId) {
 
     try {
         const data = await api(`/community/${communityId}/event/${eventId}`);
-        if (!data) {
-            container.innerHTML = '<div class="text-danger">Error loading event.</div>';
+        if (!data || !data.data) {
+            container.innerHTML = '<div class="card-static border-2 border-danger text-danger text-center font-mono font-bold uppercase p-8 my-8">Error loading event data.</div>';
             return;
         }
 
@@ -65,176 +70,246 @@ export async function renderEvent(communityId, eventId) {
         }
 
         container.innerHTML = `
-            <div class="mb-6">
-                <a href="#/community/${communityId}" class="text-cyan hover:underline">&larr; Back to Community</a>
-            </div>
-            
-            <div class="flex justify-between items-start mb-6">
-                <div>
-                    <h1 class="text-3xl font-bold text-ink flex items-center gap-2">
-                        ${currentEvent.name}
-                        ${currentEvent.eventType === 'API_ONLY' ? '<span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.5 border border-purple-200 uppercase font-black tracking-widest"><i class="fas fa-network-wired"></i> API-ONLY</span>' : ''}
-                    </h1>
-                    <span class="inline-block bg-cyan/20 text-cyan px-3 py-1 text-sm mt-2">${currentEvent.status || 'Active'}</span>
+            <!-- Top navigation & header -->
+            <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-4 border-ink pb-6 font-mono">
+                <div class="flex items-center gap-4">
+                    <a href="#/community/${communityId}" class="btn-secondary !px-3 !py-2" aria-label="Back to community">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div>
+                        <h1 class="text-2xl sm:text-4xl font-black font-mono text-ink uppercase tracking-tight flex items-center flex-wrap gap-2">
+                            ${currentEvent.name}
+                            ${currentEvent.eventType === 'API_ONLY' ? '<span class="bg-ink text-cyan border-2 border-ink text-xs px-2.5 py-0.5 font-bold uppercase tracking-wider"><i class="fas fa-network-wired mr-1"></i> API-ONLY</span>' : ''}
+                        </h1>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="badge bg-cyan text-ink">${currentEvent.status || 'Active'}</span>
+                            <span class="text-xs text-neutral-700 font-bold">ID: ${eventId}</span>
+                        </div>
+                    </div>
                 </div>
-                <button onclick="openModal('edit-event')" class="text-ink/50 hover:text-ink bg-canvas px-4 py-2 border">⚙️ Edit Details</button>
+                <div class="flex items-center gap-2">
+                    <button onclick="openModal('edit-event')" class="btn-secondary">
+                        <i class="fas fa-cog mr-1"></i> Edit Details
+                    </button>
+                </div>
             </div>
 
+            <!-- CTF Management Section -->
             ${currentEvent.eventType !== 'API_ONLY' ? `
-            <div class="bg-indigo-900 text-white p-6 border border-indigo-800 mb-8">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold flex items-center gap-2">🚩 CTF Management</h2>
+            <div class="bg-white border-2 border-ink shadow-[6px_6px_0_0_#0b0b0b] mb-8 overflow-hidden">
+                <div class="p-4 bg-ink text-white flex justify-between items-center border-b-2 border-ink font-mono">
+                    <h2 class="text-lg font-black uppercase flex items-center gap-2 text-white">
+                        <span class="text-cyan">🚩</span> CTF Management
+                    </h2>
                     ${renderCtfStatusBadge(ctf.status)}
                 </div>
-                ${renderCtfDashboard(ctf, isSuperAdmin, communityId, eventId)}
+                <div class="p-6">
+                    ${renderCtfDashboard(ctf, isSuperAdmin, communityId, eventId)}
+                </div>
             </div>
             ` : ''}
 
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div class="bg-card p-6 border border-ink">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold flex items-center gap-2">
-                            📜 Certificates
-                            ${certSettings.enabled ? '<span class="bg-success text-ink border-2 border-ink text-xs px-2 py-0.5">Active</span>' : '<span class="bg-canvas text-ink/70 text-xs px-2 py-0.5">Disabled</span>'}
-                        </h2>
-                        <a href="#/event/${eventId}/design" class="bg-indigo-600 text-white px-3 py-1.5 text-sm hover:bg-indigo-700 flex items-center gap-2">
-                            <span>🎨</span> Designer
-                        </a>
+            <!-- 2-Column Grid: Certificate Settings & Event Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 font-mono">
+                <!-- Certificate Settings -->
+                <div class="card-static flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-4 border-b-2 border-ink pb-3">
+                            <h2 class="text-lg font-black uppercase text-ink flex items-center gap-2">
+                                📜 Certificates
+                                ${certSettings.enabled ? '<span class="bg-success text-ink border-2 border-ink text-[10px] px-2 py-0.5 font-bold uppercase shadow-[1px_1px_0_0_#0b0b0b]">Active</span>' : '<span class="bg-canvas text-neutral-600 border border-ink text-[10px] px-2 py-0.5 font-bold uppercase">Disabled</span>'}
+                            </h2>
+                            <a href="#/event/${eventId}/design" class="btn-primary !text-xs !px-3 !py-1.5">
+                                <i class="fas fa-palette mr-1"></i> Designer
+                            </a>
+                        </div>
+                        <form onsubmit="handleCertSettings(event, '${eventId}')" class="space-y-4">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="label">Status</label>
+                                    <select name="enabled" class="input bg-white !p-2 text-xs font-bold">
+                                        <option value="true" ${certSettings.enabled ? 'selected' : ''}>ENABLED</option>
+                                        <option value="false" ${!certSettings.enabled ? 'selected' : ''}>DISABLED</option>
+                                    </select>
+                                </div>
+                                ${currentEvent.eventType !== 'API_ONLY' ? `
+                                <div>
+                                    <label class="label">Cost (INR)</label>
+                                    <input type="number" name="cost" value="${certSettings.cost || 0}" class="input !p-2 text-xs font-bold ${!isSuperAdmin ? 'bg-canvas cursor-not-allowed text-neutral-600' : ''}" ${!isSuperAdmin ? 'readonly' : ''}>
+                                </div>
+                                ` : '<div></div>'}
+                            </div>
+                            <div>
+                                <label class="label">Custom Certificate URL Prefix</label>
+                                <input type="text" name="customCertificateUrlPrefix" value="${certSettings.customCertificateUrlPrefix || ''}" placeholder="e.g. https://my-frontend.com/validate?id=" class="input !p-2 text-xs">
+                            </div>
+                            <div class="pt-2 flex justify-end">
+                                <button type="submit" class="btn-secondary !text-xs !px-4 !py-2">
+                                    <i class="fas fa-save mr-1"></i> Save Certificate Settings
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                    <form onsubmit="handleCertSettings(event, '${eventId}')" class="flex flex-wrap items-end gap-4 bg-canvas p-3 border">
-                        <div>
-                            <label class="block text-xs font-bold text-ink/50 mb-1">ENABLED</label>
-                            <select name="enabled" class="border p-2 w-24 bg-card text-sm text-black">
-                                <option value="true" ${certSettings.enabled ? 'selected' : ''}>Yes</option>
-                                <option value="false" ${!certSettings.enabled ? 'selected' : ''}>No</option>
-                            </select>
-                        </div>
-                        ${currentEvent.eventType !== 'API_ONLY' ? `
-                        <div>
-                            <label class="block text-xs font-bold text-ink/50 mb-1">COST (INR)</label>
-                            <input type="number" name="cost" value="${certSettings.cost}" class="border p-2 w-24 bg-card text-black text-sm ${!isSuperAdmin ? 'bg-canvas cursor-not-allowed' : ''}" ${!isSuperAdmin ? 'readonly' : ''}>
-                        </div>
-                        ` : ''}
-                        <div class="w-full mt-2">
-                            <label class="block text-xs font-bold text-ink/50 mb-1">CUSTOM URL PREFIX</label>
-                            <input type="text" name="customCertificateUrlPrefix" value="${certSettings.customCertificateUrlPrefix || ''}" placeholder="e.g. https://my-frontend.com/validate?id=" class="w-full border p-2 bg-card text-black text-sm">
-                        </div>
-                        <button type="submit" class="bg-slate-800 text-white px-4 py-2 text-sm hover:bg-slate-900 ml-auto">Save</button>
-                    </form>
                 </div>
+
+                <!-- Event Stats -->
                 ${currentEvent.eventType !== 'API_ONLY' ? `
-                <div class="bg-card p-6 border border-ink text-black">
-                    <h2 class="text-xl font-bold mb-4 border-b pb-2">Event Stats</h2>
-                    <div class="space-y-2 text-sm">
-                        <p><span class="text-ink/50 w-24 inline-block">Date:</span> <strong>${new Date(currentEvent.date).toLocaleString()}</strong></p>
-                        <p><span class="text-ink/50 w-24 inline-block">Approval:</span> <strong>${currentEvent.settings?.requiresApproval ? 'Required' : 'Auto-Approve'}</strong></p>
+                <div class="card-static flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-lg font-black uppercase text-ink mb-4 border-b-2 border-ink pb-3">Event Stats</h2>
+                        <div class="space-y-2 text-xs font-mono font-bold text-neutral-800">
+                            <p class="flex justify-between border-b border-ink/20 pb-1.5"><span class="text-neutral-600 uppercase">Date:</span> <span>${new Date(currentEvent.date).toLocaleString()}</span></p>
+                            <p class="flex justify-between border-b border-ink/20 pb-1.5"><span class="text-neutral-600 uppercase">Approval Mode:</span> <span class="uppercase">${currentEvent.settings?.requiresApproval ? 'Required' : 'Auto-Approve'}</span></p>
+                            <p class="flex justify-between border-b border-ink/20 pb-1.5"><span class="text-neutral-600 uppercase">Location:</span> <span>${currentEvent.location || 'Online'}</span></p>
+                        </div>
                     </div>
-                    <div class="pt-4 mt-4 border-t flex justify-between px-4">
-                        <div class="text-center"><span class="block text-2xl font-bold">${currentAttendees.length}</span><span class="text-xs text-ink/50">Registered</span></div>
-                        <div class="text-center"><span class="block text-2xl font-bold text-success">${currentAttendees.filter(a => a.checkedIn).length}</span><span class="text-xs text-ink/50">Checked In</span></div>
-                        <div class="text-center"><span class="block text-2xl font-bold">${currentEvent.capacity || '∞'}</span><span class="text-xs text-ink/50">Capacity</span></div>
+                    <div class="grid grid-cols-3 gap-2 pt-4 mt-4 border-t-2 border-ink text-center">
+                        <div class="bg-canvas border-2 border-ink p-2 shadow-[2px_2px_0_0_#0b0b0b]">
+                            <span class="block text-2xl font-black text-ink">${currentAttendees.length}</span>
+                            <span class="text-[10px] font-bold text-neutral-700 uppercase">Registered</span>
+                        </div>
+                        <div class="bg-canvas border-2 border-ink p-2 shadow-[2px_2px_0_0_#0b0b0b]">
+                            <span class="block text-2xl font-black text-success">${currentAttendees.filter(a => a.checkedIn).length}</span>
+                            <span class="text-[10px] font-bold text-neutral-700 uppercase">Checked In</span>
+                        </div>
+                        <div class="bg-canvas border-2 border-ink p-2 shadow-[2px_2px_0_0_#0b0b0b]">
+                            <span class="block text-2xl font-black text-ink">${currentEvent.capacity || '∞'}</span>
+                            <span class="text-[10px] font-bold text-neutral-700 uppercase">Capacity</span>
+                        </div>
                     </div>
                 </div>
                 ` : `
-                <div class="bg-purple-50 p-6 border border-purple-200 text-purple-900 flex flex-col justify-center items-center text-center">
-                    <i class="fas fa-network-wired text-4xl mb-4 text-purple-400"></i>
-                    <h2 class="text-xl font-bold mb-2">API-Only Mode Active</h2>
-                    <p class="text-sm opacity-80">This event is running in headless mode. Public pages, check-ins, and ticket sales are disabled.</p>
+                <div class="card-static flex flex-col justify-center items-center text-center p-8 bg-canvas">
+                    <i class="fas fa-network-wired text-4xl mb-4 text-ink"></i>
+                    <h2 class="text-xl font-black uppercase text-ink mb-2">API-Only Mode Active</h2>
+                    <p class="text-xs text-neutral-700 font-bold max-w-sm">This event operates in headless mode. Public landing pages, ticketing flows, and physical check-ins are disabled.</p>
                 </div>
                 `}
             </div>
 
+            <!-- Bulk Upload & Logic Filter Builder (AST) -->
             ${(currentEvent.settings?.isCertificateOnly || currentEvent.eventType === 'API_ONLY') ? `
-            <div class="bg-card border border-ink mb-8 p-6 text-black">
-                <div class="flex justify-between items-center mb-4 border-b pb-2">
-                    <h2 class="text-xl font-bold">Bulk Upload & Certificate Requirements</h2>
-                    <button onclick="saveCertificateRequirements('${communityId}', '${eventId}')" class="bg-indigo-600 text-white px-4 py-2 text-sm font-bold hover:bg-indigo-700">Save Requirements</button>
+            <div class="card-static mb-8 font-mono">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b-2 border-ink pb-4">
+                    <div>
+                        <h2 class="text-xl font-black uppercase text-ink">Bulk Upload &amp; Certificate Filters</h2>
+                        <p class="text-xs text-neutral-700 font-bold mt-1">Configure automated AST logic rules to validate rows during participant ingestion.</p>
+                    </div>
+                    <button onclick="saveCertificateRequirements('${communityId}', '${eventId}')" class="btn-primary !text-xs !px-4 !py-2">
+                        <i class="fas fa-save mr-1"></i> Save Filter Rules
+                    </button>
                 </div>
                 
                 <div class="mb-6">
-                    <h3 class="text-lg font-bold mb-2 text-ink">Upload Filters (Logic Builder)</h3>
-                    <p class="text-xs text-ink/50 mb-4">Define rules to filter rows before uploading. Only rows matching these rules will be added.</p>
-                    <div id="requirements-builder" class="space-y-4 text-sm mb-4">
-                    </div>
+                    <h3 class="text-sm font-bold uppercase text-ink mb-2">Upload Rules (AST Logic Builder)</h3>
+                    <div id="requirements-builder" class="space-y-4 mb-4"></div>
                 </div>
 
-                <div class="mb-4 border-t pt-4">
-                    <h3 class="text-lg font-bold mb-2 text-ink">Select File</h3>
-                    <input type="file" id="bulk-upload-file" accept=".csv, .xlsx, .xls" class="border p-2 w-full bg-canvas text-sm" onchange="handleBulkFileChange()">
-                </div>
-                
-                <div id="bulk-upload-ui" class="hidden space-y-6">
-                    <div class="flex gap-4 p-4 bg-canvas border">
-                        <div class="flex-1">
-                            <label class="block text-xs font-bold text-ink/50 mb-1">Email Column (Required)</label>
-                            <select id="bulk-email-col" class="border p-2 w-full bg-card text-sm"></select>
+                <div class="border-t-2 border-ink pt-6">
+                    <h3 class="text-sm font-bold uppercase text-ink mb-2">Participant Data Ingestion</h3>
+                    <input type="file" id="bulk-upload-file" accept=".csv, .xlsx, .xls" class="input !p-2 mb-4" onchange="handleBulkFileChange()">
+                    
+                    <div id="bulk-upload-ui" class="hidden space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-canvas border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                            <div>
+                                <label class="label">Email Column (Required)</label>
+                                <select id="bulk-email-col" class="input bg-white !p-2 text-xs"></select>
+                            </div>
+                            <div>
+                                <label class="label">Name Column (Optional)</label>
+                                <select id="bulk-name-col" class="input bg-white !p-2 text-xs"></select>
+                            </div>
                         </div>
-                        <div class="flex-1">
-                            <label class="block text-xs font-bold text-ink/50 mb-1">Name Column (Optional)</label>
-                            <select id="bulk-name-col" class="border p-2 w-full bg-card text-sm"></select>
-                        </div>
-                    </div>
 
-                    <div class="flex gap-2 justify-end border-t pt-4">
-                        <button onclick="previewBulkUpload()" class="btn-secondary">Preview</button>
-                        <button id="btn-upload-save" onclick="processBulkUpload('${communityId}', '${eventId}')" class="btn-primary">Upload & Save</button>
+                        <div class="flex gap-3 justify-end pt-2">
+                            <button onclick="previewBulkUpload()" class="btn-secondary">Preview Ingestion</button>
+                            <button id="btn-upload-save" onclick="processBulkUpload('${communityId}', '${eventId}')" class="btn-primary">Execute Ingestion</button>
+                        </div>
+                        <div id="bulk-upload-preview" class="text-xs bg-ink text-cyan p-4 border-2 border-ink max-h-56 overflow-y-auto font-mono hidden shadow-[4px_4px_0_0_#0b0b0b]"></div>
                     </div>
-                    <div id="bulk-upload-preview" class="text-sm bg-canvas p-2 max-h-48 overflow-y-auto font-mono text-xs hidden"></div>
                 </div>
             </div>
             ` : ''}
 
-            <div class="bg-card border border-ink flex flex-col min-h-[500px]">
-                <div class="p-4 border-b flex justify-between items-center bg-canvas -t-lg">
-                    <h2 class="text-xl font-bold text-black">Attendee Management</h2>
-                    <div class="flex gap-2">
-                        <input type="text" id="search-attendees" placeholder="Search name or email..." class="border p-2 text-sm w-64 outline-none focus:ring-2 focus:ring-blue-500 text-black" onkeyup="handleSearch()">
-                        <button onclick="openQrScanner()" class="btn-primary">
-                            📷 Scan QR
+            <!-- Attendee Management Table -->
+            <div class="bg-white border-2 border-ink shadow-[6px_6px_0_0_#0b0b0b] flex flex-col min-h-[500px] font-mono">
+                <div class="p-4 sm:p-6 border-b-2 border-ink flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-canvas">
+                    <div>
+                        <h2 class="text-xl font-black uppercase text-ink">Attendee Roster (${currentAttendees.length})</h2>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                        <div class="relative flex-1 sm:flex-initial">
+                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 text-xs"></i>
+                            <input type="text" id="search-attendees" placeholder="Search name / email..." class="input !py-2 !pl-8 text-xs w-full sm:w-64" onkeyup="handleSearch()">
+                        </div>
+                        <button onclick="openQrScanner()" class="btn-primary !text-xs !py-2">
+                            <i class="fas fa-qrcode"></i> Scan QR
                         </button>
                     </div>
                 </div>
                 
-                <div class="overflow-y-auto flex-1 p-4">
-                    <table class="w-full text-left border-collapse text-black">
+                <div class="overflow-x-auto flex-1">
+                    <table class="w-full text-left border-collapse text-xs">
                         <thead>
-                            <tr class="text-xs text-ink/50 uppercase border-b">
-                                <th class="pb-2 font-bold">Attendee</th>
-                                <th class="pb-2 font-bold">Status</th>
-                                <th class="pb-2 font-bold">Check-In</th>
-                                <th class="pb-2 font-bold">Certificate</th>
-                                <th class="pb-2 font-bold text-right">Action</th>
+                            <tr class="bg-ink text-white font-mono uppercase tracking-wider border-b-2 border-ink">
+                                <th class="p-3.5 font-bold">Attendee</th>
+                                <th class="p-3.5 font-bold">Status</th>
+                                <th class="p-3.5 font-bold">Check-In</th>
+                                <th class="p-3.5 font-bold">Certificate</th>
+                                <th class="p-3.5 font-bold text-right">Action</th>
                             </tr>
                         </thead>
-                        <tbody id="attendee-list-container"></tbody>
+                        <tbody id="attendee-list-container" class="divide-y-2 divide-ink/10"></tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- Modals Container -->
             <div id="modal-container">
                 ${modalTemplate('qr-modal', 'Scan Participant QR Code', `
-                    <div id="qr-reader" class="w-full mx-auto" style="max-width: 400px; min-height: 250px;"></div>
-                    <button onclick="closeQrScanner()" class="btn-secondary">Cancel & Close</button>
+                    <div class="space-y-4">
+                        <div id="qr-reader" class="w-full mx-auto border-2 border-ink bg-black" style="max-width: 380px; min-height: 250px;"></div>
+                        <div class="flex justify-end">
+                            <button onclick="closeQrScanner()" class="btn-secondary w-full">Cancel &amp; Close Scanner</button>
+                        </div>
+                    </div>
                 `)}
             </div>
         `;
 
         document.getElementById('modal-container').innerHTML += modalTemplate('edit-event', 'Edit Event Details', `
-            <form onsubmit="handleEditEvent(event, '${communityId}', '${eventId}')" class="text-black">
-                <div class="space-y-4">
-                    <div><label class="block text-xs font-bold text-ink/50 uppercase mb-1">Event Name</label><input type="text" name="name" value="${currentEvent.name || ''}" class="w-full border p-2" required></div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div><label class="block text-xs font-bold text-ink/50 uppercase mb-1">Date & Time</label><input type="datetime-local" name="date" value="${dateValue}" class="w-full border p-2 text-sm" required></div>
-                        <div><label class="block text-xs font-bold text-ink/50 uppercase mb-1">Timezone</label><select name="timezone" class="w-full border p-2 text-sm bg-card"><option value="UTC" selected>UTC</option><option value="Asia/Kolkata">Asia/Kolkata</option></select></div>
+            <form onsubmit="handleEditEvent(event, '${communityId}', '${eventId}')" class="space-y-4 font-mono">
+                <div>
+                    <label class="label" for="edit-ev-name">Event Name</label>
+                    <input type="text" id="edit-ev-name" name="name" value="${currentEvent.name || ''}" class="input" required>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="label" for="edit-ev-date">Date &amp; Time</label>
+                        <input type="datetime-local" id="edit-ev-date" name="date" value="${dateValue}" class="input !p-2" required>
                     </div>
-                    <div><label class="block text-xs font-bold text-ink/50 uppercase mb-1">Location</label><input type="text" name="location" value="${currentEvent.location || ''}" class="w-full border p-2"></div>
-                    <div><label class="block text-xs font-bold text-ink/50 uppercase mb-1">Event Status</label>
-                        <select name="status" class="w-full border p-2 text-sm bg-card">
-                            <option value="ACTIVE" ${(!currentEvent.status || currentEvent.status === 'ACTIVE') ? 'selected' : ''}>Active</option>
-                            <option value="FINISHED" ${currentEvent.status === 'FINISHED' ? 'selected' : ''}>Finished (Ready for Certificates)</option>
+                    <div>
+                        <label class="label" for="edit-ev-tz">Timezone</label>
+                        <select id="edit-ev-tz" name="timezone" class="input bg-white !p-2">
+                            <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                            <option value="UTC" selected>UTC</option>
+                            <option value="America/New_York">America/New_York</option>
                         </select>
                     </div>
+                </div>
+                <div>
+                    <label class="label" for="edit-ev-loc">Location</label>
+                    <input type="text" id="edit-ev-loc" name="location" value="${currentEvent.location || ''}" class="input">
+                </div>
+                <div>
+                    <label class="label" for="edit-ev-status">Event Status</label>
+                    <select id="edit-ev-status" name="status" class="input bg-white">
+                        <option value="ACTIVE" ${(!currentEvent.status || currentEvent.status === 'ACTIVE') ? 'selected' : ''}>Active</option>
+                        <option value="FINISHED" ${currentEvent.status === 'FINISHED' ? 'selected' : ''}>Finished (Ready for Certificates)</option>
+                    </select>
+                </div>
+                <div class="pt-3 border-t-2 border-ink flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('edit-event')" class="btn-secondary">Cancel</button>
                     <button type="submit" class="btn-primary">Save Changes</button>
                 </div>
             </form>
@@ -242,20 +317,49 @@ export async function renderEvent(communityId, eventId) {
         
         if (ctf.status === 'APPROVED' && currentEvent.eventType !== 'API_ONLY') {
             document.getElementById('modal-container').innerHTML += modalTemplate('add-ctf', 'Add CTF Challenge', `
-                <form onsubmit="handleCreateCtfChallenge(event, '${communityId}', '${eventId}')" class="text-black">
-                    <div class="space-y-3">
-                        <div><label class="block text-xs font-bold text-ink/50 uppercase">Name</label><input type="text" name="name" class="w-full border p-2" required></div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div><label class="block text-xs font-bold text-ink/50 uppercase">Category</label><input type="text" name="category" placeholder="Web, Crypto" class="w-full border p-2" required></div>
-                            <div><label class="block text-xs font-bold text-ink/50 uppercase">Difficulty</label><select name="difficulty" class="w-full border p-2 bg-card"><option value="Easy">Easy</option><option value="Medium">Medium</option><option value="Hard">Hard</option></select></div>
+                <form onsubmit="handleCreateCtfChallenge(event, '${communityId}', '${eventId}')" class="space-y-3 font-mono">
+                    <div>
+                        <label class="label" for="ctf-chal-name">Challenge Name</label>
+                        <input type="text" id="ctf-chal-name" name="name" class="input" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="label" for="ctf-chal-cat">Category</label>
+                            <input type="text" id="ctf-chal-cat" name="category" placeholder="Web, Crypto, Reverse" class="input" required>
                         </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div><label class="block text-xs font-bold text-ink/50 uppercase">Scoring</label><select name="scoringType" class="w-full border p-2 bg-card"><option value="STATIC">Static</option><option value="DYNAMIC">Dynamic</option></select></div>
-                            <div><label class="block text-xs font-bold text-ink/50 uppercase">Base Points</label><input type="number" name="points" class="w-full border p-2"></div>
+                        <div>
+                            <label class="label" for="ctf-chal-diff">Difficulty</label>
+                            <select id="ctf-chal-diff" name="difficulty" class="input bg-white">
+                                <option value="Easy">Easy</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Hard">Hard</option>
+                            </select>
                         </div>
-                        <div><label class="block text-xs font-bold text-ink/50 uppercase">Description</label><textarea name="description" class="w-full border p-2 h-20" required></textarea></div>
-                        <div><label class="block text-xs font-bold text-ink/50 uppercase">Flag</label><input type="text" name="flag" placeholder="aurum{...}" class="w-full border p-2" required></div>
-                        <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 mt-2">Create Challenge</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="label" for="ctf-chal-score">Scoring Type</label>
+                            <select id="ctf-chal-score" name="scoringType" class="input bg-white">
+                                <option value="STATIC">Static</option>
+                                <option value="DYNAMIC">Dynamic</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="label" for="ctf-chal-pts">Base Points</label>
+                            <input type="number" id="ctf-chal-pts" name="points" placeholder="100" class="input">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="label" for="ctf-chal-desc">Description</label>
+                        <textarea id="ctf-chal-desc" name="description" class="input h-20" required></textarea>
+                    </div>
+                    <div>
+                        <label class="label" for="ctf-chal-flag">Flag</label>
+                        <input type="text" id="ctf-chal-flag" name="flag" placeholder="aurum{...}" class="input" required>
+                    </div>
+                    <div class="pt-3 border-t-2 border-ink flex justify-end gap-3">
+                        <button type="button" onclick="closeModal('add-ctf')" class="btn-secondary">Cancel</button>
+                        <button type="submit" class="btn-primary">Create Challenge</button>
                     </div>
                 </form>
             `);
@@ -265,7 +369,6 @@ export async function renderEvent(communityId, eventId) {
         renderAttendeeList(currentAttendees);
 
         if (currentEvent.settings?.isCertificateOnly || currentEvent.eventType === 'API_ONLY') {
-            // Render the AST builder with existing requirements or a default empty group
             const existingReqs = currentEvent.settings?.certificateRequirements;
             currentAST = existingReqs || { logic: 'AND', conditions: [] };
             renderASTBuilder();
@@ -273,90 +376,101 @@ export async function renderEvent(communityId, eventId) {
 
     } catch (e) {
         console.error(e);
-        container.innerHTML = '<div class="text-danger p-4">Error loading event data.</div>';
+        container.innerHTML = '<div class="card-static border-2 border-danger text-danger text-center font-mono font-bold uppercase p-8 my-8">Error loading event data.</div>';
     }
 }
 
 function renderCtfStatusBadge(status) {
-    if (status === 'APPROVED') return '<span class="bg-success/100 text-white px-3 py-1 text-xs rounded-none">Active</span>';
-    if (status === 'PENDING_APPROVAL') return '<span class="bg-yellow-500 text-white px-3 py-1 text-xs rounded-none">Pending SuperAdmin</span>';
-    return '<span class="bg-ink text-white px-3 py-1 text-xs rounded-none">Disabled</span>';
+    if (status === 'APPROVED') return '<span class="bg-success text-ink border-2 border-ink font-mono text-xs font-bold px-2.5 py-1 uppercase shadow-[2px_2px_0_0_#0b0b0b]">Active</span>';
+    if (status === 'PENDING_APPROVAL') return '<span class="bg-warning text-ink border-2 border-ink font-mono text-xs font-bold px-2.5 py-1 uppercase shadow-[2px_2px_0_0_#0b0b0b]">Pending SuperAdmin</span>';
+    return '<span class="bg-canvas text-neutral-700 border-2 border-ink font-mono text-xs font-bold px-2.5 py-1 uppercase">Disabled</span>';
 }
 
 function renderCtfDashboard(ctf, isSuperAdmin, cid, eid) {
     if (ctf.status === 'NONE') {
         return `
-            <div class="text-center py-6">
-                <p class="text-indigo-200 mb-4">Enhance your event by hosting a Capture The Flag competition!</p>
-                <button onclick="requestCtf('${cid}', '${eid}')" class="bg-card text-indigo-900 px-6 py-2 font-bold hover:bg-canvas transition">
-                    Request CTF Feature
+            <div class="text-center py-8 font-mono">
+                <p class="text-neutral-800 font-bold mb-4">Enhance your event by hosting a Capture The Flag cybersecurity competition!</p>
+                <button onclick="requestCtf('${cid}', '${eid}')" class="btn-primary">
+                    <i class="fas fa-flag mr-1"></i> Request CTF Module
                 </button>
             </div>`;
     }
 
     if (ctf.status === 'PENDING_APPROVAL') {
         let adminHtml = isSuperAdmin ? `
-            <div class="mt-6 bg-indigo-950 p-4 border border-indigo-700 inline-block text-left">
-                <p class="text-sm font-bold mb-2">SuperAdmin Approval Needed</p>
-                <form onsubmit="approveCtf(event, '${cid}', '${eid}')" class="flex items-end gap-2 text-black">
+            <div class="mt-6 bg-canvas p-4 border-2 border-ink inline-block text-left shadow-[4px_4px_0_0_#0b0b0b]">
+                <p class="font-bold text-xs uppercase text-ink mb-2">SuperAdmin Approval Required</p>
+                <form onsubmit="approveCtf(event, '${cid}', '${eid}')" class="flex flex-wrap items-end gap-3 font-mono">
                     <div>
-                        <label class="block text-xs text-indigo-300 mb-1">Challenge Cap (0 = Unlimited)</label>
-                        <input type="number" name="challengeCap" value="20" class="w-32 border p-2 text-sm">
+                        <label class="label">Challenge Cap (0 = Unlimited)</label>
+                        <input type="number" name="challengeCap" value="20" class="input !p-2 text-xs w-32">
                     </div>
-                    <button class="bg-success/100 text-white px-4 py-2 text-sm font-bold hover:bg-green-600">Approve</button>
+                    <button class="btn-primary !text-xs !py-2">Grant Approval</button>
                 </form>
             </div>` : '';
             
-        return `<div class="text-center py-6 text-yellow-300"><i class="fas fa-clock text-2xl mb-2 block"></i> Waiting for SuperAdmin Approval...${adminHtml}</div>`;
+        return `<div class="text-center py-8 font-mono"><i class="fas fa-clock text-3xl mb-3 text-warning"></i><br><span class="font-bold text-sm uppercase">Waiting for SuperAdmin Authorization...</span>${adminHtml}</div>`;
     }
 
     if (ctf.status === 'APPROVED') {
         const challengesList = ctfChallenges.map(c => `
-            <div class="flex justify-between items-center bg-indigo-800 p-3 mb-2 border border-indigo-700">
+            <div class="flex justify-between items-center bg-canvas p-3 mb-2 border-2 border-ink font-mono shadow-[2px_2px_0_0_#0b0b0b]">
                 <div>
-                    <span class="font-bold text-sm">${c.name}</span>
-                    <span class="text-xs text-indigo-300 ml-2 border border-indigo-600 px-1">${c.scoringType}</span>
+                    <span class="font-black text-xs uppercase text-ink">${c.name}</span>
+                    <span class="text-[10px] text-neutral-700 ml-2 border border-ink px-1.5 py-0.5 bg-white uppercase font-bold">${c.scoringType}</span>
                 </div>
-                <div class="text-sm">
-                    ${c.status === 'APPROVED' ? '<span class="text-success">✅ Approved</span>' : `<button onclick="approveChallenge('${cid}', '${eid}', '${c.id}')" class="bg-yellow-500 text-black px-2 py-1 text-xs">Approve</button>`}
+                <div>
+                    ${c.status === 'APPROVED' ? '<span class="text-success font-black text-xs">APPROVED</span>' : `<button onclick="approveChallenge('${cid}', '${eid}', '${c.id}')" class="btn-primary !text-[10px] !px-2 !py-1">Approve</button>`}
                 </div>
             </div>
         `).join('');
 
         return `
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-indigo-950 p-4 border border-indigo-800">
-                    <h3 class="font-bold border-b border-indigo-800 pb-2 mb-3">Settings</h3>
-                    <form onsubmit="saveCtfSettings(event, '${cid}', '${eid}')" class="space-y-3 text-sm">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 font-mono">
+                <!-- Settings Panel -->
+                <div class="bg-canvas p-5 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                    <h3 class="font-black text-sm uppercase text-ink border-b-2 border-ink pb-2 mb-4">Competition Settings</h3>
+                    <form onsubmit="saveCtfSettings(event, '${cid}', '${eid}')" class="space-y-4 text-xs">
                         <div class="grid grid-cols-2 gap-4">
-                            <label class="flex items-center gap-2"><input type="checkbox" name="autoOpen" ${ctf.autoOpen ? 'checked' : ''}> Auto Open</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" name="autoClose" ${ctf.autoClose ? 'checked' : ''}> Auto Close</label>
+                            <label class="flex items-center gap-2 cursor-pointer font-bold uppercase"><input type="checkbox" name="autoOpen" ${ctf.autoOpen ? 'checked' : ''} class="w-4 h-4 accent-cyan border-2 border-ink"> Auto Open</label>
+                            <label class="flex items-center gap-2 cursor-pointer font-bold uppercase"><input type="checkbox" name="autoClose" ${ctf.autoClose ? 'checked' : ''} class="w-4 h-4 accent-cyan border-2 border-ink"> Auto Close</label>
                         </div>
-                        <div class="grid grid-cols-2 gap-4 text-black">
-                            <input type="datetime-local" name="startTime" value="${ctf.startTime || ''}" class="w-full p-1.5" title="Start Time">
-                            <input type="datetime-local" name="endTime" value="${ctf.endTime || ''}" class="w-full p-1.5" title="End Time">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="label">Start Time</label>
+                                <input type="datetime-local" name="startTime" value="${ctf.startTime || ''}" class="input !p-2 text-xs">
+                            </div>
+                            <div>
+                                <label class="label">End Time</label>
+                                <input type="datetime-local" name="endTime" value="${ctf.endTime || ''}" class="input !p-2 text-xs">
+                            </div>
                         </div>
-                        <div class="flex justify-between items-center border-t border-indigo-800 pt-3 mt-3">
-                            <label class="flex items-center gap-2"><input type="checkbox" name="requireCheckIn" ${ctf.requireCheckIn ? 'checked' : ''}> <span class="text-indigo-200">Require Check-In to Play</span></label>
-                            <label class="flex items-center gap-2 bg-red-900 px-3 py-1 border border-red-700"><input type="checkbox" name="isLive" ${ctf.isLive ? 'checked' : ''}> <span class="font-bold text-red-200">Force Live</span></label>
+                        <div class="flex flex-wrap justify-between items-center border-t-2 border-ink pt-3 gap-2">
+                            <label class="flex items-center gap-2 cursor-pointer font-bold uppercase"><input type="checkbox" name="requireCheckIn" ${ctf.requireCheckIn ? 'checked' : ''} class="w-4 h-4 accent-cyan border-2 border-ink"> Require Check-In</label>
+                            <label class="flex items-center gap-2 cursor-pointer font-bold uppercase bg-danger/10 border border-danger px-2 py-1"><input type="checkbox" name="isLive" ${ctf.isLive ? 'checked' : ''} class="w-4 h-4 accent-danger"> <span class="text-danger">Force Live</span></label>
                         </div>
-                        <button class="btn-primary w-full mt-2">Save Settings</button>
+                        <button class="btn-primary w-full mt-2">Save CTF Configuration</button>
                     </form>
                 </div>
                 
-                <div class="bg-indigo-950 p-4 border border-indigo-800 flex flex-col">
-                    <div class="flex justify-between items-center border-b border-indigo-800 pb-2 mb-3">
-                        <h3 class="font-bold">Challenges (${ctfChallenges.length}/${ctf.challengeCap || '∞'})</h3>
-                        <button onclick="openModal('add-ctf')" class="text-xs bg-card text-indigo-900 px-2 py-1 font-bold">+ Add</button>
-                    </div>
-                    <div class="flex-1 overflow-y-auto max-h-[200px]">
-                        ${challengesList || '<p class="text-indigo-400 text-sm italic">No challenges yet.</p>'}
+                <!-- Challenges List -->
+                <div class="bg-canvas p-5 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b] flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center border-b-2 border-ink pb-2 mb-3">
+                            <h3 class="font-black text-sm uppercase text-ink">Challenges (${ctfChallenges.length}/${ctf.challengeCap || '∞'})</h3>
+                            <button onclick="openModal('add-ctf')" class="btn-primary !text-[10px] !px-2.5 !py-1">+ Add</button>
+                        </div>
+                        <div class="overflow-y-auto max-h-[220px]">
+                            ${challengesList || '<p class="text-neutral-600 text-xs italic text-center py-6">No challenges added yet.</p>'}
+                        </div>
                     </div>
                 </div>
                 
-                <div class="col-span-1 lg:col-span-2 bg-indigo-950 p-4 border border-indigo-800">
-                    <h3 class="font-bold mb-3">Spectator Timeline</h3>
-                    <div style="height: 250px; width: 100%;">
+                <!-- Spectator Timeline -->
+                <div class="col-span-1 lg:col-span-2 bg-ink text-white p-5 border-2 border-ink shadow-[4px_4px_0_0_#0b0b0b]">
+                    <h3 class="font-black text-sm uppercase text-cyan mb-3">Solve Timeline (Spectator)</h3>
+                    <div style="height: 240px; width: 100%;">
                         <canvas id="ctfChart"></canvas>
                     </div>
                 </div>
@@ -414,10 +528,9 @@ function renderCtfChart() {
     const ctx = document.getElementById('ctfChart');
     if (!ctx || typeof Chart === 'undefined') return;
     
-    // Group submissions by hour
     const counts = {};
     ctfSubmissions.forEach(sub => {
-        const timeKey = sub.sk.split('#')[0].substring(0, 13) + ":00"; // Strip to hour
+        const timeKey = sub.sk.split('#')[0].substring(0, 13) + ":00";
         counts[timeKey] = (counts[timeKey] || 0) + 1;
     });
     
@@ -431,8 +544,8 @@ function renderCtfChart() {
             datasets: [{
                 label: 'Solves per Hour',
                 data: data.length ? data : [0],
-                borderColor: '#4ade80',
-                backgroundColor: 'rgba(74, 222, 128, 0.2)',
+                borderColor: '#5ce1e6',
+                backgroundColor: 'rgba(92, 225, 230, 0.2)',
                 tension: 0.3,
                 fill: true
             }]
@@ -441,42 +554,40 @@ function renderCtfChart() {
             responsive: true,
             maintainAspectRatio: false,
             scales: { 
-                y: { beginAtZero: true, ticks: { color: '#a5b4fc' }, grid: { color: 'rgba(255,255,255,0.1)' } },
-                x: { ticks: { color: '#a5b4fc' }, grid: { display: false } }
+                y: { beginAtZero: true, ticks: { color: '#ffffff' }, grid: { color: 'rgba(255,255,255,0.15)' } },
+                x: { ticks: { color: '#ffffff' }, grid: { display: false } }
             },
             plugins: {
-                legend: { labels: { color: '#fff' } }
+                legend: { labels: { color: '#ffffff', font: { family: 'JetBrains Mono' } } }
             }
         }
     });
 }
-
-// ... [Keep renderAttendeeList, handleSearch, viewAttendee, doCheckIn, updateStatus, QR logic as they were originally] ...
 
 function renderAttendeeList(list) {
     const container = document.getElementById('attendee-list-container');
     if (!container) return;
     
     if (list.length === 0) {
-        container.innerHTML = '<tr><td colspan="4" class="text-center text-ink/40 py-10">No attendees found.</td></tr>';
+        container.innerHTML = '<tr><td colspan="5" class="text-center font-mono font-bold uppercase text-neutral-600 py-12">No attendees registered yet.</td></tr>';
         return;
     }
 
     container.innerHTML = list.map(a => {
         const uid = a.UserID.replace('USER#', '');
-        const statusColor = a.status === 'APPROVED' ? 'bg-green-100 text-green-700' : a.status === 'REJECTED' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700';
+        const statusBadge = a.status === 'APPROVED' ? '<span class="badge bg-success text-ink">APPROVED</span>' : a.status === 'REJECTED' ? '<span class="badge bg-danger text-white">REJECTED</span>' : '<span class="badge bg-warning text-ink">PENDING</span>';
                             
         return `
-            <tr class="border-b hover:bg-canvas transition text-black">
-                <td class="py-3">
-                    <div class="font-medium text-ink">${a.userInfo?.name || a.userInfo?.Name || a.userInfo?.['Full Name'] || 'Unknown User'}</div>
-                    <div class="text-xs text-ink/40">${a.userInfo?.email || a.userInfo?.Email || 'No Email'}</div>
+            <tr class="hover:bg-canvas transition text-ink font-mono">
+                <td class="p-3.5">
+                    <div class="font-black text-xs text-ink uppercase">${a.userInfo?.name || a.userInfo?.Name || a.userInfo?.['Full Name'] || 'Unknown'}</div>
+                    <div class="text-[11px] text-neutral-700">${a.userInfo?.email || a.userInfo?.Email || 'No Email'}</div>
                 </td>
-                <td class="py-3"><span class="text-[10px] font-bold px-2 py-1 rounded-none uppercase ${statusColor}">${a.status || 'PENDING'}</span></td>
-                <td class="py-3">${a.checkedIn ? '<span class="text-success font-bold text-sm">✅ Checked In</span>' : '<span class="text-ink/40 text-sm">Not Checked In</span>'}</td>
-                <td class="py-3">${a.certificateIssuedAt ? '<span class="text-success font-bold text-sm">Yes</span>' : '<span class="text-ink/40 text-sm">No</span>'}</td>
-                <td class="py-3 text-right">
-                    <button onclick="viewAttendee('${uid}')" class="btn-secondary text-cyan">View Details</button>
+                <td class="p-3.5">${statusBadge}</td>
+                <td class="p-3.5">${a.checkedIn ? '<span class="text-success font-black text-xs">✅ YES</span>' : '<span class="text-neutral-500 font-bold text-xs">NO</span>'}</td>
+                <td class="p-3.5">${a.certificateIssuedAt ? '<span class="text-success font-black text-xs">📜 ISSUED</span>' : '<span class="text-neutral-500 font-bold text-xs">NO</span>'}</td>
+                <td class="p-3.5 text-right">
+                    <button onclick="viewAttendee('${uid}')" class="btn-secondary !text-[10px] !px-2.5 !py-1">Details</button>
                 </td>
             </tr>
         `;
@@ -502,41 +613,43 @@ window.viewAttendee = (userId) => {
     
     if (currentEvent.settings?.requiresApproval && status === 'PENDING') {
         actionButtons += `
-            <div class="flex gap-2 w-full mb-3 pb-3 border-b">
-                <button onclick="updateStatus('${userId}', 'APPROVED')" class="flex-1 bg-green-600 text-white py-2 font-bold hover:bg-green-700">Approve</button>
-                <button onclick="updateStatus('${userId}', 'REJECTED')" class="flex-1 bg-red-600 text-white py-2 font-bold hover:bg-red-700">Reject</button>
+            <div class="flex gap-3 w-full mb-3 pb-3 border-b-2 border-ink">
+                <button onclick="updateStatus('${userId}', 'APPROVED')" class="btn-primary !bg-success text-ink flex-1">Approve</button>
+                <button onclick="updateStatus('${userId}', 'REJECTED')" class="btn-danger flex-1">Reject</button>
             </div>
         `;
     }
 
-        if (status === 'APPROVED' || !currentEvent.settings?.requiresApproval) {
-            if (!user.checkedIn) {
-                actionButtons += `<button onclick="doCheckIn('${userId}', true)" class="btn-primary">✅ Check In User</button>`;
-            } else {
-                actionButtons += `
-                    <div class="w-full flex justify-between items-center bg-success/10 border border-success p-3 mt-2">
-                        <span class="text-green-700 font-bold">✅ Checked In</span>
-                        <button onclick="doCheckIn('${userId}', false)" class="text-sm bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1 font-bold">Undo Check-In</button>
-                    </div>
-                `;
-            }
-        }
-
-        if (user.certificateIssuedAt) {
+    if (status === 'APPROVED' || !currentEvent.settings?.requiresApproval) {
+        if (!user.checkedIn) {
+            actionButtons += `<button onclick="doCheckIn('${userId}', true)" class="btn-primary w-full">✅ Check In User</button>`;
+        } else {
             actionButtons += `
-                <div class="w-full flex justify-between items-center bg-yellow-50 border border-yellow-200 p-3 mt-2">
-                    <span class="text-yellow-700 font-bold">📜 Certificate Issued</span>
-                    <button onclick="invalidateCertificate('${userId}')" class="text-sm bg-red-600 text-white hover:bg-red-700 px-3 py-1 font-bold">Invalidate</button>
+                <div class="w-full flex justify-between items-center bg-white border-2 border-success p-3 mt-2 shadow-[2px_2px_0_0_#0b0b0b]">
+                    <span class="text-success font-black text-xs uppercase">✅ Checked In</span>
+                    <button onclick="doCheckIn('${userId}', false)" class="btn-danger !text-[10px] !px-2.5 !py-1">Undo Check-In</button>
                 </div>
             `;
         }
+    }
+
+    if (user.certificateIssuedAt) {
+        actionButtons += `
+            <div class="w-full flex justify-between items-center bg-white border-2 border-warning p-3 mt-2 shadow-[2px_2px_0_0_#0b0b0b]">
+                <span class="text-ink font-black text-xs uppercase">📜 Certificate Issued</span>
+                <button onclick="invalidateCertificate('${userId}')" class="btn-danger !text-[10px] !px-2.5 !py-1">Invalidate</button>
+            </div>
+        `;
+    }
 
     const modalHtml = modalTemplate('attendee-modal', 'Attendee Details', `
-        <div class="space-y-4 text-black">
-            <div class="flex items-center gap-4 p-4 bg-canvas border">
-                <div><h3 class="font-bold text-lg text-ink">${user.userInfo?.name || user.userInfo?.Name || user.userInfo?.['Full Name'] || 'Unknown'}</h3><p class="text-sm text-ink/50">${user.userInfo?.email || user.userInfo?.Email || ''}</p></div>
+        <div class="space-y-4 font-mono">
+            <div class="p-4 bg-canvas border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                <h3 class="font-black text-base uppercase text-ink">${user.userInfo?.name || user.userInfo?.Name || user.userInfo?.['Full Name'] || 'Unknown'}</h3>
+                <p class="text-xs text-neutral-700 mt-1">${user.userInfo?.email || user.userInfo?.Email || 'No Email'}</p>
+                <p class="text-[11px] text-neutral-500 mt-2 select-all">User ID: ${userId}</p>
             </div>
-            <div class="pt-4 mt-2">${actionButtons}</div>
+            <div class="pt-2">${actionButtons}</div>
         </div>
     `);
 
@@ -576,7 +689,7 @@ window.openQrScanner = () => {
             () => {}
         ).catch((err) => {
             const el = document.getElementById('qr-reader');
-            if (el) el.innerHTML = `<p class="text-danger">Camera failed: ${err}</p>`;
+            if (el) el.innerHTML = `<p class="text-danger p-4 font-mono font-bold text-xs">Camera error: ${err}</p>`;
         });
     }, 200);
 };
@@ -591,7 +704,7 @@ window.handleEditEvent = async (e, cid, eid) => {
     const fd = new FormData(e.target);
     const body = Object.fromEntries(fd.entries());
     const res = await api(`/community/${cid}/event/${eid}`, 'PUT', body);
-    if (res && res.success) { window.closeModal('edit-event'); renderEvent(cid, eid); }
+    if (res && res.success !== false) { window.closeModal('edit-event'); renderEvent(cid, eid); }
 };
 
 window.handleCertSettings = async (e, eventId) => {
@@ -621,7 +734,6 @@ window.handleBulkFileChange = async () => {
     
     document.getElementById('bulk-upload-ui').classList.remove('hidden');
     
-    // Parse headers
     const name = file.name.toLowerCase();
     if (name.endsWith('.csv')) {
         Papa.parse(file, {
@@ -669,7 +781,6 @@ function populateBulkDropdowns(headers) {
         nameSel.appendChild(opt2);
     });
     
-    // Auto-select obvious headers
     const lower = headers.map(h => h.toLowerCase());
     let emailIdx = lower.findIndex(h => h.includes('email'));
     if (emailIdx > -1) emailSel.selectedIndex = emailIdx + 1;
@@ -719,7 +830,7 @@ function getProcessedBulkData() {
     let rejected = 0;
     
     for (let row of parsedBulkData) {
-        let finalRow = { ...row }; // keep custom fields
+        let finalRow = { ...row };
         finalRow.email = row[emailCol];
         if (nameCol) finalRow.name = row[nameCol];
         
@@ -745,12 +856,12 @@ window.previewBulkUpload = () => {
     previewDiv.classList.remove('hidden');
     
     if (res.error) {
-        previewDiv.innerHTML = `<span class="text-danger">${res.error}</span>`;
+        previewDiv.innerHTML = `<span class="text-danger font-bold">${res.error}</span>`;
         return;
     }
     
     let sample = res.data.slice(0, 3);
-    previewDiv.innerHTML = `<div><strong>Found ${res.data.length} allowed users based on filter.</strong> ${res.rejected > 0 ? `<span class="text-danger font-bold ml-2">(${res.rejected} rejected by Logic Builder filters)</span>` : ''}</div><br/>Preview of first few:<br/><pre id="bulk-upload-pre"></pre>`;
+    previewDiv.innerHTML = `<div><strong>Found ${res.data.length} valid rows.</strong> ${res.rejected > 0 ? `<span class="text-danger font-bold ml-2">(${res.rejected} rejected by AST Logic filters)</span>` : ''}</div><br/>Preview (first 3 records):<br/><pre id="bulk-upload-pre" class="mt-2"></pre>`;
     document.getElementById('bulk-upload-pre').textContent = JSON.stringify(sample, null, 2);
 };
 
@@ -760,7 +871,7 @@ window.processBulkUpload = async (cid, eid) => {
     if (res.data.length === 0) return alert('No users matched your criteria.');
     
     const btn = document.getElementById('btn-upload-save');
-    btn.innerText = "Uploading...";
+    btn.innerText = "Ingesting...";
     btn.disabled = true;
     
     try {
@@ -773,17 +884,15 @@ window.processBulkUpload = async (cid, eid) => {
         }
         alert(`Successfully allowed ${res.data.length} users!`);
         
-        // Reset UI
         document.getElementById('bulk-upload-file').value = '';
         document.getElementById('bulk-upload-ui').classList.add('hidden');
         document.getElementById('bulk-upload-preview').classList.add('hidden');
         
-        // Refresh Table
         renderEvent(cid, eid);
     } catch (e) {
         alert("Upload failed partially or fully.");
     }
-    btn.innerText = "Upload & Save";
+    btn.innerText = "Execute Ingestion";
     btn.disabled = false;
 };
 
@@ -810,45 +919,43 @@ window.renderASTBuilder = () => {
 window.renderASTNode = (node, path) => {
     const pathStr = JSON.stringify(path);
     if (node.logic) {
-        // It's a group
         const conditionsHtml = (node.conditions || []).map((child, idx) => {
-            return `<div class="ml-6 mt-2 border-l-2 border-ink pl-4">${window.renderASTNode(child, [...path, 'conditions', idx])}</div>`;
+            return `<div class="ml-4 sm:ml-6 mt-3 border-l-4 border-ink pl-3 sm:pl-4">${window.renderASTNode(child, [...path, 'conditions', idx])}</div>`;
         }).join('');
 
         return `
-            <div class="bg-canvas p-4 border border-ink">
-                <div class="flex gap-2 items-center mb-2">
-                    <select onchange='updateASTNode(${pathStr}, "logic", this.value)' class="border p-1 font-bold text-xs bg-card">
+            <div class="bg-canvas p-4 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                <div class="flex flex-wrap gap-2 items-center mb-3">
+                    <select onchange='updateASTNode(${pathStr}, "logic", this.value)' class="input !w-24 !p-1.5 bg-white font-bold text-xs">
                         <option value="AND" ${node.logic === 'AND' ? 'selected' : ''}>AND</option>
                         <option value="OR" ${node.logic === 'OR' ? 'selected' : ''}>OR</option>
                     </select>
-                    <span class="text-xs text-ink/50 font-bold uppercase">Group</span>
+                    <span class="text-xs text-ink font-bold uppercase">Condition Group</span>
                     <div class="ml-auto flex gap-2">
-                        <button onclick='addASTNode(${pathStr})' class="text-xs bg-cyan/20 text-cyan px-2 py-1 font-bold hover:bg-cyan/30">+ Rule</button>
-                        <button onclick='addASTGroup(${pathStr})' class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 font-bold hover:bg-indigo-200">+ Group</button>
-                        ${path.length > 0 ? `<button onclick='removeASTNode(${pathStr})' class="text-xs bg-red-100 text-red-700 px-2 py-1 font-bold hover:bg-red-200">Remove</button>` : ''}
+                        <button onclick='addASTNode(${pathStr})' class="btn-primary !text-[10px] !px-2.5 !py-1">+ Rule</button>
+                        <button onclick='addASTGroup(${pathStr})' class="btn-secondary !text-[10px] !px-2.5 !py-1">+ Group</button>
+                        ${path.length > 0 ? `<button onclick='removeASTNode(${pathStr})' class="btn-danger !text-[10px] !px-2 !py-1">Remove</button>` : ''}
                     </div>
                 </div>
                 <div>${conditionsHtml}</div>
             </div>
         `;
     } else {
-        // It's a rule
         const safeField = escapeHTML(node.field || '');
         const safeValue = escapeHTML(node.value || '');
         return `
-            <div class="flex gap-2 items-center bg-card p-2 border border-ink">
-                <input type="text" placeholder="Field (e.g. score)" value="${safeField}" onchange='updateASTNode(${pathStr}, "field", this.value)' class="border p-1.5 text-xs w-32 outline-none">
-                <select onchange='updateASTNode(${pathStr}, "operator", this.value)' class="border p-1.5 text-xs bg-card w-24">
+            <div class="flex flex-wrap gap-2 items-center bg-white p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                <input type="text" placeholder="Field (e.g. score)" value="${safeField}" onchange='updateASTNode(${pathStr}, "field", this.value)' class="input !p-2 text-xs flex-1 min-w-[120px]">
+                <select onchange='updateASTNode(${pathStr}, "operator", this.value)' class="input !p-2 text-xs bg-white !w-20">
                     <option value="==" ${node.operator === '==' ? 'selected' : ''}>==</option>
                     <option value="!=" ${node.operator === '!=' ? 'selected' : ''}>!=</option>
-                    <option value=">" ${node.operator === '>' ? 'selected' : ''}>></option>
-                    <option value="<" ${node.operator === '<' ? 'selected' : ''}><</option>
-                    <option value=">=" ${node.operator === '>=' ? 'selected' : ''}>>=</option>
-                    <option value="<=" ${node.operator === '<=' ? 'selected' : ''}><=</option>
+                    <option value=">" ${node.operator === '>' ? 'selected' : ''}>&gt;</option>
+                    <option value="<" ${node.operator === '<' ? 'selected' : ''}>&lt;</option>
+                    <option value=">=" ${node.operator === '>=' ? 'selected' : ''}>&gt;=</option>
+                    <option value="<=" ${node.operator === '<=' ? 'selected' : ''}>&lt;=</option>
                 </select>
-                <input type="text" placeholder="Value (e.g. 50)" value="${safeValue}" onchange='updateASTNode(${pathStr}, "value", this.value)' class="border p-1.5 text-xs flex-1 outline-none">
-                <button onclick='removeASTNode(${pathStr})' class="text-ink/40 hover:text-danger font-bold px-2">✕</button>
+                <input type="text" placeholder="Value (e.g. 50)" value="${safeValue}" onchange='updateASTNode(${pathStr}, "value", this.value)' class="input !p-2 text-xs flex-1 min-w-[120px]">
+                <button onclick='removeASTNode(${pathStr})' class="btn-danger !text-xs !px-2.5 !py-2" aria-label="Delete rule">✕</button>
             </div>
         `;
     }
@@ -907,7 +1014,7 @@ window.saveCertificateRequirements = async (cid, eid, silent = false) => {
         };
         const res = await api(`/community/${cid}/event/${eid}`, 'PUT', payload);
         if (!silent) {
-            if (res && res.success) {
+            if (res && res.success !== false) {
                 alert('Certificate requirements saved successfully!');
                 renderEvent(cid, eid);
             } else {
@@ -918,4 +1025,4 @@ window.saveCertificateRequirements = async (cid, eid, silent = false) => {
         console.error('Save of requirements failed:', e);
         if (!silent) alert('An error occurred.');
     }
-};
+};

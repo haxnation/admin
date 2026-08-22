@@ -3,67 +3,91 @@ import { currentUser } from '../auth.js';
 import { API_URL } from '../config.js';
 
 let currentGames = [];
-let selectedGames = new Set(); // Track selected items
+let selectedGames = new Set();
 
 export async function renderMiniGames() {
     if (!currentUser) return;
     const isSuperAdmin = currentUser.platformRole === 'SUPER_ADMIN';
     
-    document.getElementById('app').innerHTML = '<div class="text-center mt-10">Loading Mini-Games...</div>';
+    document.getElementById('app').innerHTML = `
+        <div class="flex flex-col items-center justify-center py-20 gap-4 font-mono">
+            <div class="w-10 h-10 bg-ink border-4 border-cyan shadow-[4px_4px_0_0_#5ce1e6] animate-[spin_1s_steps(4)_infinite]"></div>
+            <p class="text-xs uppercase font-bold text-ink tracking-widest animate-pulse">[ LOADING MINI-GAMES... ]</p>
+        </div>
+    `;
     
     const data = await api('/minigames');
     if (!data) return;
     currentGames = data.data.games || [];
-    selectedGames.clear(); // Reset selections on render
+    selectedGames.clear();
 
     const gamesHtml = currentGames.map(g => {
-        const statusColor = g.status === 'APPROVED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
-        const expText = g.expiresAt ? `<span class="text-danger font-bold ml-2 text-xs">Expires < 1hr</span>` : '';
+        const statusBadge = g.status === 'APPROVED' ? '<span class="badge bg-success text-ink">APPROVED</span>' : '<span class="badge bg-warning text-ink">PENDING</span>';
+        const expText = g.expiresAt ? `<span class="bg-danger text-white border border-ink text-[10px] font-mono font-bold px-1.5 py-0.5 ml-2 shadow-[1px_1px_0_0_#0b0b0b]">Expires &lt; 1hr</span>` : '';
         
         return `
-        <div class="bg-card p-5 border border-ink flex justify-between items-start">
+        <div class="bg-white border-2 border-ink p-5 shadow-[4px_4px_0_0_#0b0b0b] flex flex-col sm:flex-row justify-between items-start gap-4 font-mono">
             <div class="flex items-start gap-4">
-                ${isSuperAdmin ? `<input type="checkbox" class="game-checkbox w-5 h-5 mt-1 cursor-pointer" value="${g.id}" onchange="toggleGameSelection(this)">` : ''}
+                ${isSuperAdmin ? `<input type="checkbox" class="game-checkbox w-5 h-5 mt-1 accent-cyan border-2 border-ink cursor-pointer" value="${g.id}" onchange="toggleGameSelection(this)" aria-label="Select ${g.name}">` : ''}
                 <div>
-                    <h3 class="font-bold text-lg text-ink">${g.name} <span class="text-xs px-2 py-1 ml-2 ${statusColor}">${g.status}</span>${expText}</h3>
-                    <p class="text-sm text-ink/50 mt-1">Difficulty: <span class="font-bold text-ink">${g.difficulty}</span> | Category: ${(g.category || []).join(', ')}</p>
-                    ${isSuperAdmin ? `<p class="text-xs text-ink/40 mt-1">ID: ${g.gameId || g.id} | Points: ${g.points}</p>` : ''}
+                    <h3 class="font-black text-lg text-ink uppercase flex items-center flex-wrap gap-2">
+                        ${g.name} 
+                        ${statusBadge}
+                        ${expText}
+                    </h3>
+                    <div class="text-xs font-semibold text-neutral-700 mt-2 flex flex-wrap gap-2 items-center">
+                        <span class="bg-canvas border border-ink/40 px-2 py-0.5 font-bold">Diff: ${g.difficulty}</span>
+                        <span class="bg-canvas border border-ink/40 px-2 py-0.5 font-bold">Cat: ${(g.category || []).join(', ')}</span>
+                        ${isSuperAdmin ? `<span class="bg-cyan/20 text-ink border border-ink/40 px-2 py-0.5 font-bold">Pts: ${g.points || 0}</span>` : ''}
+                    </div>
+                    ${isSuperAdmin ? `<p class="text-[11px] text-neutral-500 font-mono mt-1.5 select-all">ID: ${g.gameId || g.id}</p>` : ''}
                 </div>
             </div>
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-wrap sm:flex-col gap-2 w-full sm:w-auto justify-end">
                 ${isSuperAdmin ? `
-                    <button onclick="openEditModal('${g.id}')" class="bg-canvas text-cyan px-3 py-1 text-sm font-bold border border-ink hover:bg-cyan/20 transition">Review / Edit</button>
-                    <button onclick="generateJson('${g.id}')" class="bg-canvas text-cyan px-3 py-1 text-sm font-bold border border-indigo-200 hover:bg-indigo-100 transition">Quick JSON</button>
-                ` : '<span class="text-xs text-ink/40 bg-canvas px-2 py-1 text-center">Locked / Read Only</span>'}
+                    <button onclick="openEditModal('${g.id}')" class="btn-secondary !text-xs !px-3 !py-1.5">
+                        <i class="fas fa-edit mr-1"></i> Review / Edit
+                    </button>
+                    <button onclick="generateJson('${g.id}')" class="btn-secondary !text-xs !px-3 !py-1.5">
+                        <i class="fas fa-file-code mr-1"></i> Quick JSON
+                    </button>
+                ` : '<span class="text-xs font-bold text-neutral-500 bg-canvas border border-ink px-2.5 py-1">Read Only</span>'}
             </div>
         </div>`;
     }).join('');
 
     document.getElementById('app').innerHTML = `
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold">Mini-Games</h1>
-            <div class="flex gap-2 items-center">
+        <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b-4 border-ink pb-6 font-mono">
+            <div>
+                <p class="text-xs uppercase tracking-widest text-ink font-bold mb-1">[ MODULE: MINIGAMES REPOSITORY ]</p>
+                <h1 class="text-3xl sm:text-5xl font-black tracking-tighter uppercase leading-none text-ink">
+                    Mini-Games<span class="inline-block w-3 h-[0.7em] bg-cyan animate-pulse align-baseline ml-2"></span>
+                </h1>
+            </div>
+            <div class="flex flex-wrap gap-2 items-center">
                 ${isSuperAdmin ? `
-                    <button onclick="exportSelected()" class="bg-indigo-600 text-white px-4 py-2 text-sm hover:bg-indigo-700 transition font-bold">
-                        Export Selected
+                    <button onclick="exportSelected()" class="btn-secondary">
+                        <i class="fas fa-file-archive mr-1"></i> Export Selected
                     </button>
-                    <button onclick="scheduleDeleteSelected()" class="bg-red-600 text-white px-4 py-2 text-sm hover:bg-red-700 transition font-bold">
-                        Delete Selected
+                    <button onclick="scheduleDeleteSelected()" class="btn-danger">
+                        <i class="fas fa-trash mr-1"></i> Delete Selected
                     </button>
                 ` : ''}
-                <button onclick="openCreateModal()" class="bg-slate-800 text-white px-4 py-2 text-sm hover:bg-slate-900 transition font-bold">
-                    + Submit Mini-Game
+                <button onclick="openCreateModal()" class="btn-primary">
+                    <i class="fas fa-plus mr-1"></i> Submit Mini-Game
                 </button>
             </div>
         </div>
+
         ${isSuperAdmin && currentGames.length > 0 ? `
-        <div class="flex items-center gap-2 mb-4 bg-card p-3 border border-ink">
-            <input type="checkbox" id="selectAll" class="w-5 h-5 cursor-pointer" onchange="toggleAllGames(this)">
-            <label for="selectAll" class="text-sm font-bold cursor-pointer">Select All Games</label>
+        <div class="flex items-center gap-3 mb-6 bg-white p-4 border-2 border-ink shadow-[3px_3px_0_0_#0b0b0b] font-mono">
+            <input type="checkbox" id="selectAll" class="w-5 h-5 accent-cyan border-2 border-ink cursor-pointer" onchange="toggleAllGames(this)">
+            <label for="selectAll" class="text-xs uppercase font-bold text-ink cursor-pointer select-none">Select All Mini-Games</label>
         </div>
         ` : ''}
-        <div class="flex flex-col gap-4">
-            ${gamesHtml || '<p class="text-ink/50 text-center py-10">No mini-games found.</p>'}
+
+        <div class="flex flex-col gap-4 font-mono">
+            ${gamesHtml || '<div class="card-static text-center py-12 font-mono font-bold uppercase text-neutral-600">No mini-games found.</div>'}
         </div>
         <div id="minigame-modals"></div>
     `;
@@ -73,19 +97,21 @@ export async function renderMiniGames() {
 
 function setupModals(isSuperAdmin) {
     const adminFields = isSuperAdmin ? `
-        <div class="border-t pt-4 mt-4">
-            <h4 class="font-bold text-xs text-danger uppercase mb-3">Super Admin Overrides</h4>
-            <div class="grid grid-cols-2 gap-3 mb-3">
-                <div><label class="block text-xs font-bold text-ink/50 uppercase mb-1">Override Global ID</label><input type="text" name="gameId" id="mg-gameId" class="w-full border p-2 text-sm"></div>
-                <div><label class="block text-xs font-bold text-ink/50 uppercase mb-1">Points</label><input type="number" name="points" id="mg-points" class="w-full border p-2 text-sm"></div>
+        <div class="border-2 border-ink bg-yellow-50/70 p-4 mt-4 font-mono shadow-[2px_2px_0_0_#0b0b0b]">
+            <h4 class="font-black text-xs text-ink uppercase mb-3 flex items-center gap-1.5">
+                <span class="w-2 h-2 bg-warning border border-ink"></span> SuperAdmin Overrides
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                <div><label class="label">Override Global ID</label><input type="text" name="gameId" id="mg-gameId" class="input !p-2 text-xs"></div>
+                <div><label class="label">Points</label><input type="number" name="points" id="mg-points" class="input !p-2 text-xs"></div>
             </div>
-            <div class="grid grid-cols-2 gap-3 mb-3">
-                <div><label class="block text-xs font-bold text-ink/50 uppercase mb-1">Start Date</label><input type="datetime-local" name="startDate" id="mg-startDate" class="w-full border p-2 text-sm"></div>
-                <div><label class="block text-xs font-bold text-ink/50 uppercase mb-1">End Date</label><input type="datetime-local" name="endDate" id="mg-endDate" class="w-full border p-2 text-sm"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                <div><label class="label">Start Date</label><input type="datetime-local" name="startDate" id="mg-startDate" class="input !p-2 text-xs"></div>
+                <div><label class="label">End Date</label><input type="datetime-local" name="endDate" id="mg-endDate" class="input !p-2 text-xs"></div>
             </div>
             <div>
-                <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Approval Status</label>
-                <select name="status" id="mg-status" class="w-full border p-2 text-sm bg-card">
+                <label class="label">Approval Status</label>
+                <select name="status" id="mg-status" class="input bg-white !p-2 text-xs font-bold">
                     <option value="PENDING_APPROVAL">Pending Approval</option>
                     <option value="APPROVED">Approved</option>
                 </select>
@@ -94,44 +120,47 @@ function setupModals(isSuperAdmin) {
     ` : '';
 
     document.getElementById('minigame-modals').innerHTML = modalTemplate('mg-modal', 'Mini-Game Details', `
-        <form onsubmit="handleSaveMiniGame(event, ${isSuperAdmin})" class="overflow-y-auto max-h-[70vh] p-1">
+        <form onsubmit="handleSaveMiniGame(event, ${isSuperAdmin})" class="space-y-4 font-mono text-xs">
             <input type="hidden" name="id" id="mg-id">
-            <div class="mb-3">
-                <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Name</label>
-                <input type="text" name="name" id="mg-name" class="w-full border p-2 text-sm" required>
+            <div>
+                <label class="label" for="mg-name">Name</label>
+                <input type="text" name="name" id="mg-name" class="input" required>
             </div>
-            <div class="grid grid-cols-2 gap-3 mb-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Category (comma separated)</label>
-                    <input type="text" name="category" id="mg-category" placeholder="Cryptography, Web" class="w-full border p-2 text-sm" required>
+                    <label class="label" for="mg-category">Category (comma separated)</label>
+                    <input type="text" name="category" id="mg-category" placeholder="Cryptography, Web" class="input" required>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Difficulty</label>
-                    <select name="difficulty" id="mg-difficulty" class="w-full border p-2 text-sm bg-card">
+                    <label class="label" for="mg-difficulty">Difficulty</label>
+                    <select name="difficulty" id="mg-difficulty" class="input bg-white">
                         <option value="Easy">Easy</option>
                         <option value="Medium">Medium</option>
                         <option value="Hard">Hard</option>
                     </select>
                 </div>
             </div>
-            <div class="mb-3">
-                <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Description (HTML allowed)</label>
-                <textarea name="description" id="mg-description" class="w-full border p-2 text-sm h-24" required></textarea>
+            <div>
+                <label class="label" for="mg-description">Description (HTML allowed)</label>
+                <textarea name="description" id="mg-description" class="input h-24" required></textarea>
             </div>
-            <div class="mb-3">
-                <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Authors (Name, URL per line)</label>
-                <textarea name="authors" id="mg-authors" placeholder="John Doe, https://github.com/john" class="w-full border p-2 text-sm h-16"></textarea>
+            <div>
+                <label class="label" for="mg-authors">Authors (Name, URL per line)</label>
+                <textarea name="authors" id="mg-authors" placeholder="John Doe, https://github.com/john" class="input h-16"></textarea>
             </div>
-            <div class="mb-3">
-                <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Flag</label>
-                <input type="text" name="flag" id="mg-flag" placeholder="aurum{...}" class="w-full border p-2 text-sm" required>
+            <div>
+                <label class="label" for="mg-flag">Flag</label>
+                <input type="text" name="flag" id="mg-flag" placeholder="aurum{...}" class="input" required>
             </div>
-            <div class="mb-3">
-                <label class="block text-xs font-bold text-ink/50 uppercase mb-1">Assets (URLs, comma separated)</label>
-                <input type="text" name="assets" id="mg-assets" class="w-full border p-2 text-sm">
+            <div>
+                <label class="label" for="mg-assets">Assets (URLs, comma separated)</label>
+                <input type="text" name="assets" id="mg-assets" class="input">
             </div>
             ${adminFields}
-            <button type="submit" class="btn-primary">Save Mini-Game</button>
+            <div class="pt-3 border-t-2 border-ink flex justify-end gap-3">
+                <button type="button" onclick="closeModal('mg-modal')" class="btn-secondary">Cancel</button>
+                <button type="submit" class="btn-primary">Save Mini-Game</button>
+            </div>
         </form>
     `);
 }
@@ -145,7 +174,6 @@ window.openCreateModal = () => {
     document.getElementById('mg-flag').value = '';
     document.getElementById('mg-assets').value = '';
     
-    // Clear superadmin fields if they exist
     if (document.getElementById('mg-gameId')) {
         document.getElementById('mg-gameId').value = '';
         document.getElementById('mg-points').value = '';
@@ -271,12 +299,10 @@ window.exportSelected = async () => {
     btn.disabled = true;
 
     try {
-        // Use the standardized api() function since backend now returns JSON
         const res = await api('/minigames/export', 'POST', { ids });
 
         if (!res || !res.success) throw new Error(res?.error || "Export failed.");
 
-        // Convert the Base64 string back into binary data
         const byteCharacters = atob(res.data);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
@@ -285,7 +311,6 @@ window.exportSelected = async () => {
         const byteArray = new Uint8Array(byteNumbers);
         const blob = new Blob([byteArray], { type: 'application/zip' });
 
-        // Trigger the download
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -308,8 +333,8 @@ window.scheduleDeleteSelected = async () => {
     const res = await api('/minigames/batch-delete', 'POST', { ids });
     if (res && res.success) {
         alert(res.message);
-        renderMiniGames(); // Refresh the view to reflect TTL statuses
+        renderMiniGames();
     } else {
         alert(res?.error || 'Failed to schedule deletion.');
     }
-};
+};

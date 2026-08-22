@@ -20,7 +20,18 @@
                         cyan: '#5ce1e6',
                         danger: '#ff2a2a',
                         success: '#00e676',
-                        warning: '#ffeb3b'
+                        warning: '#ffeb3b',
+                        neutral: {
+                            100: '#f5f5f5',
+                            200: '#e5e5e5',
+                            300: '#d4d4d4',
+                            400: '#a3a3a3',
+                            500: '#737373',
+                            600: '#525252',
+                            700: '#404040',
+                            800: '#262626',
+                            900: '#171717'
+                        }
                     },
                     fontFamily: {
                         sans: ['"Inter"', 'sans-serif'],
@@ -33,84 +44,99 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .brutal-card {
-            background-color: #fff;
-            border: 2px solid #0b0b0b;
-            box-shadow: 4px 4px 0 0 #0b0b0b;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            border-radius: 0;
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style type="text/tailwindcss">
+        @layer components {
+            .btn-primary {
+                @apply font-mono uppercase tracking-widest font-bold bg-cyan text-ink border-2 border-ink px-4 py-2 sm:px-6 sm:py-3 shadow-[4px_4px_0_0_#0b0b0b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#0b0b0b] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all duration-75 focus:outline-none focus:ring-2 focus:ring-cyan focus:ring-offset-2 inline-flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer;
+            }
+            .btn-secondary {
+                @apply font-mono text-xs font-bold uppercase tracking-widest bg-white text-ink border-2 border-ink px-4 py-2 hover:bg-ink hover:text-white transition-colors duration-0 shadow-[2px_2px_0_0_#0b0b0b] focus:outline-none focus:ring-2 focus:ring-ink focus:ring-offset-2 inline-flex items-center justify-center gap-2 cursor-pointer;
+            }
+            .card {
+                @apply bg-white border-2 border-ink p-6 shadow-[6px_6px_0_0_#0b0b0b] transition-all duration-75;
+            }
+            .card-static {
+                @apply bg-white border-2 border-ink p-6 shadow-[4px_4px_0_0_#0b0b0b];
+            }
+            .badge {
+                @apply font-mono text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 py-0.5 border-2 border-ink inline-flex items-center gap-1 shadow-[2px_2px_0_0_#0b0b0b];
+            }
         }
+    </style>
+    <style>
         .brutal-code {
             background-color: #0b0b0b;
             color: #5ce1e6;
             border: 2px solid #0b0b0b;
-            padding: 1rem;
-            font-family: monospace;
+            padding: 1.25rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
             overflow-x: auto;
             margin: 1rem 0;
+            box-shadow: 4px 4px 0 0 #0b0b0b;
         }
-        .brutal-badge {
-            font-family: monospace;
-            text-transform: uppercase;
-            font-size: 10px;
-            font-weight: bold;
-            padding: 2px 6px;
-            border: 2px solid #0b0b0b;
-            display: inline-block;
-        }
-        .brutal-badge-get { background-color: #5ce1e6; color: #0b0b0b; }
-        .brutal-badge-post { background-color: #ff2a2a; color: #fff; }
-        
         .nav-link {
-            font-family: monospace;
+            font-family: 'JetBrains Mono', monospace;
             text-transform: uppercase;
             font-size: 12px;
             font-weight: bold;
             display: block;
-            padding: 0.5rem;
+            padding: 0.5rem 0.75rem;
             border: 2px solid transparent;
             color: #0b0b0b;
             margin-bottom: 0.25rem;
+            transition: all 0.05s;
         }
         .nav-link:hover, .nav-link.active {
             border: 2px solid #0b0b0b;
             background-color: #5ce1e6;
+            box-shadow: 2px 2px 0 0 #0b0b0b;
+            transform: translate(-1px, -1px);
         }
     </style>
 </head>
-<body class="bg-canvas text-ink font-sans min-h-screen antialiased selection:bg-cyan selection:text-ink smooth-scroll">
-    <div class="fixed inset-0 pointer-events-none z-[-1] bg-[linear-gradient(to_right,#80808020_1px,transparent_1px),linear-gradient(to_bottom,#80808020_1px,transparent_1px)] bg-[size:32px_32px]"></div>
-    <nav class="sticky top-0 z-50 border-b-2 border-[#0b0b0b] bg-[#0b0b0b] text-[#fafafa]">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-3 sm:gap-4 font-mono">
-            <div class="flex items-center gap-3 sm:gap-4">
-                <a href="/" class="flex items-center gap-3 group">
-                    <img src="/logo.png" alt="Haxnation" class="h-7 sm:h-8 w-auto object-contain">
-                    <span class="hidden sm:inline font-mono text-[10px] font-bold uppercase tracking-widest text-[#0b0b0b] border-2 border-[#0b0b0b] px-1.5 py-0.5 bg-[#5ce1e6]">API DOCS</span>
+<body class="bg-canvas text-ink font-sans min-h-screen antialiased selection:bg-cyan selection:text-ink bg-[linear-gradient(to_right,#80808020_1px,transparent_1px),linear-gradient(to_bottom,#80808020_1px,transparent_1px)] bg-[size:32px_32px]">
+    <!-- Navbar -->
+    <nav class="sticky top-0 z-50 border-b-2 border-ink bg-white">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4 font-mono">
+            <div class="flex items-center gap-4">
+                <a href="/" class="flex items-center gap-3">
+                    <img src="/logo.png" alt="Haxnation Logo" class="h-8 w-auto object-contain">
+                    <span class="badge bg-cyan text-ink">API DOCS</span>
+                </a>
+            </div>
+            <div>
+                <a href="/#" class="btn-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i> Admin Portal
                 </a>
             </div>
         </div>
     </nav>
 
-    <div class="max-w-6xl mx-auto p-4 sm:p-6 flex flex-col md:flex-row gap-8 mt-4">
+    <div class="max-w-6xl mx-auto p-4 sm:p-6 flex flex-col md:flex-row gap-8 mt-6">
         <!-- Sidebar -->
-        <aside class="w-full md:w-64 flex-shrink-0">
-            <div class="sticky top-24">
+        <aside class="w-full md:w-64 flex-shrink-0 font-mono">
+            <div class="sticky top-24 card-static !p-4">
                 <div class="mb-6">
-                    <h3 class="font-mono font-bold uppercase text-xs tracking-widest text-ink/60 mb-2 border-b-2 border-ink pb-1">Getting Started</h3>
+                    <h3 class="font-black uppercase text-xs tracking-widest text-ink mb-2 border-b-2 border-ink pb-1 flex items-center gap-1.5">
+                        <span class="w-2 h-2 bg-ink"></span> Getting Started
+                    </h3>
                     <a href="#introduction" class="nav-link">Introduction</a>
                     <a href="#authentication" class="nav-link">Authentication</a>
                 </div>
                 
                 <div class="mb-6">
-                    <h3 class="font-mono font-bold uppercase text-xs tracking-widest text-ink/60 mb-2 border-b-2 border-ink pb-1">Certificate API (B2B)</h3>
+                    <h3 class="font-black uppercase text-xs tracking-widest text-ink mb-2 border-b-2 border-ink pb-1 flex items-center gap-1.5">
+                        <span class="w-2 h-2 bg-warning"></span> Certificate API (B2B)
+                    </h3>
                     <a href="#generate-certificate" class="nav-link">Generate Certificate</a>
                 </div>
 
-                <div class="mb-6">
-                    <h3 class="font-mono font-bold uppercase text-xs tracking-widest text-ink/60 mb-2 border-b-2 border-ink pb-1">Events API</h3>
+                <div>
+                    <h3 class="font-black uppercase text-xs tracking-widest text-ink mb-2 border-b-2 border-ink pb-1 flex items-center gap-1.5">
+                        <span class="w-2 h-2 bg-cyan"></span> Events API
+                    </h3>
                     <a href="#list-events" class="nav-link">List Events</a>
                     <a href="#get-event" class="nav-link">Get Event Details</a>
                     <a href="#verify-certificate" class="nav-link">Verify Certificate</a>
@@ -119,99 +145,110 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 min-w-0">
+        <main class="flex-1 min-w-0 font-mono">
             <section id="introduction" class="mb-12">
-                <h1 class="text-3xl font-black mb-4 uppercase font-mono border-b-4 border-[#0b0b0b] pb-2 inline-block">Haxnation API Integration</h1>
-                <p class="mb-6 text-lg">Welcome to the Haxnation API documentation. Our seamless and secure API empowers developers to integrate certificate generation and event discovery natively into their own platforms. Using an approved B2B Community account, you can instantly render high-quality, verifiable certificates based on custom templates.</p>
+                <p class="text-xs uppercase tracking-widest text-neutral-700 font-bold mb-1">[ DEVELOPER INTEGRATION GUIDE ]</p>
+                <h1 class="text-3xl sm:text-5xl font-black mb-4 uppercase tracking-tighter leading-none border-b-4 border-ink pb-3 text-ink">
+                    API Integration<span class="inline-block w-3 h-[0.7em] bg-cyan animate-pulse align-baseline ml-2"></span>
+                </h1>
+                <p class="mb-6 text-sm text-neutral-800 leading-relaxed font-sans font-medium">Welcome to the Haxnation API documentation. Our seamless and secure API empowers developers to integrate certificate generation and event discovery natively into their own platforms. Using an approved B2B Community account, you can instantly render high-quality, verifiable certificates based on custom templates.</p>
                 
-                <div class="brutal-card">
-                    <h3 class="font-bold text-xl mb-4 font-mono uppercase">Base URLs</h3>
-                    <p class="mb-4">All API requests should be made to the following base URLs based on the resource type.</p>
+                <div class="card-static">
+                    <h3 class="font-black text-base mb-4 uppercase text-ink flex items-center gap-2">
+                        <i class="fas fa-server text-cyan"></i> Base URLs
+                    </h3>
+                    <p class="mb-4 text-xs text-neutral-700 font-bold">All API requests should be made to the following base URLs based on the resource type:</p>
                     
-                    <div class="mb-6">
-                        <span class="font-bold text-sm bg-[#5ce1e6] border-2 border-[#0b0b0b] px-2 py-1 inline-block mb-1 shadow-[2px_2px_0_0_#0b0b0b]">Admin/B2B Endpoints</span>
+                    <div class="mb-4">
+                        <span class="badge bg-cyan text-ink mb-1">Admin / B2B Endpoints</span>
                         <div class="brutal-code">https://api.haxnation.com/api/v1</div>
                     </div>
                     
                     <div>
-                        <span class="font-bold text-sm bg-[#5ce1e6] border-2 border-[#0b0b0b] px-2 py-1 inline-block mb-1 shadow-[2px_2px_0_0_#0b0b0b]">Events Endpoints</span>
+                        <span class="badge bg-cyan text-ink mb-1">Events Endpoints</span>
                         <div class="brutal-code">https://api.haxnation.com/events/api/events</div>
                     </div>
                 </div>
             </section>
 
             <section id="authentication" class="mb-12">
-                <h2 class="text-2xl font-black mb-4 uppercase font-mono border-b-2 border-ink pb-2">Authentication</h2>
-                <div class="bg-[#ff2a2a] text-white border-2 border-[#0b0b0b] p-4 font-bold mb-6 font-mono shadow-[4px_4px_0_0_#0b0b0b]">
-                    NO API IS PUBLIC. ALL ENDPOINTS REQUIRE AN API KEY.
+                <h2 class="text-2xl font-black mb-4 uppercase border-b-2 border-ink pb-2 text-ink">Authentication</h2>
+                <div class="bg-danger text-white border-2 border-ink p-4 font-bold mb-6 shadow-[4px_4px_0_0_#0b0b0b] text-xs uppercase flex items-center gap-2">
+                    <i class="fas fa-shield-alt text-base"></i> ALL ENDPOINTS REQUIRE AUTHENTICATION VIA API KEY
                 </div>
-                <p class="mb-4">The Haxnation API utilizes API Keys for authorization. While internal platforms use session cookies, any third-party domain or backend service calling <b>any</b> of our endpoints (including Events endpoints) MUST provide an API Key.</p>
-                <div class="mb-6 bg-canvas p-4 border border-ink shadow-sm">
-                    <h4 class="font-bold font-mono mb-2">Key Types</h4>
-                    <ul class="list-disc pl-5 space-y-2 text-sm">
-                        <li><b>PUBLIC Keys:</b> Designed for client-side applications (like frontend websites). These keys are strictly read-only and <b>cannot</b> generate certificates. They require <b>Allowed Domains</b> to be configured to prevent unauthorized use from other websites.</li>
-                        <li><b>PRIVATE Keys:</b> Designed for backend-to-backend communication. These keys have full access, including the ability to generate certificates and deduct credits. They <b>do not</b> require domain restrictions. Keep these keys absolutely secret.</li>
+                <p class="mb-4 text-xs text-neutral-800 leading-relaxed font-sans font-medium">The Haxnation API utilizes API Keys for authorization. While internal platforms use session cookies, any third-party domain or backend service calling <b>any</b> of our endpoints (including Events endpoints) MUST provide an API Key.</p>
+                <div class="mb-6 card-static bg-canvas space-y-3">
+                    <h4 class="font-black text-xs uppercase text-ink">Key Types</h4>
+                    <ul class="space-y-2 text-xs text-neutral-800 font-sans">
+                        <li class="flex items-start gap-2">
+                            <span class="badge bg-canvas text-ink shrink-0 font-mono">PUBLIC</span>
+                            <span>Designed for client-side web applications. Strictly read-only and <b>cannot</b> generate certificates. Requires <b>Allowed Domains</b> whitelist to prevent unauthorized cross-origin requests.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="badge bg-warning text-ink shrink-0 font-mono">PRIVATE</span>
+                            <span>Designed for backend-to-backend communication. Full access including certificate generation and credit deduction. <b>Keep these keys strictly confidential.</b></span>
+                        </li>
                     </ul>
                 </div>
                 
-                <div class="brutal-card">
-                    <h3 class="font-bold text-lg mb-2 font-mono uppercase">Making Authenticated Requests</h3>
-                    <p class="mb-2">You must pass your API key via the <code>X-API-KEY</code> HTTP header in all requests made from external domains.</p>
+                <div class="card-static">
+                    <h3 class="font-black text-xs uppercase text-ink mb-2">Making Authenticated Requests</h3>
+                    <p class="text-xs text-neutral-700 font-bold mb-2">Pass your API key via the <code class="bg-canvas border border-ink px-1.5 py-0.5">X-API-KEY</code> HTTP header on all incoming requests:</p>
                     <div class="brutal-code">X-API-KEY: HAX_abcdef1234567890abcdef...
 Content-Type: application/json</div>
                 </div>
             </section>
 
             <section id="generate-certificate" class="mb-12">
-                <h2 class="text-2xl font-black mb-4 uppercase font-mono border-b-2 border-ink pb-2">Generate Certificate</h2>
-                <p class="mb-6">Dynamically generates a custom certificate based on the active template configured for your Community account. This endpoint consumes 1 credit per successful generation. <b>Requires a PRIVATE key.</b></p>
+                <h2 class="text-2xl font-black mb-4 uppercase border-b-2 border-ink pb-2 text-ink">Generate Certificate</h2>
+                <p class="mb-6 text-xs text-neutral-800 leading-relaxed font-sans font-medium">Dynamically generates a custom certificate based on the active template configured for your Community account. This endpoint consumes 1 credit per successful generation. <b>Requires a PRIVATE key.</b></p>
                 
-                <div class="brutal-card">
-                    <div class="flex items-center gap-3 mb-6 bg-canvas p-2 border-2 border-[#0b0b0b] shadow-[2px_2px_0_0_#0b0b0b]">
-                        <span class="brutal-badge brutal-badge-post">POST</span>
-                        <span class="font-mono font-bold text-sm">/api/v1/certificates/generate</span>
+                <div class="card-static">
+                    <div class="flex items-center gap-3 mb-6 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                        <span class="badge bg-danger text-white">POST</span>
+                        <span class="font-bold text-xs text-ink">/api/v1/certificates/generate</span>
                     </div>
 
-                    <h3 class="font-bold mb-2 font-mono uppercase">Request Body</h3>
-                    <p class="mb-4 text-sm">The payload must be a JSON object containing a <code>data</code> property. The keys inside <code>data</code> should exactly match the variable placeholders defined in your certificate template.</p>
+                    <h3 class="font-black text-xs mb-2 uppercase text-ink">Request Body</h3>
+                    <p class="mb-4 text-xs text-neutral-700 font-sans">The payload must be a JSON object containing a <code class="bg-canvas border border-ink px-1">data</code> property. The keys inside <code class="bg-canvas border border-ink px-1">data</code> should exactly match the variable placeholders defined in your certificate template.</p>
                     
                     <div class="mb-6 overflow-x-auto">
-                        <table class="w-full border-2 border-[#0b0b0b] text-sm bg-card">
-                            <thead class="bg-[#0b0b0b] text-white">
+                        <table class="w-full border-2 border-ink text-xs">
+                            <thead class="bg-ink text-white">
                                 <tr>
-                                    <th class="p-2 text-left font-mono">Field</th>
-                                    <th class="p-2 text-left font-mono">Type</th>
-                                    <th class="p-2 text-left font-mono">Description</th>
+                                    <th class="p-2.5 text-left font-bold uppercase">Field</th>
+                                    <th class="p-2.5 text-left font-bold uppercase">Type</th>
+                                    <th class="p-2.5 text-left font-bold uppercase">Description</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr class="border-b-2 border-[#0b0b0b]">
-                                    <td class="p-2 font-mono font-bold">data <span class="text-[10px] bg-[#ff2a2a] text-white px-1 ml-2 border border-[#0b0b0b]">REQ</span></td>
-                                    <td class="p-2">Object</td>
-                                    <td class="p-2">A key-value mapping of the template variables to their respective dynamic values.</td>
+                            <tbody class="divide-y-2 divide-ink/10">
+                                <tr>
+                                    <td class="p-2.5 font-bold">data <span class="badge bg-danger text-white !text-[9px] ml-1">REQ</span></td>
+                                    <td class="p-2.5">Object</td>
+                                    <td class="p-2.5 text-neutral-700 font-sans">Key-value mapping of template variable keys to their respective dynamic values.</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <h3 class="font-bold mb-2 font-mono uppercase">Example Request</h3>
+                    <h3 class="font-black text-xs mb-2 uppercase text-ink">Example Request</h3>
                     <div class="brutal-code">{
   "data": {
-    "Name": "Jane Doe",
-    "Course": "Advanced AI Integration",
-    "Date": "October 24, 2026"
+    "name": "Jane Doe",
+    "course": "Advanced AI Integration",
+    "date": "October 24, 2026"
   }
 }</div>
 
-                    <h3 class="font-bold mt-6 mb-2 font-mono uppercase">Responses</h3>
-                    <div class="mb-2 font-bold text-success font-mono text-sm">200 OK - Success</div>
+                    <h3 class="font-black text-xs mt-6 mb-2 uppercase text-ink">Responses</h3>
+                    <div class="mb-1 font-bold text-success text-xs">200 OK - Success</div>
                     <div class="brutal-code mb-4">{
   "success": true,
   "data": {
     "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB..."
   }
 }</div>
-                    <div class="mb-2 font-bold text-danger font-mono text-sm">402 Payment Required - Insufficient Credits</div>
+                    <div class="mb-1 font-bold text-danger text-xs">402 Payment Required - Insufficient Credits</div>
                     <div class="brutal-code">{
   "success": false,
   "message": "Insufficient credits"
@@ -220,24 +257,24 @@ Content-Type: application/json</div>
             </section>
 
             <section id="list-events" class="mb-12">
-                <h2 class="text-2xl font-black mb-4 uppercase font-mono border-b-2 border-ink pb-2">List Events</h2>
-                <p class="mb-6">Retrieves a list of events available on Haxnation.</p>
+                <h2 class="text-2xl font-black mb-4 uppercase border-b-2 border-ink pb-2 text-ink">List Events</h2>
+                <p class="mb-6 text-xs text-neutral-800 leading-relaxed font-sans font-medium">Retrieves a list of events available on Haxnation.</p>
                 
-                <div class="brutal-card">
-                    <div class="flex items-center gap-3 mb-6 bg-canvas p-2 border-2 border-[#0b0b0b] shadow-[2px_2px_0_0_#0b0b0b]">
-                        <span class="brutal-badge brutal-badge-get">GET</span>
-                        <span class="font-mono font-bold text-sm">/events/api/events/</span>
+                <div class="card-static">
+                    <div class="flex items-center gap-3 mb-6 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                        <span class="badge bg-cyan text-ink">GET</span>
+                        <span class="font-bold text-xs text-ink">/events/api/events/</span>
                     </div>
 
-                    <h3 class="font-bold mb-2 font-mono uppercase">Response</h3>
-                    <div class="mb-2 font-bold text-success font-mono text-sm">200 OK - Success</div>
+                    <h3 class="font-black text-xs mb-2 uppercase text-ink">Response</h3>
+                    <div class="mb-1 font-bold text-success text-xs">200 OK - Success</div>
                     <div class="brutal-code">{
   "success": true,
   "data": [
     {
       "id": "12345",
-      "title": "Summer Hackathon 2026",
-      "status": "PUBLISHED",
+      "title": "CyberSecurity Summit 2026",
+      "status": "ACTIVE",
       "location": "Virtual"
     }
   ]
@@ -246,43 +283,43 @@ Content-Type: application/json</div>
             </section>
 
             <section id="get-event" class="mb-12">
-                <h2 class="text-2xl font-black mb-4 uppercase font-mono border-b-2 border-ink pb-2">Get Event Details</h2>
-                <p class="mb-6">Retrieves detailed metadata for a specific event by its ID or slug.</p>
+                <h2 class="text-2xl font-black mb-4 uppercase border-b-2 border-ink pb-2 text-ink">Get Event Details</h2>
+                <p class="mb-6 text-xs text-neutral-800 leading-relaxed font-sans font-medium">Retrieves detailed metadata for a specific event by its ID or slug.</p>
                 
-                <div class="brutal-card">
-                    <div class="flex items-center gap-3 mb-6 bg-canvas p-2 border-2 border-[#0b0b0b] shadow-[2px_2px_0_0_#0b0b0b]">
-                        <span class="brutal-badge brutal-badge-get">GET</span>
-                        <span class="font-mono font-bold text-sm">/events/api/events/{id}</span>
+                <div class="card-static">
+                    <div class="flex items-center gap-3 mb-6 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                        <span class="badge bg-cyan text-ink">GET</span>
+                        <span class="font-bold text-xs text-ink">/events/api/events/{id}</span>
                     </div>
 
-                    <h3 class="font-bold mb-2 font-mono uppercase">Path Parameters</h3>
+                    <h3 class="font-black text-xs mb-2 uppercase text-ink">Path Parameters</h3>
                     <div class="mb-6 overflow-x-auto">
-                        <table class="w-full border-2 border-[#0b0b0b] text-sm bg-card">
-                            <thead class="bg-[#0b0b0b] text-white">
+                        <table class="w-full border-2 border-ink text-xs">
+                            <thead class="bg-ink text-white">
                                 <tr>
-                                    <th class="p-2 text-left font-mono">Parameter</th>
-                                    <th class="p-2 text-left font-mono">Type</th>
-                                    <th class="p-2 text-left font-mono">Description</th>
+                                    <th class="p-2.5 text-left font-bold uppercase">Parameter</th>
+                                    <th class="p-2.5 text-left font-bold uppercase">Type</th>
+                                    <th class="p-2.5 text-left font-bold uppercase">Description</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr class="border-b-2 border-[#0b0b0b]">
-                                    <td class="p-2 font-mono font-bold">id <span class="text-[10px] bg-[#ff2a2a] text-white px-1 ml-2 border border-[#0b0b0b]">REQ</span></td>
-                                    <td class="p-2">String</td>
-                                    <td class="p-2">The unique ID or slug of the event.</td>
+                            <tbody class="divide-y-2 divide-ink/10">
+                                <tr>
+                                    <td class="p-2.5 font-bold">id <span class="badge bg-danger text-white !text-[9px] ml-1">REQ</span></td>
+                                    <td class="p-2.5">String</td>
+                                    <td class="p-2.5 text-neutral-700 font-sans">The unique ID or slug of the event.</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <h3 class="font-bold mb-2 font-mono uppercase">Response</h3>
-                    <div class="mb-2 font-bold text-success font-mono text-sm">200 OK - Success</div>
+                    <h3 class="font-black text-xs mb-2 uppercase text-ink">Response</h3>
+                    <div class="mb-1 font-bold text-success text-xs">200 OK - Success</div>
                     <div class="brutal-code">{
   "success": true,
   "data": {
     "id": "12345",
-    "title": "Summer Hackathon 2026",
-    "description": "Join us for an amazing hackathon...",
+    "title": "CyberSecurity Summit 2026",
+    "description": "Annual security summit and CTF competition.",
     "settings": {
       "isCertificateOnly": false
     }
@@ -292,43 +329,43 @@ Content-Type: application/json</div>
             </section>
 
             <section id="verify-certificate" class="mb-12">
-                <h2 class="text-2xl font-black mb-4 uppercase font-mono border-b-2 border-ink pb-2">Verify Certificate</h2>
-                <p class="mb-6">Endpoint to verify the authenticity of a certificate issued by Haxnation.</p>
+                <h2 class="text-2xl font-black mb-4 uppercase border-b-2 border-ink pb-2 text-ink">Verify Certificate</h2>
+                <p class="mb-6 text-xs text-neutral-800 leading-relaxed font-sans font-medium">Endpoint to verify the authenticity of a certificate issued by Haxnation.</p>
                 
-                <div class="brutal-card">
-                    <div class="flex items-center gap-3 mb-6 bg-canvas p-2 border-2 border-[#0b0b0b] shadow-[2px_2px_0_0_#0b0b0b]">
-                        <span class="brutal-badge brutal-badge-get">GET</span>
-                        <span class="font-mono font-bold text-sm">/events/api/events/certificate/verify/{certId}</span>
+                <div class="card-static">
+                    <div class="flex items-center gap-3 mb-6 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                        <span class="badge bg-cyan text-ink">GET</span>
+                        <span class="font-bold text-xs text-ink">/events/api/events/certificate/verify/{certId}</span>
                     </div>
 
-                    <h3 class="font-bold mb-2 font-mono uppercase">Path Parameters</h3>
+                    <h3 class="font-black text-xs mb-2 uppercase text-ink">Path Parameters</h3>
                     <div class="mb-6 overflow-x-auto">
-                        <table class="w-full border-2 border-[#0b0b0b] text-sm bg-card">
-                            <thead class="bg-[#0b0b0b] text-white">
+                        <table class="w-full border-2 border-ink text-xs">
+                            <thead class="bg-ink text-white">
                                 <tr>
-                                    <th class="p-2 text-left font-mono">Parameter</th>
-                                    <th class="p-2 text-left font-mono">Type</th>
-                                    <th class="p-2 text-left font-mono">Description</th>
+                                    <th class="p-2.5 text-left font-bold uppercase">Parameter</th>
+                                    <th class="p-2.5 text-left font-bold uppercase">Type</th>
+                                    <th class="p-2.5 text-left font-bold uppercase">Description</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr class="border-b-2 border-[#0b0b0b]">
-                                    <td class="p-2 font-mono font-bold">certId <span class="text-[10px] bg-[#ff2a2a] text-white px-1 ml-2 border border-[#0b0b0b]">REQ</span></td>
-                                    <td class="p-2">String</td>
-                                    <td class="p-2">The unique certificate ID to verify.</td>
+                            <tbody class="divide-y-2 divide-ink/10">
+                                <tr>
+                                    <td class="p-2.5 font-bold">certId <span class="badge bg-danger text-white !text-[9px] ml-1">REQ</span></td>
+                                    <td class="p-2.5">String</td>
+                                    <td class="p-2.5 text-neutral-700 font-sans">The unique certificate identification hash to verify.</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <h3 class="font-bold mb-2 font-mono uppercase">Response</h3>
-                    <div class="mb-2 font-bold text-success font-mono text-sm">200 OK - Success</div>
+                    <h3 class="font-black text-xs mb-2 uppercase text-ink">Response</h3>
+                    <div class="mb-1 font-bold text-success text-xs">200 OK - Success</div>
                     <div class="brutal-code">{
   "success": true,
   "data": {
     "message": "Certificate Verified",
     "owner": "Jane Doe",
-    "event": "Summer Hackathon 2026",
+    "event": "CyberSecurity Summit 2026",
     "isOwner": false,
     "eventId": "12345"
   }
@@ -339,7 +376,6 @@ Content-Type: application/json</div>
     </div>
 
     <script>
-        // Smooth scrolling & active link updating
         const sections = document.querySelectorAll('section');
         const navLinks = document.querySelectorAll('.nav-link');
 

@@ -7,32 +7,38 @@ let state = {
 export async function renderApiKeys(communityId) {
     state.communityId = communityId;
     const app = document.getElementById('app');
-    app.innerHTML = '<div class="loader ease-linear rounded-none border-4 border-t-4 border-ink h-12 w-12 mx-auto"></div>';
+    app.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-20 gap-4 font-mono">
+            <div class="w-10 h-10 bg-ink border-4 border-cyan shadow-[4px_4px_0_0_#5ce1e6] animate-[spin_1s_steps(4)_infinite]"></div>
+            <p class="text-xs uppercase font-bold text-ink tracking-widest animate-pulse">[ LOADING API KEYS... ]</p>
+        </div>`;
 
     await loadKeys();
 
     app.innerHTML = `
-        <div class="mb-6 flex justify-between items-center border-b pb-4">
+        <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-4 border-ink pb-6 font-mono">
             <div class="flex items-center gap-4">
-                <button onclick="window.location.hash='#/community/${state.communityId}'" class="text-ink/40 hover:text-ink transition"><i class="fas fa-arrow-left"></i></button>
+                <a href="#/community/${state.communityId}" class="btn-secondary !px-3 !py-2" aria-label="Back to community">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
                 <div>
-                    <h1 class="text-3xl font-black uppercase font-mono border-b-4 border-ink pb-2 inline-block mb-4 text-ink">API Keys</h1>
-                    <p class="text-sm text-ink/50">Manage API Keys for your Community</p>
+                    <h1 class="text-3xl sm:text-5xl font-black tracking-tighter uppercase leading-none text-ink">
+                        API Keys<span class="inline-block w-3 h-[0.7em] bg-cyan animate-pulse align-baseline ml-2"></span>
+                    </h1>
+                    <p class="text-xs text-neutral-700 font-bold mt-1">Manage API credentials & certificate generation credits.</p>
                 </div>
             </div>
-            <div class="flex gap-2">
-                <button onclick="window.openBuyCredits()" class="btn-primary">
-                    💳 Buy Credits
+            <div class="flex flex-wrap gap-2 items-center">
+                <button onclick="window.openBuyCredits()" class="btn-primary !bg-warning hover:!bg-yellow-400 text-ink">
+                    <i class="fas fa-coins mr-1"></i> Buy Credits
                 </button>
                 <button onclick="window.openCreateKeyModal()" class="btn-primary">
-                    + New API Key
+                    <i class="fas fa-key mr-1"></i> + New API Key
                 </button>
             </div>
         </div>
 
-
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="keys-list">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 font-mono" id="keys-list">
             ${renderKeysList()}
         </div>
     `;
@@ -41,59 +47,75 @@ export async function renderApiKeys(communityId) {
     const modals = document.getElementById('modals');
     modals.innerHTML = `
         ${modalTemplate('create-key-modal', 'Create New API Key', `
-            <form id="create-key-form">
-                <div class="mb-4">
-                    <label class="label">Key Name</label>
+            <form id="create-key-form" class="space-y-4 font-mono text-xs">
+                <div>
+                    <label class="label" for="key-name">Key Name</label>
                     <input type="text" id="key-name" placeholder="e.g. Production Frontend" class="input" required>
                 </div>
-                <div class="mb-4" id="domain-input-container">
-                    <label class="label">Allowed Domains (Optional)</label>
+                <div id="domain-input-container">
+                    <label class="label" for="key-domains">Allowed Domains (Optional)</label>
                     <input type="text" id="key-domains" placeholder="e.g. *.haxnation.org, http://localhost:*" class="input">
-                    <p class="text-xs text-ink/50 mt-1">Comma-separated. Supports wildcards (*). Leave empty to allow any domain.</p>
+                    <p class="text-[11px] text-neutral-600 mt-1 font-bold">Comma-separated. Supports wildcards (*). Leave empty to allow any origin.</p>
                 </div>
-                <div class="mb-6">
-                    <label class="label">Key Type</label>
-                    <select id="key-type" class="input">
-                        <option value="PUBLIC">PUBLIC - Read-only access (Safe for frontend)</option>
+                <div>
+                    <label class="label" for="key-type">Key Type</label>
+                    <select id="key-type" class="input bg-white font-bold">
+                        <option value="PUBLIC">PUBLIC - Read-only access (Safe for client frontend)</option>
                         <option value="PRIVATE">PRIVATE - Full access including cert generation (Keep secret)</option>
                     </select>
                 </div>
-                <button type="submit" class="btn-primary w-full">Generate Key</button>
+                <div class="pt-3 border-t-2 border-ink flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('create-key-modal')" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Generate Key</button>
+                </div>
             </form>
         `)}
 
         ${modalTemplate('new-key-modal', 'API Key Generated', `
-            <div class="p-4 bg-yellow-50 border border-yellow-200 mb-4">
-                <p class="text-sm text-warning font-bold">Please copy this key now. You will not be able to see it again!</p>
-            </div>
-            <div class="flex items-center gap-2 bg-ink p-3">
-                <code id="new-key-value" class="flex-1 text-success text-sm break-all font-mono"></code>
-                <button type="button" onclick="window.toggleKeyVisibility()" class="text-ink/40 hover:text-white px-2"><i class="fas fa-eye" id="key-visibility-icon"></i></button>
-                <button type="button" onclick="window.copyNewKey()" class="text-ink/40 hover:text-white px-2"><i class="fas fa-copy"></i></button>
-            </div>
-            <div class="mt-6 flex justify-end">
-                <button type="button" onclick="window.closeModal('new-key-modal')" class="btn-secondary">I have copied it</button>
+            <div class="space-y-4 font-mono">
+                <div class="p-4 bg-yellow-50 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
+                    <p class="text-xs text-ink font-bold uppercase"><i class="fas fa-exclamation-triangle mr-1 text-warning"></i> Copy this key now! It will never be displayed again.</p>
+                </div>
+                <div class="flex items-center gap-2 bg-ink border-2 border-ink p-3 shadow-[4px_4px_0_0_#0b0b0b]">
+                    <code id="new-key-value" class="flex-1 text-cyan text-xs break-all font-mono font-bold select-all"></code>
+                    <button type="button" onclick="window.toggleKeyVisibility()" class="text-white hover:text-cyan px-2 cursor-pointer" aria-label="Toggle key visibility">
+                        <i class="fas fa-eye" id="key-visibility-icon"></i>
+                    </button>
+                    <button type="button" onclick="window.copyNewKey()" class="text-white hover:text-cyan px-2 cursor-pointer" aria-label="Copy key">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <div class="pt-4 border-t-2 border-ink flex justify-end">
+                    <button type="button" onclick="window.closeModal('new-key-modal')" class="btn-secondary">
+                        <i class="fas fa-check mr-1"></i> I Have Copied It
+                    </button>
+                </div>
             </div>
         `)}
 
-        ${modalTemplate('buy-credits-modal', 'Buy Credits', `
-            <form id="buy-credits-form">
-                <div class="mb-4">
-                    <label class="label">Number of Certificates</label>
+        ${modalTemplate('buy-credits-modal', 'Buy Certificate Credits', `
+            <form id="buy-credits-form" class="space-y-4 font-mono text-xs">
+                <div>
+                    <label class="label" for="credit-quantity">Number of Certificates</label>
                     <input type="number" id="credit-quantity" min="100" value="100" class="input" required>
-                    <p class="text-xs text-ink/50 mt-1">Minimum order quantity: 100</p>
+                    <p class="text-[11px] text-neutral-600 mt-1 font-bold">Minimum order batch: 100 certificates</p>
                 </div>
-                <div class="bg-canvas p-4 mb-4">
+                <div class="bg-canvas border-2 border-ink p-4 shadow-[2px_2px_0_0_#0b0b0b]">
                     <div class="flex justify-between mb-2">
-                        <span class="text-sm text-ink/70">Price per cert:</span>
-                        <span id="price-per-cert" class="font-bold">₹2.00</span>
+                        <span class="text-xs text-neutral-700 font-bold uppercase">Rate per cert:</span>
+                        <span id="price-per-cert" class="font-black text-ink">₹2.00</span>
                     </div>
-                    <div class="flex justify-between border-t pt-2 mt-2">
-                        <span class="font-bold">Total Amount:</span>
-                        <span id="total-price" class="font-bold text-lg text-cyan">₹200.00</span>
+                    <div class="flex justify-between border-t-2 border-ink pt-2 mt-2">
+                        <span class="font-black uppercase text-ink">Total Amount:</span>
+                        <span id="total-price" class="font-black text-base text-ink">₹200.00</span>
                     </div>
                 </div>
-                <button type="submit" class="w-full btn-primary">Pay with PhonePe</button>
+                <div class="pt-3 border-t-2 border-ink flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('buy-credits-modal')" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-lock mr-1"></i> Pay with PhonePe
+                    </button>
+                </div>
             </form>
         `)}
     `;
@@ -108,29 +130,29 @@ async function loadKeys() {
 
 function renderKeysList() {
     if (state.keys.length === 0) {
-        return `<div class="col-span-full text-center py-10 card text-ink/50">No API keys created yet.</div>`;
+        return `<div class="col-span-full card-static text-center py-12 font-mono font-bold uppercase text-neutral-600">No API keys created yet.</div>`;
     }
 
     return state.keys.map(k => `
-        <div class="card border ${k.status === 'REVOKED' ? 'border-danger bg-danger/10 opacity-75' : 'border-ink'} overflow-hidden flex flex-col">
+        <div class="bg-white border-2 border-ink shadow-[4px_4px_0_0_#0b0b0b] overflow-hidden flex flex-col justify-between font-mono ${k.status === 'REVOKED' ? 'opacity-70 bg-neutral-100' : ''}">
             <div class="p-5 flex-1">
-                <div class="flex justify-between items-start mb-2">
-                    <h3 class="text-xl font-black uppercase font-mono mb-2 text-ink">${k.name}</h3>
-                    ${k.status === 'REVOKED' ? '<span class="px-2 py-1 bg-danger text-white border-2 border-ink text-xs font-bold">REVOKED</span>' : '<span class="px-2 py-1 bg-success text-ink border-2 border-ink text-xs font-bold">ACTIVE</span>'}
+                <div class="flex justify-between items-start mb-3 gap-2">
+                    <h3 class="text-base font-black uppercase tracking-tight text-ink">${k.name}</h3>
+                    ${k.status === 'REVOKED' ? '<span class="badge bg-danger text-white">REVOKED</span>' : '<span class="badge bg-success text-ink">ACTIVE</span>'}
                 </div>
-                <p class="text-xs text-ink/50 mb-4">Created: ${new Date(k.createdAt).toLocaleDateString()}</p>
+                <p class="text-[11px] text-neutral-600 mb-3 font-semibold">Created: ${new Date(k.createdAt).toLocaleDateString()}</p>
                 
-                <div class="mb-2">
-                    <span class="inline-block px-2 py-1 bg-canvas text-ink/70 text-xs font-mono border">TYPE: ${k.keyType || 'PUBLIC'}</span>
+                <div class="mb-3">
+                    <span class="badge bg-canvas text-neutral-800">TYPE: ${k.keyType || 'PUBLIC'}</span>
                 </div>
-                <div class="text-sm text-ink/70 mt-2">
-                    <span class="font-bold">Domains:</span> ${k.allowedDomains ? `<code class="bg-canvas px-1">${k.allowedDomains}</code>` : '<em>Any</em>'}
+                <div class="text-xs text-neutral-700 mt-2">
+                    <span class="font-bold uppercase">Domains:</span> ${k.allowedDomains ? `<code class="bg-canvas border border-ink/40 px-1 py-0.5 text-[11px]">${k.allowedDomains}</code>` : '<span class="italic font-bold">Any origin (*)</span>'}
                 </div>
             </div>
             ${k.status !== 'REVOKED' ? `
-            <div class="bg-canvas p-3 border-t">
-                <button onclick="window.revokeKey('${k.hash}')" class="w-full btn-danger">
-                    Delete Key
+            <div class="bg-canvas p-3 border-t-2 border-ink">
+                <button onclick="window.revokeKey('${k.hash}')" class="w-full btn-danger !text-xs !py-2">
+                    <i class="fas fa-trash mr-1"></i> Delete Key
                 </button>
             </div>
             ` : ''}
@@ -172,12 +194,10 @@ function setupListeners() {
             
             window.openModal('new-key-modal');
             
-            // Manually add the key to the state to avoid DynamoDB GSI eventual consistency delays
             if (res.data.key) {
                 state.keys.unshift(res.data.key);
                 document.getElementById('keys-list').innerHTML = renderKeysList();
             } else {
-                // Fallback
                 await loadKeys();
                 document.getElementById('keys-list').innerHTML = renderKeysList();
             }
@@ -202,7 +222,7 @@ function setupListeners() {
         const qty = parseInt(document.getElementById('credit-quantity').value);
         if (qty < 100) return alert('Minimum order quantity is 100');
 
-        const btn = e.target.querySelector('button');
+        const btn = e.target.querySelector('button[type="submit"]');
         btn.disabled = true;
         btn.innerText = 'Processing...';
 
@@ -250,12 +270,6 @@ window.copyNewKey = () => {
 window.openCreateKeyModal = () => {
     const form = document.getElementById('create-key-form');
     if (form) form.reset();
-    
-    const banner = document.getElementById('new-key-display');
-    if (banner) {
-        banner.classList.add('hidden');
-        document.getElementById('new-key-value').innerText = '';
-    }
     window.openModal('create-key-modal');
 };
 
@@ -269,3 +283,4 @@ window.revokeKey = async (hash) => {
         alert(res?.error || 'Failed to revoke key');
     }
 };
+

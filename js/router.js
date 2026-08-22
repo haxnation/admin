@@ -97,5 +97,12 @@ export function router() {
     }
 
     // 404 Fallback
-    document.getElementById('app').innerHTML = '404 Not Found';
-}
+    document.getElementById('app').innerHTML = `
+        <div class="card-static max-w-lg mx-auto text-center py-12 my-12 font-mono">
+            <div class="w-12 h-12 bg-danger text-white border-2 border-ink flex items-center justify-center font-black mx-auto mb-4 shadow-[2px_2px_0_0_#0b0b0b]">!</div>
+            <h2 class="text-2xl font-black uppercase text-ink mb-2">404 - Not Found</h2>
+            <p class="text-xs text-neutral-700 font-bold mb-6">The requested module or resource was not found on this system.</p>
+            <a href="#/dashboard" class="btn-primary">Return to Dashboard</a>
+        </div>
+    `;
+}
