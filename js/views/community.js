@@ -504,10 +504,10 @@ export async function renderCommunity(id) {
             `)}
 
             ${modalTemplate('community-settings-modal', 'Community Settings', `
-                <form onsubmit="handleSaveCommunitySettings(event, '${id}')" class="space-y-4 font-mono">
+                <form onsubmit="handleSaveCommunitySettings(event, '${escapeHtml(id)}')" class="space-y-4 font-mono">
                     <div>
                         <label class="label" for="cert-prefix">Custom Certificate URL Prefix</label>
-                        <input type="text" id="cert-prefix" name="customCertificateUrlPrefix" value="${community.settings?.customCertificateUrlPrefix || ''}" placeholder="e.g. https://my-domain.com/validate?id=" class="input">
+                        <input type="text" id="cert-prefix" name="customCertificateUrlPrefix" value="${escapeHtml(community.settings?.customCertificateUrlPrefix || '')}" placeholder="e.g. https://my-domain.com/validate?id=" class="input">
                         <p class="font-mono text-[11px] text-neutral-600 mt-1.5">Overrides the default verification link embedded on generated certificates for API-Only events.</p>
                     </div>
                     <div class="pt-4 border-t-2 border-ink flex justify-end gap-3">
@@ -608,8 +608,8 @@ window.verifyUser = async (cid) => {
             <div class="flex items-start gap-3 bg-white border-2 border-success p-2.5 mt-2 font-mono shadow-[2px_2px_0_0_#0b0b0b]">
                 <div class="text-success text-sm mt-0.5"><i class="fas fa-check-circle"></i></div>
                 <div>
-                    <div class="font-black text-ink text-xs uppercase">${res.data.name}</div>
-                    <div class="text-[11px] text-neutral-700">${res.data.email}</div>
+                    <div class="font-black text-ink text-xs uppercase">${escapeHtml(res.data.name)}</div>
+                    <div class="text-[11px] text-neutral-700">${escapeHtml(res.data.email)}</div>
                 </div>
             </div>`;
         addBtn.disabled = false;

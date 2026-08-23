@@ -93,7 +93,7 @@ function renderView(communityId, allTxns) {
                 <div>
                     <select id="txn-event" class="input bg-white !py-2 text-xs font-bold" aria-label="Filter by Event">
                         <option value="">All Events</option>
-                        ${eventNames.map(e => `<option value="${e}">${e}</option>`).join('')}
+                        ${eventNames.map(e => `<option value="${escapeHtml(e)}">${escapeHtml(e)}</option>`).join('')}
                     </select>
                 </div>
                 <!-- Date Range -->

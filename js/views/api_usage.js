@@ -87,7 +87,7 @@ function renderView(communityId, allLogs) {
                 <div>
                     <select id="usage-event" class="input bg-white !py-2 text-xs font-bold" aria-label="Filter by Event">
                         <option value="">All Events</option>
-                        ${eventIds.map(e => `<option value="${e}">${e}</option>`).join('')}
+                        ${eventIds.map(e => `<option value="${escapeHtml(e)}">${escapeHtml(e)}</option>`).join('')}
                     </select>
                 </div>
             </div>

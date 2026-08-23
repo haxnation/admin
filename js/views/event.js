@@ -142,7 +142,7 @@ export async function renderEvent(communityId, eventId) {
                             </div>
                             <div>
                                 <label class="label">Custom Certificate URL Prefix</label>
-                                <input type="text" name="customCertificateUrlPrefix" value="${certSettings.customCertificateUrlPrefix || ''}" placeholder="e.g. https://my-frontend.com/validate?id=" class="input !p-2 text-xs">
+                                <input type="text" name="customCertificateUrlPrefix" value="${escapeHtml(certSettings.customCertificateUrlPrefix || '')}" placeholder="e.g. https://my-frontend.com/validate?id=" class="input !p-2 text-xs">
                             </div>
                             <div class="pt-2 flex justify-end">
                                 <button type="submit" class="btn-secondary !text-xs !px-4 !py-2">
@@ -159,9 +159,9 @@ export async function renderEvent(communityId, eventId) {
                     <div>
                         <h2 class="text-lg font-black uppercase text-ink mb-4 border-b-2 border-ink pb-3">Event Stats</h2>
                         <div class="space-y-2 text-xs font-mono font-bold text-neutral-800">
-                            <p class="flex justify-between border-b border-ink/20 pb-1.5"><span class="text-neutral-600 uppercase">Date:</span> <span>${new Date(currentEvent.date).toLocaleString()}</span></p>
+                            <p class="flex justify-between border-b border-ink/20 pb-1.5"><span class="text-neutral-600 uppercase">Date:</span> <span>${escapeHtml(new Date(currentEvent.date).toLocaleString())}</span></p>
                             <p class="flex justify-between border-b border-ink/20 pb-1.5"><span class="text-neutral-600 uppercase">Approval Mode:</span> <span class="uppercase">${currentEvent.settings?.requiresApproval ? 'Required' : 'Auto-Approve'}</span></p>
-                            <p class="flex justify-between border-b border-ink/20 pb-1.5"><span class="text-neutral-600 uppercase">Location:</span> <span>${currentEvent.location || 'Online'}</span></p>
+                            <p class="flex justify-between border-b border-ink/20 pb-1.5"><span class="text-neutral-600 uppercase">Location:</span> <span>${escapeHtml(currentEvent.location || 'Online')}</span></p>
                         </div>
                     </div>
                     <div class="grid grid-cols-3 gap-2 pt-4 mt-4 border-t-2 border-ink text-center">
@@ -279,15 +279,15 @@ export async function renderEvent(communityId, eventId) {
         `;
 
         document.getElementById('modal-container').innerHTML += modalTemplate('edit-event', 'Edit Event Details', `
-            <form onsubmit="handleEditEvent(event, '${communityId}', '${eventId}')" class="space-y-4 font-mono">
+            <form onsubmit="handleEditEvent(event, '${escapeHtml(communityId)}', '${escapeHtml(eventId)}')" class="space-y-4 font-mono">
                 <div>
                     <label class="label" for="edit-ev-name">Event Name</label>
-                    <input type="text" id="edit-ev-name" name="name" value="${currentEvent.name || ''}" class="input" required>
+                    <input type="text" id="edit-ev-name" name="name" value="${escapeHtml(currentEvent.name || '')}" class="input" required>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="label" for="edit-ev-date">Date &amp; Time</label>
-                        <input type="datetime-local" id="edit-ev-date" name="date" value="${dateValue}" class="input !p-2" required>
+                        <input type="datetime-local" id="edit-ev-date" name="date" value="${escapeHtml(dateValue)}" class="input !p-2" required>
                     </div>
                     <div>
                         <label class="label" for="edit-ev-tz">Timezone</label>
@@ -300,7 +300,7 @@ export async function renderEvent(communityId, eventId) {
                 </div>
                 <div>
                     <label class="label" for="edit-ev-loc">Location</label>
-                    <input type="text" id="edit-ev-loc" name="location" value="${currentEvent.location || ''}" class="input">
+                    <input type="text" id="edit-ev-loc" name="location" value="${escapeHtml(currentEvent.location || '')}" class="input">
                 </div>
                 <div>
                     <label class="label" for="edit-ev-status">Event Status</label>
@@ -440,11 +440,11 @@ function renderCtfDashboard(ctf, isSuperAdmin, cid, eid) {
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="label">Start Time</label>
-                                <input type="datetime-local" name="startTime" value="${ctf.startTime || ''}" class="input !p-2 text-xs">
+                                <input type="datetime-local" name="startTime" value="${escapeHtml(ctf.startTime || '')}" class="input !p-2 text-xs">
                             </div>
                             <div>
                                 <label class="label">End Time</label>
-                                <input type="datetime-local" name="endTime" value="${ctf.endTime || ''}" class="input !p-2 text-xs">
+                                <input type="datetime-local" name="endTime" value="${escapeHtml(ctf.endTime || '')}" class="input !p-2 text-xs">
                             </div>
                         </div>
                         <div class="flex flex-wrap justify-between items-center border-t-2 border-ink pt-3 gap-2">
