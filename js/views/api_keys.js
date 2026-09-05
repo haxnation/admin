@@ -7,6 +7,35 @@ let state = {
 export async function renderApiKeys(communityId) {
     state.communityId = communityId;
     const app = document.getElementById('app');
+
+    // --- Payment verification after gateway redirect ---
+    // When gateway redirects back, the URL contains order_id & gateway params.
+    // We must call verify-payment to actually credit the community.
+    const rawQuery = window.location.search ? window.location.search.slice(1) : (window.location.hash.includes('?') ? window.location.hash.split('?')[1] : '');
+    const urlParams = new URLSearchParams(rawQuery);
+    const orderIdParam = urlParams.get('order_id');
+    if (orderIdParam) {
+        app.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-20 gap-4 font-mono">
+                <div class="w-10 h-10 bg-ink border-4 border-cyan shadow-[4px_4px_0_0_#5ce1e6] animate-[spin_1s_steps(4)_infinite]"></div>
+                <p class="text-xs uppercase font-bold text-ink tracking-widest animate-pulse">[ VERIFYING PAYMENT... ]</p>
+            </div>`;
+        try {
+            const verifyRes = await api(`/community/${state.communityId}/apikeys/verify-payment`, 'POST', { orderId: orderIdParam });
+            if (verifyRes?.data) {
+                alert('✅ Payment verified! Credits have been added to your account.');
+            } else {
+                alert('⚠️ Payment verification failed: ' + (verifyRes?.error || 'Unknown error. Please contact support if you were charged.'));
+            }
+        } catch (e) {
+            alert('⚠️ Could not verify payment. Please contact support if you were charged.');
+        }
+        // Clean up URL params so refresh doesn't re-verify
+        const cleanUrl = window.location.pathname + window.location.hash.split('?')[0];
+        window.history.replaceState({}, '', cleanUrl);
+    }
+    // --- End payment verification ---
+
     app.innerHTML = `
         <div class="flex flex-col items-center justify-center py-20 gap-4 font-mono">
             <div class="w-10 h-10 bg-ink border-4 border-cyan shadow-[4px_4px_0_0_#5ce1e6] animate-[spin_1s_steps(4)_infinite]"></div>
@@ -114,10 +143,29 @@ export async function renderApiKeys(communityId) {
                         <span id="total-price" class="font-black text-base text-ink">₹200.00</span>
                     </div>
                 </div>
+                <div>
+                    <label class="label">Payment Gateway</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-3 border-2 border-ink bg-white p-2.5 shadow-[2px_2px_0_0_#0b0b0b] cursor-pointer hover:bg-neutral-50 transition-colors">
+                            <input type="radio" name="credit-gateway" value="PHONEPE" checked class="w-4 h-4 text-cyan focus:ring-cyan border-ink">
+                            <div class="flex-1">
+                                <span class="font-mono font-bold uppercase text-xs block">PhonePe</span>
+                                <span class="text-[10px] text-neutral-500">UPI, Cards, NetBanking</span>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 border-2 border-ink bg-white p-2.5 shadow-[2px_2px_0_0_#0b0b0b] cursor-pointer hover:bg-neutral-50 transition-colors">
+                            <input type="radio" name="credit-gateway" value="CASHFREE" class="w-4 h-4 text-cyan focus:ring-cyan border-ink">
+                            <div class="flex-1">
+                                <span class="font-mono font-bold uppercase text-xs block">Cashfree</span>
+                                <span class="text-[10px] text-neutral-500">Cards, UPI, NetBanking</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
                 <div class="pt-3 border-t-2 border-ink flex justify-end gap-3">
                     <button type="button" onclick="closeModal('buy-credits-modal')" class="btn-secondary">Cancel</button>
                     <button type="submit" class="btn-primary">
-                        <i class="fas fa-lock mr-1"></i> Pay with PhonePe
+                        <i class="fas fa-lock mr-1"></i> Proceed to Pay
                     </button>
                 </div>
             </form>
@@ -226,18 +274,64 @@ function setupListeners() {
         const qty = parseInt(document.getElementById('credit-quantity').value);
         if (qty < 100) return alert('Minimum order quantity is 100');
 
+        const selectedGateway = e.target.querySelector('input[name="credit-gateway"]:checked')?.value || 'PHONEPE';
         const btn = e.target.querySelector('button[type="submit"]');
+        const restoreBtn = () => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-lock mr-1"></i> Proceed to Pay';
+        };
         btn.disabled = true;
         btn.innerText = 'Processing...';
 
-        const res = await api(`/community/${state.communityId}/apikeys/buy-credits`, 'POST', { quantity: qty, gateway: 'PHONEPE' });
-        if (res?.data?.redirect_url) {
-            window.location.href = res.data.redirect_url;
-        } else {
+        const res = await api(`/community/${state.communityId}/apikeys/buy-credits`, 'POST', { quantity: qty, gateway: selectedGateway });
+        if (!res?.data) {
             alert(res?.error || 'Failed to initiate payment');
-            btn.disabled = false;
-            btn.innerText = 'Pay with PhonePe';
+            restoreBtn();
+            return;
         }
+
+        // PhonePe (and Cashfree fallback) complete via hosted redirect URL.
+        if (selectedGateway !== 'CASHFREE' || !res.data.payment_session_id) {
+            if (!res.data.redirect_url) {
+                alert('Failed to initiate payment: no checkout URL returned');
+                restoreBtn();
+                return;
+            }
+            window.location.href = res.data.redirect_url;
+            return;
+        }
+
+        // Cashfree completes in-page via the Cashfree JS SDK using the
+        // payment session (same flow as events/js/certificate.js), then the
+        // order is verified server-side to credit the community.
+        try {
+            if (typeof Cashfree === 'undefined') {
+                throw new Error('Cashfree SDK failed to load. Please check your connection and retry.');
+            }
+            btn.innerText = 'Waiting for payment...';
+            const cashfree = Cashfree({
+                mode: window.CASHFREE_MODE || 'sandbox'
+            });
+            const result = await cashfree.checkout({
+                paymentSessionId: res.data.payment_session_id,
+                redirectTarget: '_modal'
+            });
+            if (result?.error) {
+                throw new Error(result.error.message || 'Payment was cancelled or failed');
+            }
+            btn.innerText = 'Verifying...';
+            const verifyRes = await api(`/community/${state.communityId}/apikeys/verify-payment`, 'POST', { orderId: res.data.order_id });
+            if (verifyRes?.data) {
+                window.closeModal('buy-credits-modal');
+                alert('✅ Payment verified! Credits have been added to your account.');
+            } else {
+                alert('⚠️ Payment verification failed: ' + (verifyRes?.error || 'Unknown error. Please contact support if you were charged.'));
+            }
+        } catch (err) {
+            console.error('Cashfree checkout failed', err);
+            alert('⚠️ ' + (err?.message || 'Payment failed. Please try again.'));
+        }
+        restoreBtn();
     });
 }
 

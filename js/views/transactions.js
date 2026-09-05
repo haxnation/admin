@@ -131,6 +131,9 @@ function renderView(communityId, allTxns) {
                                 Type
                             </th>
                             <th class="px-4 py-3.5 font-bold">
+                                Gateway
+                            </th>
+                            <th class="px-4 py-3.5 font-bold">
                                 Order ID
                             </th>
                             <th class="px-4 py-3.5 font-bold cursor-pointer hover:bg-neutral-800 transition text-right" data-sort="amount">
@@ -170,7 +173,7 @@ function renderView(communityId, allTxns) {
             if (dateFrom && t.timestamp < dateFrom) return false;
             if (dateTo   && t.timestamp.slice(0,10) > dateTo) return false;
             if (search) {
-                const haystack = [t.userName, t.userId, t.eventName, t.SK, t.orderId]
+                const haystack = [t.userName, t.userId, t.eventName, t.SK, t.orderId, t.gateway]
                     .join(' ').toLowerCase();
                 if (!haystack.includes(search)) return false;
             }
@@ -214,9 +217,18 @@ function renderView(communityId, allTxns) {
                 TICKET_PAYMENT:      `<span class="bg-cyan text-ink border border-ink px-2 py-0.5 text-[10px] font-black uppercase shadow-[1px_1px_0_0_#0b0b0b]">🎟 Ticket</span>`,
             }[t.type] || `<span class="bg-canvas text-neutral-700 border border-ink/40 px-2 py-0.5 text-[10px] font-mono">${t.type || '—'}</span>`;
 
+            const gatewayBadge = {
+                PHONEPE:  `<span class="bg-purple-100 text-purple-900 border border-purple-400 px-2 py-0.5 text-[10px] font-bold uppercase shadow-[1px_1px_0_0_#0b0b0b]">PhonePe</span>`,
+                CASHFREE: `<span class="bg-sky-100 text-sky-900 border border-sky-400 px-2 py-0.5 text-[10px] font-bold uppercase shadow-[1px_1px_0_0_#0b0b0b]">Cashfree</span>`,
+            }[t.gateway] || `<span class="text-neutral-500 font-mono text-[10px]">${t.gateway || '—'}</span>`;
+
+            const verifyBtn = t.status === 'PENDING' && orderId !== '—'
+                ? `<button class="btn-verify ml-1.5 text-[9px] font-bold uppercase bg-ink text-cyan px-1.5 py-0.5 border border-ink shadow-[1px_1px_0_0_#0b0b0b] hover:bg-cyan hover:text-ink transition-colors cursor-pointer" data-order-id="${escapeHtml(orderId)}" title="Verify status with payment service">⚡ Verify</button>`
+                : '';
+
             const statusBadge = {
                 COMPLETED:    `<span class="badge bg-success text-ink">COMPLETED</span>`,
-                PENDING:      `<span class="badge bg-warning text-ink">PENDING</span>`,
+                PENDING:      `<span class="badge bg-warning text-ink">PENDING</span>${verifyBtn}`,
                 FAILED:       `<span class="badge bg-danger text-white">FAILED</span>`,
                 USER_DROPPED: `<span class="badge bg-canvas text-neutral-700">DROPPED</span>`,
             }[t.status] || `<span class="badge bg-canvas text-neutral-700">${t.status || '?'}</span>`;
@@ -232,13 +244,48 @@ function renderView(communityId, allTxns) {
                     </td>
                     <td class="px-4 py-3 text-neutral-800 font-bold max-w-[160px] truncate" title="${escapeHtml(t.eventName || '')}">${escapeHtml(t.eventName || '—')}</td>
                     <td class="px-4 py-3">${typeBadge}</td>
+                    <td class="px-4 py-3">${gatewayBadge}</td>
                     <td class="px-4 py-3">
                         <span class="font-mono text-[11px] text-neutral-600 font-bold select-all" title="${escapeHtml(orderId)}">${escapeHtml(shortOrderId)}</span>
                     </td>
                     <td class="px-4 py-3 text-right ${amountClass}">₹${parseFloat(t.amount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
-                    <td class="px-4 py-3 text-center">${statusBadge}</td>
+                    <td class="px-4 py-3 text-center whitespace-nowrap">${statusBadge}</td>
                 </tr>`;
         }).join('');
+
+        // Attach verify button handlers
+        tbody.querySelectorAll('.btn-verify').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const oId = btn.dataset.orderId;
+                if (!oId) return;
+                btn.disabled = true;
+                btn.textContent = '...';
+                try {
+                    const verifyRes = await api(`/community/${communityId}/transactions/${encodeURIComponent(oId)}/verify`);
+                    if (verifyRes && verifyRes.success && verifyRes.data) {
+                        const verifiedStatus = verifyRes.data.status;
+                        if (verifiedStatus === 'SUCCEEDED') {
+                            const targetTxn = allTxns.find(x => ((x.SK || '').replace('TXN#', '') === oId || x.orderId === oId));
+                            if (targetTxn) targetTxn.status = 'COMPLETED';
+                            renderView(communityId, allTxns);
+                        } else {
+                            alert(`Status: ${verifiedStatus}`);
+                            btn.disabled = false;
+                            btn.textContent = '⚡ Verify';
+                        }
+                    } else {
+                        alert(verifyRes?.error || 'Verification request failed');
+                        btn.disabled = false;
+                        btn.textContent = '⚡ Verify';
+                    }
+                } catch (err) {
+                    alert('Error contacting verification service');
+                    btn.disabled = false;
+                    btn.textContent = '⚡ Verify';
+                }
+            });
+        });
     }
 
     // --- Sort on column header click ---
