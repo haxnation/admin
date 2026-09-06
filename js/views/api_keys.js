@@ -145,21 +145,8 @@ export async function renderApiKeys(communityId) {
                 </div>
                 <div>
                     <label class="label">Payment Gateway</label>
-                    <div class="space-y-2">
-                        <label class="flex items-center gap-3 border-2 border-ink bg-white p-2.5 shadow-[2px_2px_0_0_#0b0b0b] cursor-pointer hover:bg-neutral-50 transition-colors">
-                            <input type="radio" name="credit-gateway" value="PHONEPE" checked class="w-4 h-4 text-cyan focus:ring-cyan border-ink">
-                            <div class="flex-1">
-                                <span class="font-mono font-bold uppercase text-xs block">PhonePe</span>
-                                <span class="text-[10px] text-neutral-500">UPI, Cards, NetBanking</span>
-                            </div>
-                        </label>
-                        <label class="flex items-center gap-3 border-2 border-ink bg-white p-2.5 shadow-[2px_2px_0_0_#0b0b0b] cursor-pointer hover:bg-neutral-50 transition-colors">
-                            <input type="radio" name="credit-gateway" value="CASHFREE" class="w-4 h-4 text-cyan focus:ring-cyan border-ink">
-                            <div class="flex-1">
-                                <span class="font-mono font-bold uppercase text-xs block">Cashfree</span>
-                                <span class="text-[10px] text-neutral-500">Cards, UPI, NetBanking</span>
-                            </div>
-                        </label>
+                    <div class="space-y-2" id="credit-gateways">
+                        <p class="text-[11px] text-neutral-600 font-bold animate-pulse">[ LOADING GATEWAYS... ]</p>
                     </div>
                 </div>
                 <div class="pt-3 border-t-2 border-ink flex justify-end gap-3">
@@ -178,6 +165,33 @@ export async function renderApiKeys(communityId) {
 async function loadKeys() {
     const res = await api(`/community/${state.communityId}/apikeys`);
     state.keys = res?.data || [];
+}
+
+async function loadGateways() {
+    const container = document.getElementById('credit-gateways');
+    // Fail-open: show both options if backend is unreachable (same as backend default).
+    let gateways = { cashfree: true, phonepe: true };
+    try {
+        const res = await api(`/community/${state.communityId}/apikeys/gateways`);
+        if (res?.data?.gateways) gateways = { ...gateways, ...res.data.gateways };
+    } catch (e) {
+        console.error('Failed to fetch gateways, defaulting to all enabled', e);
+    }
+    const options = [];
+    if (gateways.phonepe) options.push({ value: 'PHONEPE', label: 'PhonePe', desc: 'UPI, Cards, NetBanking' });
+    if (gateways.cashfree) options.push({ value: 'CASHFREE', label: 'Cashfree', desc: 'Cards, UPI, NetBanking' });
+    if (options.length === 0) {
+        container.innerHTML = `<p class="text-[11px] text-danger font-bold">No payment gateways are currently enabled. Please contact support.</p>`;
+        return;
+    }
+    container.innerHTML = options.map((o, i) => `
+        <label class="flex items-center gap-3 border-2 border-ink bg-white p-2.5 shadow-[2px_2px_0_0_#0b0b0b] cursor-pointer hover:bg-neutral-50 transition-colors">
+            <input type="radio" name="credit-gateway" value="${o.value}" ${i === 0 ? 'checked' : ''} class="w-4 h-4 text-cyan focus:ring-cyan border-ink">
+            <div class="flex-1">
+                <span class="font-mono font-bold uppercase text-xs block">${o.label}</span>
+                <span class="text-[10px] text-neutral-500">${o.desc}</span>
+            </div>
+        </label>`).join('');
 }
 
 function renderKeysList() {
@@ -274,7 +288,8 @@ function setupListeners() {
         const qty = parseInt(document.getElementById('credit-quantity').value);
         if (qty < 100) return alert('Minimum order quantity is 100');
 
-        const selectedGateway = e.target.querySelector('input[name="credit-gateway"]:checked')?.value || 'PHONEPE';
+        const selectedGateway = e.target.querySelector('input[name="credit-gateway"]:checked')?.value;
+        if (!selectedGateway) return alert('No payment gateway available. Please try again later.');
         const btn = e.target.querySelector('button[type="submit"]');
         const restoreBtn = () => {
             btn.disabled = false;
@@ -335,10 +350,11 @@ function setupListeners() {
     });
 }
 
-window.openBuyCredits = () => {
+window.openBuyCredits = async () => {
     document.getElementById('credit-quantity').value = 100;
     document.getElementById('credit-quantity').dispatchEvent(new Event('input'));
     window.openModal('buy-credits-modal');
+    await loadGateways();
 };
 
 window.toggleKeyVisibility = () => {
