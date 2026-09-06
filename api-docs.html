@@ -304,9 +304,10 @@
                                         <td class="p-2"><span class="badge bg-danger text-white !text-[9px]">POST</span></td>
                                         <td class="p-2 font-mono">/events/api/events/{id}/certificate/download</td>
                                         <td class="p-2 whitespace-nowrap">
-                                            <span class="badge bg-warning text-ink font-bold !text-[9px]"><i class="fas fa-lock text-[8px] mr-1"></i>PRIVATE ONLY</span>
+                                            <span class="badge bg-canvas text-ink !text-[9px]">PUBLIC</span>
+                                            <span class="badge bg-warning text-ink !text-[9px]">PRIVATE</span>
                                         </td>
-                                        <td class="p-2 text-danger font-sans font-bold">Backend server only (1 credit/cert, idempotent)</td>
+                                        <td class="p-2 text-neutral-700 font-sans font-bold">Same route for site + third parties (1 credit/cert, idempotent)</td>
                                     </tr>
                                     <tr class="bg-amber-50/60">
                                         <td class="p-2 font-bold font-sans text-ink">B2B Template Cert</td>
@@ -662,7 +663,7 @@ async function issueCertificate(eventId, email, name) {
             <!-- Event Certificate Download with Credits -->
             <section id="event-download-with-credits">
                 <h2 class="text-2xl font-black mb-4 uppercase border-b-2 border-ink pb-2 text-ink">Event Certificate Download (Pay with Credits)</h2>
-                <p class="mb-4 text-xs text-neutral-800 leading-relaxed font-sans font-medium">Settles a paid event certificate with 1 community credit instead of a fiat payment order, on the existing download endpoint — no new path. Requires a PRIVATE key of the event's community (approved for B2B). Already-issued certificates return the existing certificate without charging.</p>
+                <p class="mb-4 text-xs text-neutral-800 leading-relaxed font-sans font-medium">Settles a paid event certificate with 1 community credit instead of a fiat payment order, on the existing download endpoint — no new path, same enforcement for the main site and third parties. Prerequisites: the event opts in via <code class="bg-canvas border px-1 font-mono font-bold">certificateSettings.allowCredits=true</code>, the community account holds credits, and the caller's API key belongs to the event's community. Already-issued certificates return the existing certificate without charging.</p>
 
                 <div class="card-static space-y-4">
                     <div class="flex flex-wrap items-center justify-between gap-3 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
@@ -671,8 +672,17 @@ async function issueCertificate(eventId, email, name) {
                             <span class="font-bold text-xs text-ink break-all">https://api.haxnation.org/events/api/events/{id}/certificate/download</span>
                         </div>
                         <div class="flex items-center gap-1.5">
-                            <span class="badge bg-warning text-ink font-bold" title="Private API Key Required"><i class="fas fa-lock text-[10px] mr-1"></i> PRIVATE KEY ONLY</span>
+                            <span class="badge bg-canvas text-ink" title="Works with Public API Keys"><i class="fas fa-globe text-[10px] mr-1"></i> PUBLIC</span>
+                            <span class="badge bg-warning text-ink" title="Works with Private API Keys"><i class="fas fa-key text-[10px] mr-1"></i> PRIVATE</span>
                         </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 p-2 bg-neutral-50 border border-ink text-xs font-mono">
+                        <span class="font-bold uppercase text-neutral-700">Supported Keys:</span>
+                        <span class="badge bg-canvas text-ink">PUBLIC</span>
+                        <span class="text-neutral-500 font-sans">or</span>
+                        <span class="badge bg-warning text-ink">PRIVATE</span>
+                        <span class="text-[11px] text-neutral-600 font-sans ml-1">(main site uses its own PUBLIC key; key must belong to the event's community)</span>
                     </div>
 
                     <h3 class="font-black text-xs uppercase text-ink">Request Body</h3>
@@ -685,7 +695,7 @@ async function issueCertificate(eventId, email, name) {
                     <h3 class="font-black text-xs uppercase text-ink">Example cURL</h3>
                     <div class="brutal-code">curl -X POST "https://api.haxnation.org/events/api/events/evt_abc123/certificate/download" \
   -H "Content-Type: application/json" \
-  -H "X-API-KEY: HAX_your_private_key_here" \
+  -H "X-API-KEY: HAX_site_public_key" \
   -H "Idempotency-Key: evt-livedemo-u_123-01" \
   -H "x-amz-content-sha256: &lt;SHA256_HEX_HASH&gt;" \
   -d '{"payWithCredits": true}'</div>
