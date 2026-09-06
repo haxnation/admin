@@ -200,7 +200,7 @@
                         </div>
                         <div class="bg-canvas border-2 border-ink p-3">
                             <span class="badge bg-warning text-ink mb-1">B2B Certificate Prefix</span>
-                            <p class="font-bold text-ink mt-1">/admin/api/v1</p>
+                            <p class="font-bold text-ink mt-1">/events/api/v1</p>
                             <p class="text-[11px] text-neutral-600 font-sans mt-0.5">Headless custom template rendering with credit deduction.</p>
                         </div>
                     </div>
@@ -312,7 +312,7 @@
                                     <tr class="bg-amber-50/60">
                                         <td class="p-2 font-bold font-sans text-ink">B2B Template Cert</td>
                                         <td class="p-2"><span class="badge bg-danger text-white !text-[9px]">POST</span></td>
-                                        <td class="p-2 font-mono">/admin/api/v1/certificates/generate</td>
+                                        <td class="p-2 font-mono">/events/api/v1/certificates/generate</td>
                                         <td class="p-2 whitespace-nowrap">
                                             <span class="badge bg-warning text-ink font-bold !text-[9px]"><i class="fas fa-lock text-[8px] mr-1"></i>PRIVATE ONLY</span>
                                         </td>
@@ -615,7 +615,7 @@ async function issueCertificate(eventId, email, name) {
                     <div class="flex flex-wrap items-center justify-between gap-3 bg-canvas p-3 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">
                         <div class="flex items-center gap-3">
                             <span class="badge bg-danger text-white">POST</span>
-                            <span class="font-bold text-xs text-ink break-all">https://api.haxnation.org/admin/api/v1/certificates/generate</span>
+                            <span class="font-bold text-xs text-ink break-all">https://api.haxnation.org/events/api/v1/certificates/generate</span>
                         </div>
                         <div class="flex items-center gap-1.5">
                             <span class="badge bg-warning text-ink font-bold" title="Private API Key Required"><i class="fas fa-lock text-[10px] mr-1"></i> PRIVATE KEY ONLY</span>
@@ -640,11 +640,12 @@ async function issueCertificate(eventId, email, name) {
 }</div>
 
                     <h3 class="font-black text-xs uppercase text-ink">Example cURL</h3>
-                    <div class="brutal-code">curl -X POST "https://api.haxnation.org/admin/api/v1/certificates/generate" \
+                    <div class="brutal-code">curl -X POST "https://api.haxnation.org/events/api/v1/certificates/generate" \
   -H "Content-Type: application/json" \
   -H "X-API-KEY: HAX_your_private_key_here" \
   -H "x-amz-content-sha256: &lt;SHA256_HEX_HASH&gt;" \
   -d '{"data": {"name": "Jane Doe", "course": "Threat Intelligence"}}'</div>
+                    <p class="text-xs text-neutral-700 font-sans">Deduction is idempotent: send <code class="bg-canvas border px-1 font-mono font-bold">Idempotency-Key</code> (or <code class="bg-canvas border px-1 font-mono font-bold">idempotencyKey</code> in the body) to make retries safe — replays never deduct twice. Without one, identical payloads from the same key collapse into a single deduction.</p>
 
                     <h3 class="font-black text-xs uppercase text-ink">Response (200 OK)</h3>
                     <div class="brutal-code">{
