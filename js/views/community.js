@@ -1,5 +1,6 @@
 import { api, modalTemplate, escapeHtml } from '../utils.js';
 import { currentUser } from '../auth.js';
+import { buyCreditsModalTemplate, openBuyCredits, initBuyCredits } from '../buy_credits.js';
 
 function renderCommunityFeaturePills(features) {
     if (!features) return '<span class="bg-canvas text-neutral-600 border-2 border-ink text-xs px-2.5 py-1 font-mono font-bold tracking-wider uppercase shadow-[2px_2px_0_0_#0b0b0b]">STANDARD</span>';
@@ -235,6 +236,9 @@ export async function renderCommunity(id) {
                         </div>
                         <div class="border-t-2 border-ink p-4 flex flex-col sm:flex-row gap-3">
                             ${canManageTemplates ? `
+                            <button onclick="window.bcBuy('${id}')" class="btn-primary !bg-warning hover:!bg-yellow-400 text-ink flex-1">
+                                <i class="fas fa-coins mr-1"></i> Buy Credits
+                            </button>
                             <button onclick="openApiIntegrations('${id}')" class="btn-secondary flex-1">
                                 <i class="fas fa-code"></i> Manage API Integrations
                             </button>
@@ -354,6 +358,9 @@ export async function renderCommunity(id) {
                                 <span class="font-black text-lg text-ink"><i class="fas fa-coins text-yellow-500 mr-1.5"></i>${community.credits || 0}</span>
                                 <a href="#/community/${id}/api-keys" class="btn-secondary !text-[10px] !px-2.5 !py-1">Manage Keys</a>
                             </div>
+                            <button onclick="window.bcBuy('${id}')" class="btn-primary !bg-warning hover:!bg-yellow-400 text-ink w-full mt-2 !text-xs">
+                                <i class="fas fa-coins mr-1"></i> Buy Credits
+                            </button>
                         </div>
                         ` : ''}
                     </div>
@@ -579,7 +586,13 @@ export async function renderCommunity(id) {
                     </div>
                 </form>
             `)}
+
+            ${hasApiAccess && canManageTemplates ? buyCreditsModalTemplate() : ''}
         `;
+
+        if (hasApiAccess && canManageTemplates) {
+            initBuyCredits(id, () => renderCommunity(id));
+        }
 
     } catch(e) {
         console.error(e);
@@ -705,6 +718,8 @@ window.handleRemoveRole = async (cid, uid) => {
 window.openApiIntegrations = (cid) => {
     window.location.hash = `/community/${cid}/api-keys`;
 };
+
+window.bcBuy = (cid) => openBuyCredits(cid, () => renderCommunity(cid));
 
 window.applyForB2B = async (cid) => {
     if(!confirm('Are you sure you want to apply for B2B API Access?')) return;

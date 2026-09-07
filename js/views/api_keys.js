@@ -1,4 +1,5 @@
 import { api, modalTemplate, escapeHtml } from '../utils.js';
+import { buyCreditsModalTemplate, initBuyCredits, openBuyCredits, verifyPaymentWithRetry } from '../buy_credits.js';
 
 let state = {
     keys: []
@@ -18,21 +19,26 @@ export async function renderApiKeys(communityId) {
         app.innerHTML = `
             <div class="flex flex-col items-center justify-center py-20 gap-4 font-mono">
                 <div class="w-10 h-10 bg-ink border-4 border-cyan shadow-[4px_4px_0_0_#5ce1e6] animate-[spin_1s_steps(4)_infinite]"></div>
-                <p class="text-xs uppercase font-bold text-ink tracking-widest animate-pulse">[ VERIFYING PAYMENT... ]</p>
+                <p class="text-xs uppercase font-bold text-ink tracking-widest animate-pulse" id="verify-status">[ VERIFYING PAYMENT... ]</p>
+                <p class="text-[11px] text-neutral-600 font-bold">Order: ${escapeHtml(orderIdParam)}</p>
             </div>`;
-        try {
-            const verifyRes = await api(`/community/${state.communityId}/apikeys/verify-payment`, 'POST', { orderId: orderIdParam });
-            if (verifyRes?.data) {
-                alert('✅ Payment verified! Credits have been added to your account.');
-            } else {
-                alert('⚠️ Payment verification failed: ' + (verifyRes?.error || 'Unknown error. Please contact support if you were charged.'));
-            }
-        } catch (e) {
-            alert('⚠️ Could not verify payment. Please contact support if you were charged.');
+        const setVerifyText = (t) => {
+            const el = document.getElementById('verify-status');
+            if (el) el.textContent = t;
+        };
+        const out = await verifyPaymentWithRetry(state.communityId, orderIdParam, (a, n) =>
+            setVerifyText(`[ VERIFYING PAYMENT... ${a}/${n} ]`));
+        if (out.ok) {
+            alert('✅ Payment verified! Credits have been added to your account.');
+            const cleanUrl = window.location.pathname + window.location.hash.split('?')[0];
+            window.history.replaceState({}, '', cleanUrl);
+        } else if (out.retryable) {
+            alert('⏳ ' + out.error + '. Your payment may still be settling — stay on this page or retry verification from Transactions with this order ID.');
+        } else {
+            alert('⚠️ Payment verification failed: ' + out.error);
+            const cleanUrl = window.location.pathname + window.location.hash.split('?')[0];
+            window.history.replaceState({}, '', cleanUrl);
         }
-        // Clean up URL params so refresh doesn't re-verify
-        const cleanUrl = window.location.pathname + window.location.hash.split('?')[0];
-        window.history.replaceState({}, '', cleanUrl);
     }
     // --- End payment verification ---
 
@@ -125,38 +131,7 @@ export async function renderApiKeys(communityId) {
             </div>
         `)}
 
-        ${modalTemplate('buy-credits-modal', 'Buy Certificate Credits', `
-            <form id="buy-credits-form" class="space-y-4 font-mono text-xs">
-                <div>
-                    <label class="label" for="credit-quantity">Number of Certificates</label>
-                    <input type="number" id="credit-quantity" min="100" value="100" class="input" required>
-                    <p class="text-[11px] text-neutral-600 mt-1 font-bold">Minimum order batch: 100 certificates</p>
-                </div>
-                <p class="text-[11px] text-neutral-600 font-bold">Policy: Certificates generated with credits are valid and stored for 2 years from date of issue.</p>
-                <div class="bg-canvas border-2 border-ink p-4 shadow-[2px_2px_0_0_#0b0b0b]">
-                    <div class="flex justify-between mb-2">
-                        <span class="text-xs text-neutral-700 font-bold uppercase">Rate per cert:</span>
-                        <span id="price-per-cert" class="font-black text-ink">₹2.00</span>
-                    </div>
-                    <div class="flex justify-between border-t-2 border-ink pt-2 mt-2">
-                        <span class="font-black uppercase text-ink">Total Amount:</span>
-                        <span id="total-price" class="font-black text-base text-ink">₹200.00</span>
-                    </div>
-                </div>
-                <div>
-                    <label class="label">Payment Gateway</label>
-                    <div class="space-y-2" id="credit-gateways">
-                        <p class="text-[11px] text-neutral-600 font-bold animate-pulse">[ LOADING GATEWAYS... ]</p>
-                    </div>
-                </div>
-                <div class="pt-3 border-t-2 border-ink flex justify-end gap-3">
-                    <button type="button" onclick="closeModal('buy-credits-modal')" class="btn-secondary">Cancel</button>
-                    <button type="submit" class="btn-primary">
-                        <i class="fas fa-lock mr-1"></i> Proceed to Pay
-                    </button>
-                </div>
-            </form>
-        `)}
+        ${buyCreditsModalTemplate()}
     `;
 
     setupListeners();
@@ -165,33 +140,6 @@ export async function renderApiKeys(communityId) {
 async function loadKeys() {
     const res = await api(`/community/${state.communityId}/apikeys`);
     state.keys = res?.data || [];
-}
-
-async function loadGateways() {
-    const container = document.getElementById('credit-gateways');
-    // Fail-open: show both options if backend is unreachable (same as backend default).
-    let gateways = { cashfree: true, phonepe: true };
-    try {
-        const res = await api(`/community/${state.communityId}/apikeys/gateways`);
-        if (res?.data?.gateways) gateways = { ...gateways, ...res.data.gateways };
-    } catch (e) {
-        console.error('Failed to fetch gateways, defaulting to all enabled', e);
-    }
-    const options = [];
-    if (gateways.phonepe) options.push({ value: 'PHONEPE', label: 'PhonePe', desc: 'UPI, Cards, NetBanking' });
-    if (gateways.cashfree) options.push({ value: 'CASHFREE', label: 'Cashfree', desc: 'Cards, UPI, NetBanking' });
-    if (options.length === 0) {
-        container.innerHTML = `<p class="text-[11px] text-danger font-bold">No payment gateways are currently enabled. Please contact support.</p>`;
-        return;
-    }
-    container.innerHTML = options.map((o, i) => `
-        <label class="flex items-center gap-3 border-2 border-ink bg-white p-2.5 shadow-[2px_2px_0_0_#0b0b0b] cursor-pointer hover:bg-neutral-50 transition-colors">
-            <input type="radio" name="credit-gateway" value="${o.value}" ${i === 0 ? 'checked' : ''} class="w-4 h-4 text-cyan focus:ring-cyan border-ink">
-            <div class="flex-1">
-                <span class="font-mono font-bold uppercase text-xs block">${o.label}</span>
-                <span class="text-[10px] text-neutral-500">${o.desc}</span>
-            </div>
-        </label>`).join('');
 }
 
 function renderKeysList() {
@@ -272,89 +220,15 @@ function setupListeners() {
         }
     });
 
-    const qtyInput = document.getElementById('credit-quantity');
-    qtyInput.addEventListener('input', () => {
-        const qty = parseInt(qtyInput.value) || 0;
-        let price = 2.0;
-        if (qty >= 10000) price = 1.5;
-        else if (qty >= 1000) price = 1.75;
-        
-        document.getElementById('price-per-cert').innerText = '₹' + price.toFixed(2);
-        document.getElementById('total-price').innerText = '₹' + (qty * price).toFixed(2);
-    });
-
-    document.getElementById('buy-credits-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const qty = parseInt(document.getElementById('credit-quantity').value);
-        if (qty < 100) return alert('Minimum order quantity is 100');
-
-        const selectedGateway = e.target.querySelector('input[name="credit-gateway"]:checked')?.value;
-        if (!selectedGateway) return alert('No payment gateway available. Please try again later.');
-        const btn = e.target.querySelector('button[type="submit"]');
-        const restoreBtn = () => {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-lock mr-1"></i> Proceed to Pay';
-        };
-        btn.disabled = true;
-        btn.innerText = 'Processing...';
-
-        const res = await api(`/community/${state.communityId}/apikeys/buy-credits`, 'POST', { quantity: qty, gateway: selectedGateway });
-        if (!res?.data) {
-            alert(res?.error || 'Failed to initiate payment');
-            restoreBtn();
-            return;
-        }
-
-        // PhonePe (and Cashfree fallback) complete via hosted redirect URL.
-        if (selectedGateway !== 'CASHFREE' || !res.data.payment_session_id) {
-            if (!res.data.redirect_url) {
-                alert('Failed to initiate payment: no checkout URL returned');
-                restoreBtn();
-                return;
-            }
-            window.location.href = res.data.redirect_url;
-            return;
-        }
-
-        // Cashfree completes in-page via the Cashfree JS SDK using the
-        // payment session (same flow as events/js/certificate.js), then the
-        // order is verified server-side to credit the community.
-        try {
-            if (typeof Cashfree === 'undefined') {
-                throw new Error('Cashfree SDK failed to load. Please check your connection and retry.');
-            }
-            btn.innerText = 'Waiting for payment...';
-            const cashfree = Cashfree({
-                mode: window.CASHFREE_MODE || 'sandbox'
-            });
-            const result = await cashfree.checkout({
-                paymentSessionId: res.data.payment_session_id,
-                redirectTarget: '_modal'
-            });
-            if (result?.error) {
-                throw new Error(result.error.message || 'Payment was cancelled or failed');
-            }
-            btn.innerText = 'Verifying...';
-            const verifyRes = await api(`/community/${state.communityId}/apikeys/verify-payment`, 'POST', { orderId: res.data.order_id });
-            if (verifyRes?.data) {
-                window.closeModal('buy-credits-modal');
-                alert('✅ Payment verified! Credits have been added to your account.');
-            } else {
-                alert('⚠️ Payment verification failed: ' + (verifyRes?.error || 'Unknown error. Please contact support if you were charged.'));
-            }
-        } catch (err) {
-            console.error('Cashfree checkout failed', err);
-            alert('⚠️ ' + (err?.message || 'Payment failed. Please try again.'));
-        }
-        restoreBtn();
+    initBuyCredits(state.communityId, async () => {
+        await loadKeys();
+        const list = document.getElementById('keys-list');
+        if (list) list.innerHTML = renderKeysList();
     });
 }
 
 window.openBuyCredits = async () => {
-    document.getElementById('credit-quantity').value = 100;
-    document.getElementById('credit-quantity').dispatchEvent(new Event('input'));
-    window.openModal('buy-credits-modal');
-    await loadGateways();
+    await openBuyCredits(state.communityId);
 };
 
 window.toggleKeyVisibility = () => {
