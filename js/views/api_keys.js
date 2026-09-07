@@ -1,5 +1,5 @@
 import { api, modalTemplate, escapeHtml } from '../utils.js';
-import { buyCreditsModalTemplate, initBuyCredits, openBuyCredits, verifyPaymentWithRetry } from '../buy_credits.js';
+import { verifyPaymentWithRetry } from '../buy_credits.js';
 
 let state = {
     keys: []
@@ -63,14 +63,11 @@ export async function renderApiKeys(communityId) {
                     <p class="text-xs text-neutral-700 font-bold mt-1">Manage API credentials & certificate generation credits (certificates valid & stored for 2 years).</p>
                 </div>
             </div>
-            <div class="flex flex-wrap gap-2 items-center">
-                <a href="api-docs.html" target="_blank" class="btn-secondary">
+            <div class="flex flex-wrap gap-2 items-stretch">
+                <a href="api-docs.html" target="_blank" class="btn-secondary flex-1 min-w-[160px] !flex !items-center !justify-center">
                     <i class="fas fa-book mr-1"></i> API Docs
                 </a>
-                <button onclick="window.openBuyCredits()" class="btn-primary !bg-warning hover:!bg-yellow-400 text-ink">
-                    <i class="fas fa-coins mr-1"></i> Buy Credits
-                </button>
-                <button onclick="window.openCreateKeyModal()" class="btn-primary">
+                <button onclick="window.openCreateKeyModal()" class="btn-primary flex-1 min-w-[160px] !flex !items-center !justify-center">
                     <i class="fas fa-key mr-1"></i> + New API Key
                 </button>
             </div>
@@ -130,9 +127,6 @@ export async function renderApiKeys(communityId) {
                 </div>
             </div>
         `)}
-
-        ${buyCreditsModalTemplate()}
-    `;
 
     setupListeners();
 }
@@ -219,17 +213,7 @@ function setupListeners() {
             alert(res?.error || 'Failed to create key');
         }
     });
-
-    initBuyCredits(state.communityId, async () => {
-        await loadKeys();
-        const list = document.getElementById('keys-list');
-        if (list) list.innerHTML = renderKeysList();
-    });
 }
-
-window.openBuyCredits = async () => {
-    await openBuyCredits(state.communityId);
-};
 
 window.toggleKeyVisibility = () => {
     const el = document.getElementById('new-key-value');
