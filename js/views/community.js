@@ -39,6 +39,10 @@ export async function renderCommunity(id) {
         const hasPosts             = !!features.posts;
         const hasCertificates      = features.certificates !== false;
         const hasApiAccess         = !!features.api_access;
+        // Credits are for certificates (events + API), not API-only.
+        // Events-only communities have certificates:true, api_access:false
+        // and must still be able to buy credits.
+        const hasCredits           = hasCertificates;
         const hasTransactions      = !!features.transactions;
         const hasCtf               = !!features.ctf;
         const hasMainSiteDisplay   = !!features.display_on_main_site;
@@ -49,7 +53,7 @@ export async function renderCommunity(id) {
             const txnRes = await api(`/community/${id}/transactions`);
             if (txnRes && txnRes.success) transactions = txnRes.data.transactions || [];
         }
-        if (hasApiAccess) {
+        if (hasApiAccess || hasCredits) {
             const usagesRes = await api(`/community/${id}/apikeys/usages`);
             if (usagesRes && usagesRes.success) usages = usagesRes.data.usages || [];
         }
@@ -210,28 +214,33 @@ export async function renderCommunity(id) {
                                class="btn-secondary flex-1">
                                 <i class="fas fa-table"></i> Open Transactions
                             </a>
+                            ${canManageTemplates ? `
+                            <button onclick="window.bcBuy('${id}')" class="btn-primary !bg-warning hover:!bg-yellow-400 text-ink flex-1">
+                                <i class="fas fa-coins mr-1"></i> Buy Credits
+                            </button>
+                            ` : ''}
                             ${hasApiAccess && canManageTemplates ? `
                             <button onclick="openApiIntegrations('${id}')" class="btn-secondary flex-1">
                                 <i class="fas fa-code"></i> API Integrations
                             </button>
                             ` : ''}
                         </div>
-                        ` : hasApiAccess ? `
+                        ` : hasCredits ? `
                         <div class="p-4 bg-canvas border-b-2 border-ink flex justify-between items-center font-mono">
                             <h2 class="font-black text-sm uppercase text-ink flex items-center gap-2">
-                                🔑 Credits &amp; API Usage
+                                🔑 Credits &amp; Certificates
                             </h2>
                         </div>
                         <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6 font-mono">
                             <div class="bg-canvas border-2 border-ink p-4 shadow-[2px_2px_0_0_#0b0b0b]">
                                 <p class="text-xs text-neutral-700 uppercase tracking-wider font-bold mb-1">Remaining Credits</p>
                                 <p class="text-3xl font-black text-cyan">${community.credits || 0}</p>
-                                <p class="text-xs text-neutral-600 mt-1 font-semibold">available for API</p>
+                                <p class="text-xs text-neutral-600 mt-1 font-semibold">available for certificates</p>
                             </div>
                             <div class="bg-canvas border-2 border-ink p-4 shadow-[2px_2px_0_0_#0b0b0b]">
                                 <p class="text-xs text-neutral-700 uppercase tracking-wider font-bold mb-1">Certificates Generated</p>
                                 <p class="text-3xl font-black text-ink">${usages.length}</p>
-                                <p class="text-xs text-neutral-600 mt-1 font-semibold">deducted via API</p>
+                                <p class="text-xs text-neutral-600 mt-1 font-semibold">via credits / API</p>
                             </div>
                         </div>
                         <div class="border-t-2 border-ink p-4 flex flex-col sm:flex-row gap-3">
@@ -239,13 +248,17 @@ export async function renderCommunity(id) {
                             <button onclick="window.bcBuy('${id}')" class="btn-primary !bg-warning hover:!bg-yellow-400 text-ink flex-1">
                                 <i class="fas fa-coins mr-1"></i> Buy Credits
                             </button>
+                            ` : ''}
+                            ${hasApiAccess && canManageTemplates ? `
                             <button onclick="openApiIntegrations('${id}')" class="btn-secondary flex-1">
                                 <i class="fas fa-code"></i> Manage API Integrations
                             </button>
                             ` : ''}
+                            ${hasApiAccess ? `
                             <a href="#/community/${id}/api-usage" class="btn-secondary flex-1">
                                 <i class="fas fa-list-alt"></i> View Detailed Logs
                             </a>
+                            ` : ''}
                         </div>
                         ` : `
                         <div class="p-4 bg-canvas border-b-2 border-ink flex justify-between items-center font-mono">
@@ -351,12 +364,13 @@ export async function renderCommunity(id) {
                                 ` : ''}
                             </div>
                         </div>
-                        
+                        ` : ''}
+                        ${canManageTemplates && hasCredits ? `
                         <div class="mt-4 pt-4 border-t-2 border-ink">
                             <span class="block text-xs font-bold text-neutral-700 uppercase tracking-wide mb-2">Account Credits</span>
                             <div class="flex items-center justify-between bg-canvas border-2 border-ink p-3">
                                 <span class="font-black text-lg text-ink"><i class="fas fa-coins text-yellow-500 mr-1.5"></i>${community.credits || 0}</span>
-                                <a href="#/community/${id}/api-keys" class="btn-secondary !text-[10px] !px-2.5 !py-1">Manage Keys</a>
+                                ${hasApiAccess ? `<a href="#/community/${id}/api-keys" class="btn-secondary !text-[10px] !px-2.5 !py-1">Manage Keys</a>` : ''}
                             </div>
                             <button onclick="window.bcBuy('${id}')" class="btn-primary !bg-warning hover:!bg-yellow-400 text-ink w-full mt-2 !text-xs">
                                 <i class="fas fa-coins mr-1"></i> Buy Credits
@@ -587,10 +601,10 @@ export async function renderCommunity(id) {
                 </form>
             `)}
 
-            ${hasApiAccess && canManageTemplates ? buyCreditsModalTemplate() : ''}
+            ${canManageTemplates && hasCredits ? buyCreditsModalTemplate() : ''}
         `;
 
-        if (hasApiAccess && canManageTemplates) {
+        if (canManageTemplates && hasCredits) {
             initBuyCredits(id, () => renderCommunity(id));
         }
 
