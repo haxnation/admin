@@ -302,6 +302,36 @@ export async function renderEvent(communityId, eventId) {
                     <label class="label" for="edit-ev-loc">Location</label>
                     <input type="text" id="edit-ev-loc" name="location" value="${escapeHtml(currentEvent.location || '')}" class="input">
                 </div>
+                <div class="bg-warning/10 border-2 border-ink p-3">
+                    <h4 class="text-xs font-black uppercase text-ink mb-1">📜 Certificate Information</h4>
+                    <p class="text-[11px] text-neutral-700 mb-3">Values for certificate designer variables (<span class="font-bold">event_name, date, venue</span> + custom <span class="font-bold">{{key}}</span> placeholders). Leave blank to use event details. <span class="font-bold">name</span> is per-participant; <span class="font-bold">certificate_id / certificate_link / qr_code</span> are auto-generated.</p>
+                    <div class="grid grid-cols-1 gap-2 mb-2">
+                        <div>
+                            <label class="label" for="edit-ev-cert-event-name">Certificate Event Name (event_name)</label>
+                            <input type="text" id="edit-ev-cert-event-name" name="cert_event_name" value="${escapeHtml(currentEvent.certificateData?.event_name || '')}" placeholder="Defaults to Event Name" class="input !p-2 text-xs">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="label" for="edit-ev-cert-date">Certificate Date (date)</label>
+                                <input type="text" id="edit-ev-cert-date" name="cert_date" value="${escapeHtml(currentEvent.certificateData?.date || '')}" placeholder="Defaults to Date & Time" class="input !p-2 text-xs">
+                            </div>
+                            <div>
+                                <label class="label" for="edit-ev-cert-venue">Certificate Venue (venue)</label>
+                                <input type="text" id="edit-ev-cert-venue" name="cert_venue" value="${escapeHtml(currentEvent.certificateData?.venue || '')}" placeholder="Defaults to Location / Venue" class="input !p-2 text-xs">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="edit-cert-custom-rows" class="space-y-2">
+                        ${Object.entries(currentEvent.certificateData || {}).filter(([k]) => !['event_name', 'date', 'venue'].includes(k)).map(([k, v]) => `
+                            <div class="grid grid-cols-[1fr_1fr_auto] gap-2 items-center cert-data-row">
+                                <input type="text" value="${escapeHtml(k)}" class="input !p-2 text-xs cert-data-key">
+                                <input type="text" value="${escapeHtml(String(v))}" class="input !p-2 text-xs cert-data-value">
+                                <button type="button" class="btn-danger !text-[10px] !px-2 !py-1" onclick="this.parentElement.remove()">✕</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button type="button" onclick="addCertDataRow('edit-cert-custom-rows')" class="btn-secondary !text-[10px] !px-2.5 !py-1 mt-2">+ Add Custom Variable</button>
+                </div>
                 <div>
                     <label class="label" for="edit-ev-status">Event Status</label>
                     <select id="edit-ev-status" name="status" class="input bg-white">
@@ -705,10 +735,51 @@ window.closeQrScanner = () => {
     closeModal('qr-modal');
 };
 
+if (!window.addCertDataRow) {
+    window.addCertDataRow = (containerId, key = '', value = '') => {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const row = document.createElement('div');
+        row.className = 'grid grid-cols-[1fr_1fr_auto] gap-2 items-center cert-data-row';
+        row.innerHTML = `
+            <input type="text" placeholder="key (e.g. course)" value="${String(key).replace(/"/g, '&quot;')}" class="input !p-2 text-xs cert-data-key">
+            <input type="text" placeholder="value" value="${String(value).replace(/"/g, '&quot;')}" class="input !p-2 text-xs cert-data-value">
+            <button type="button" class="btn-danger !text-[10px] !px-2 !py-1" onclick="this.parentElement.remove()">✕</button>
+        `;
+        container.appendChild(row);
+    };
+}
+
+if (!window.collectCertData) {
+    window.collectCertData = (form, containerId) => {
+        const data = {};
+        const get = (name) => (form.querySelector(`[name="${name}"]`)?.value || '').trim();
+        const eventName = get('cert_event_name');
+        const date = get('cert_date');
+        const venue = get('cert_venue');
+        if (eventName) data['event_name'] = eventName;
+        if (date) data['date'] = date;
+        if (venue) data['venue'] = venue;
+        const container = containerId ? document.getElementById(containerId) : null;
+        if (container) {
+            container.querySelectorAll('.cert-data-row').forEach(row => {
+                const k = (row.querySelector('.cert-data-key')?.value || '').trim();
+                const v = (row.querySelector('.cert-data-value')?.value || '').trim();
+                if (k && v && /^[A-Za-z0-9_]+$/.test(k) && !['certificate_id', 'certificate_link', 'qr_code'].includes(k.toLowerCase())) {
+                    data[k] = v;
+                }
+            });
+        }
+        return data;
+    };
+}
+
 window.handleEditEvent = async (e, cid, eid) => {
     e.preventDefault();
     const fd = new FormData(e.target);
     const body = Object.fromEntries(fd.entries());
+    body.certificateData = window.collectCertData(e.target, 'edit-cert-custom-rows');
+    delete body.cert_event_name; delete body.cert_date; delete body.cert_venue;
     const res = await api(`/community/${cid}/event/${eid}`, 'PUT', body);
     if (res && res.success !== false) { window.closeModal('edit-event'); renderEvent(cid, eid); }
 };
