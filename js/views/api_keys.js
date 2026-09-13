@@ -127,6 +127,7 @@ export async function renderApiKeys(communityId) {
                 </div>
             </div>
         `)}
+    `;
 
     setupListeners();
 }
