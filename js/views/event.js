@@ -780,8 +780,14 @@ window.handleEditEvent = async (e, cid, eid) => {
     const body = Object.fromEntries(fd.entries());
     body.certificateData = window.collectCertData(e.target, 'edit-cert-custom-rows');
     delete body.cert_event_name; delete body.cert_date; delete body.cert_venue;
-    const res = await api(`/community/${cid}/event/${eid}`, 'PUT', body);
-    if (res && res.success !== false) { window.closeModal('edit-event'); renderEvent(cid, eid); }
+    try {
+        const res = await api(`/community/${cid}/event/${eid}`, 'PUT', body);
+        if (res && res.success !== false) { window.closeModal('edit-event'); renderEvent(cid, eid); }
+        else alert(res?.error || 'Failed to save event — the status change was NOT saved. Please retry.');
+    } catch (err) {
+        console.error('Event save failed:', err);
+        alert('Failed to save event (network error) — the status change was NOT saved. Please retry.');
+    }
 };
 
 window.handleCertSettings = async (e, eventId) => {
