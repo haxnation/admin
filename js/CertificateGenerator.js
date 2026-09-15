@@ -26,6 +26,9 @@ class CertificateGenerator {
         // Reset taint flag for this run
         this._canvasTainted = false;
 
+        // Load any Google Fonts referenced by the template before measuring.
+        await this._ensureTemplateFonts(template);
+
         const bgUrl = template.backgroundImage;
 
         if (bgUrl) {
@@ -47,7 +50,7 @@ class CertificateGenerator {
         // Ensure fonts declared in the page CSS are ready
         await document.fonts.ready;
 
-        const defaultFontFam = template.font || 'Arial';
+        const defaultFontFam = template.font || 'Roboto';
 
         for (const field of (template.textFields || [])) {
             const fieldType = field.type || 'box';
@@ -125,11 +128,62 @@ class CertificateGenerator {
     }
 
     /**
-     * Build the CSS font string for a given family and size,
-     * applying bold weight when requested.
+     * Build the CSS font string for a given family and size.
+     * Numeric weights (400/700) are used instead of the `bold` keyword so
+     * variable Google Fonts resolve the correct 700 face for **bold**.
      */
     _fontStr(bold, size, family) {
-        return `${bold ? 'bold ' : ''}${size}px "${family}"`;
+        return `${bold ? '700' : '400'} ${size}px "${family}"`;
+    }
+
+    /** Resolve a legacy boldFont value to a family name (or null = same family). */
+    _resolveBoldFamily(boldFontFam) {
+        if (!boldFontFam) return null;
+        const s = String(boldFontFam).trim();
+        if (!s || /\.ttf$/i.test(s)) return null; // legacy "Roboto-Bold.ttf" marker
+        return s;
+    }
+
+    /**
+     * Load every Google Fonts family referenced by the template (400 + 700)
+     * via the CSS2 API, then wait for them so canvas measurement is accurate.
+     * Failures fall back to already-available fonts — preview never breaks.
+     */
+    async _ensureTemplateFonts(template) {
+        try {
+            const fams = new Set();
+            if (template.font) fams.add(String(template.font).trim());
+            for (const f of (template.textFields || [])) {
+                if (f.font) fams.add(String(f.font).trim());
+                const bf = this._resolveBoldFamily(f.boldFont);
+                if (bf) fams.add(bf);
+            }
+            const list = [...fams].filter(Boolean);
+            if (!list.length || !('fonts' in document)) return;
+            const qs = list.map(f => 'family=' + f.replace(/\s+/g, '+') + ':wght@400;700').join('&');
+            const href = `https://fonts.googleapis.com/css2?${qs}&display=swap`;
+            let link = document.getElementById('google-cert-fonts');
+            if (!link) {
+                link = document.createElement('link');
+                link.id = 'google-cert-fonts';
+                link.rel = 'stylesheet';
+                document.head.appendChild(link);
+            }
+            const have = new Set((link.dataset.families || '').split('|').filter(Boolean));
+            list.forEach(f => have.add(f));
+            link.dataset.families = [...have].join('|');
+            link.href = 'https://fonts.googleapis.com/css2?' +
+                [...have].map(f => 'family=' + f.replace(/\s+/g, '+') + ':wght@400;700').join('&') +
+                '&display=swap';
+            void href;
+            await Promise.all(list.flatMap(fam => [
+                document.fonts.load(`400 20px "${fam}"`),
+                document.fonts.load(`700 20px "${fam}"`),
+            ]));
+            await document.fonts.ready;
+        } catch (e) {
+            console.warn('[CertificateGenerator] Google Fonts load failed, using fallback:', e);
+        }
     }
 
     /**
@@ -288,7 +342,7 @@ class CertificateGenerator {
         const boxW        = rect.x2 - rect.x1;
         const boxH        = rect.y2 - rect.y1;
         const fontFam     = field.font     || defaultFont;
-        const boldFontFam = field.boldFont || null;   // NEW: separate bold face
+        const boldFontFam = this._resolveBoldFamily(field.boldFont);   // null = same family, weight 700
         const color       = field.color    || '#000000';
         const letterSpacing = field.letterSpacing || 0;
         const lineSpacing   = field.lineSpacing   || 0;
@@ -366,7 +420,7 @@ class CertificateGenerator {
         const anchor      = field.anchor;
         const fontSize    = field.fontSize    || 32;
         const fontFam     = field.font        || defaultFont;
-        const boldFontFam = field.boldFont    || null;
+        const boldFontFam = this._resolveBoldFamily(field.boldFont);
         const color       = field.color       || '#000000';
         const letterSpacing = field.letterSpacing || 0;
 

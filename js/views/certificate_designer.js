@@ -1,5 +1,6 @@
 import { api } from '../utils.js';
 import { API_URL } from '../config.js';
+import { GOOGLE_CERT_FONTS, ensureGoogleFontsLoaded, normalizeFontFamily } from '../googleFonts.js';
 
 // Local State
 let state = {
@@ -193,11 +194,9 @@ export async function renderCertificateDesigner(type, id, communityId = null) {
                             </select>
                         </div>
                         <div>
-                            <label class="label">Font Weight</label>
-                            <select id="propFontPath" class="input bg-white !p-2 text-xs">
-                                 <option value="">Regular</option>
-                                 <option value="Bold">Bold</option>
-                            </select>
+                            <label class="label">Font Family (Google Fonts)</label>
+                            <select id="propFontFamily" class="input bg-white !p-2 text-xs"></select>
+                            <p class="text-[10px] text-neutral-500 font-bold mt-1 uppercase">Use **bold** in text for weight 700</p>
                         </div>
                     </div>
 
@@ -241,6 +240,13 @@ export async function renderCertificateDesigner(type, id, communityId = null) {
         };
         varList.appendChild(tag);
     });
+
+    // Populate Google Fonts picker (family names double as <option> values)
+    const fontSelect = document.getElementById('propFontFamily');
+    if (fontSelect) {
+        fontSelect.innerHTML = GOOGLE_CERT_FONTS
+            .map(f => `<option value="${f}">${f}</option>`).join('');
+    }
 
     setupListeners();
     loadTemplateData(type, id);
@@ -350,7 +356,7 @@ function setupListeners() {
 
     // 3. Properties
     const update = () => updateFieldData();
-    ['propKey', 'propSize', 'propColor', 'propAlignX', 'propRadius', 'propCircle', 'propFontPath'].forEach(id => {
+    ['propKey', 'propSize', 'propColor', 'propAlignX', 'propRadius', 'propCircle', 'propFontFamily'].forEach(id => {
         const el = document.getElementById(id);
         if(el) { el.oninput = update; el.onchange = update; }
     });
@@ -366,7 +372,7 @@ function addField(type, defaultKey) {
         x: 50, y: 50, w: type === 'box' ? 200 : 100, h: type === 'box' ? 50 : 100,
         fontSize: 30, color: '#000000', alignX: 'left',
         cornerRadius: 0, isCircle: false,
-        boldFont: null
+        font: 'Roboto'
     };
     
     state.fields.push(field);
@@ -407,7 +413,7 @@ function updateElementVisuals(el, field) {
          el.style.color = field.color;
          el.style.textAlign = field.alignX;
          el.style.background = 'rgba(92, 225, 230, 0.15)';
-         el.style.fontWeight = field.boldFont ? 'bold' : 'normal';
+         el.style.fontFamily = `"${field.font || 'Roboto'}", sans-serif`;
     } else if (field.type === 'qrcode') {
          el.innerText = 'QR: ' + field.key;
          el.style.background = 'rgba(255,255,255,0.9)';
@@ -444,13 +450,29 @@ function selectField(id) {
         document.getElementById('propSize').value = f.fontSize;
         document.getElementById('propColor').value = f.color;
         document.getElementById('propAlignX').value = f.alignX;
-        document.getElementById('propFontPath').value = f.boldFont ? 'Bold' : '';
+        setFontSelectValue(f.font || 'Roboto');
     } else {
         document.getElementById('textProps').style.display = 'none';
         document.getElementById('imgProps').style.display = 'block';
         document.getElementById('propRadius').value = f.cornerRadius;
         document.getElementById('propCircle').checked = f.isCircle;
     }
+}
+
+function setFontSelectValue(family) {
+    const sel = document.getElementById('propFontFamily');
+    if (!sel) return;
+    const norm = normalizeFontFamily(family, 'Roboto');
+    let opt = [...sel.options].find(o => o.value === norm);
+    if (!opt) {
+        // Custom / legacy family not in the curated list — add it on the fly
+        // so loading an old template never resets the designer's choice.
+        opt = document.createElement('option');
+        opt.value = norm;
+        opt.textContent = norm + ' (custom)';
+        sel.appendChild(opt);
+    }
+    sel.value = norm;
 }
 
 function updateFieldData() {
@@ -464,8 +486,10 @@ function updateFieldData() {
         f.fontSize = parseInt(document.getElementById('propSize').value) || 30;
         f.color = document.getElementById('propColor').value;
         f.alignX = document.getElementById('propAlignX').value;
-        const fontVal = document.getElementById('propFontPath').value;
-        f.boldFont = fontVal === 'Bold' ? 'Roboto-Bold.ttf' : null;
+        const famSel = document.getElementById('propFontFamily');
+        f.font = normalizeFontFamily(famSel ? famSel.value : f.font, 'Roboto');
+        f.boldFont = null; // legacy marker retired: **bold** uses weight 700 of f.font
+        ensureGoogleFontsLoaded([f.font]);
     } else {
         f.cornerRadius = parseInt(document.getElementById('propRadius').value) || 0;
         f.isCircle = document.getElementById('propCircle').checked;
@@ -538,13 +562,14 @@ function buildTemplate() {
     const scale = state.scale;
     return {
         backgroundImage: state.bgImage,
+        font: 'Roboto',
         textFields: state.fields.map(f => ({
             key: f.key,
             type: f.type,
+            font: f.font || 'Roboto',
             fontSize: f.fontSize,
             color: f.color,
             alignmentX: f.alignX,
-            boldFont: f.boldFont,
             rect: {
                 x1: Math.round(f.x / scale),
                 y1: Math.round(f.y / scale),
@@ -852,6 +877,12 @@ async function loadTemplateData(type, id) {
                 state.fields = [];
 
                 if (template.textFields) {
+                    // Preload all template fonts so the designer canvas shows real typefaces.
+                    const tmplFonts = template.textFields
+                        .map(tf => tf.font || normalizeFontFamily(tf.boldFont, null))
+                        .filter(Boolean);
+                    if (template.font) tmplFonts.push(template.font);
+                    if (tmplFonts.length) ensureGoogleFontsLoaded(tmplFonts);
                     template.textFields.forEach((tf, index) => {
                         const f = {
                             id: 'field_' + Date.now() + '_' + index,
@@ -864,7 +895,9 @@ async function loadTemplateData(type, id) {
                             fontSize: tf.fontSize || 30,
                             color: tf.color || '#000000',
                             alignX: tf.alignmentX || 'left',
-                            boldFont: tf.boldFont || null,
+                            // Backward compat: legacy templates stored
+                            // boldFont="Roboto-Bold.ttf" without font.
+                            font: tf.font || normalizeFontFamily(tf.boldFont, 'Roboto'),
                             cornerRadius: tf.cornerRadius || 0,
                             isCircle: tf.isCircle || false
                         };
