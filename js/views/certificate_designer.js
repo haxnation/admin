@@ -1,6 +1,6 @@
-import { api } from '../utils.js';
+import { api, escapeHtml } from '../utils.js';
 import { API_URL } from '../config.js';
-import { GOOGLE_CERT_FONTS, ensureGoogleFontsLoaded, normalizeFontFamily } from '../googleFonts.js';
+import { SORTED_CERT_FONTS, ensureGoogleFontsLoaded, normalizeFontFamily } from '../googleFonts.js';
 
 // Local State
 let state = {
@@ -112,6 +112,13 @@ export async function renderCertificateDesigner(type, id, communityId = null) {
             .var-tag { display: inline-block; padding: 3px 8px; background: #fafafa; border: 2px solid #0b0b0b; font-size: 10px; font-weight: bold; text-transform: uppercase; margin: 2px; cursor: pointer; box-shadow: 2px 2px 0 0 #0b0b0b; transition: all 0.05s; }
             .var-tag:hover { background: #5ce1e6; transform: translate(1px, 1px); box-shadow: 1px 1px 0 0 #0b0b0b; }
             .var-tag:active { transform: translate(2px, 2px); box-shadow: none; }
+            #fontPickerWrap { position: relative; }
+            #fontDropdown { position: absolute; top: 100%; left: 0; right: 0; z-index: 200; background: #ffffff; border: 2px solid #0b0b0b; border-top: none; max-height: 220px; overflow-y: auto; box-shadow: 4px 4px 0 0 #0b0b0b; }
+            #fontDropdown.hidden { display: none; }
+            .font-opt { display: block; width: 100%; text-align: left; padding: 6px 8px; font-size: 13px; line-height: 1.3; cursor: pointer; border-bottom: 1px solid #e5e5e5; background: #fff; }
+            .font-opt:hover, .font-opt.active { background: #5ce1e6; }
+            .font-opt.selected { background: #00e676; font-weight: bold; }
+            .font-opt-empty { padding: 8px; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #525252; }
         `;
         document.head.appendChild(style);
     }
@@ -195,7 +202,11 @@ export async function renderCertificateDesigner(type, id, communityId = null) {
                         </div>
                         <div>
                             <label class="label">Font Family (Google Fonts)</label>
-                            <select id="propFontFamily" class="input bg-white !p-2 text-xs"></select>
+                            <div id="fontPickerWrap">
+                                <input type="hidden" id="propFontFamily" value="Roboto">
+                                <input type="text" id="propFontFamilySearch" placeholder="Search fonts... (e.g. Playfair)" class="input bg-white !p-2 text-xs" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="fontDropdown" aria-label="Search Google Fonts">
+                                <div id="fontDropdown" class="hidden" role="listbox"></div>
+                            </div>
                             <p class="text-[10px] text-neutral-500 font-bold mt-1 uppercase">Use **bold** in text for weight 700</p>
                         </div>
                     </div>
@@ -241,15 +252,118 @@ export async function renderCertificateDesigner(type, id, communityId = null) {
         varList.appendChild(tag);
     });
 
-    // Populate Google Fonts picker (family names double as <option> values)
-    const fontSelect = document.getElementById('propFontFamily');
-    if (fontSelect) {
-        fontSelect.innerHTML = GOOGLE_CERT_FONTS
-            .map(f => `<option value="${f}">${f}</option>`).join('');
-    }
+    // Searchable, alphabetical Google Fonts picker.
+    // The hidden #propFontFamily input keeps the selected family (existing
+    // update/load code reads it); the visible search input filters the list.
+    initFontPicker();
 
     setupListeners();
     loadTemplateData(type, id);
+}
+
+// --- Searchable font picker (alphabetical, filters as you type) ---
+
+// Custom families from legacy templates (not in the curated catalogue) are
+// kept in this set so they stay selectable and sort with everything else.
+const customFontFamilies = new Set();
+
+function allPickerFonts() {
+    return [...new Set([...SORTED_CERT_FONTS, ...customFontFamilies])].sort((a, b) =>
+        a.localeCompare(b, undefined, { sensitivity: 'base' })
+    );
+}
+
+function initFontPicker() {
+    const search = document.getElementById('propFontFamilySearch');
+    const dropdown = document.getElementById('fontDropdown');
+    if (!search || !dropdown) return;
+
+    renderFontDropdown('');
+
+    search.addEventListener('focus', () => {
+        // Preload the catalogue once so dropdown rows preview in real typefaces.
+        ensureGoogleFontsLoaded(allPickerFonts());
+        renderFontDropdown(search.value);
+        openFontDropdown();
+    });
+    search.addEventListener('input', () => {
+        renderFontDropdown(search.value);
+        openFontDropdown();
+    });
+    search.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { closeFontDropdown(); search.blur(); }
+        else if (e.key === 'Enter') {
+            const first = dropdown.querySelector('.font-opt');
+            if (first && !dropdown.classList.contains('hidden')) {
+                e.preventDefault();
+                first.click();
+            }
+        }
+    });
+    // Close when clicking outside the picker.
+    document.addEventListener('mousedown', (e) => {
+        const wrap = document.getElementById('fontPickerWrap');
+        if (wrap && !wrap.contains(e.target)) closeFontDropdown();
+    });
+}
+
+function openFontDropdown() {
+    const search = document.getElementById('propFontFamilySearch');
+    const dropdown = document.getElementById('fontDropdown');
+    if (!dropdown) return;
+    dropdown.classList.remove('hidden');
+    if (search) search.setAttribute('aria-expanded', 'true');
+}
+
+function closeFontDropdown() {
+    const search = document.getElementById('propFontFamilySearch');
+    const dropdown = document.getElementById('fontDropdown');
+    if (!dropdown) return;
+    dropdown.classList.add('hidden');
+    if (search) search.setAttribute('aria-expanded', 'false');
+}
+
+function renderFontDropdown(filter) {
+    const dropdown = document.getElementById('fontDropdown');
+    const hidden = document.getElementById('propFontFamily');
+    if (!dropdown) return;
+    const q = (filter || '').trim().toLowerCase();
+    const current = hidden ? hidden.value : '';
+    const matches = allPickerFonts().filter(f => !q || f.toLowerCase().includes(q));
+
+    if (!matches.length) {
+        dropdown.innerHTML = `<div class="font-opt-empty">No fonts match "${escapeHtml(filter)}"</div>`;
+        return;
+    }
+    dropdown.innerHTML = '';
+    for (const fam of matches) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'font-opt' + (fam === current ? ' selected' : '');
+        btn.setAttribute('role', 'option');
+        btn.setAttribute('aria-selected', fam === current ? 'true' : 'false');
+        btn.dataset.family = fam;
+        btn.textContent = fam;
+        // Live preview in the real typeface (falls back until the font loads).
+        btn.style.fontFamily = `"${fam}", sans-serif`;
+        btn.addEventListener('mousedown', (e) => {
+            // mousedown (not click): applies before the input loses focus.
+            e.preventDefault();
+            selectPickerFont(fam);
+        });
+        dropdown.appendChild(btn);
+    }
+}
+
+function selectPickerFont(family) {
+    const norm = normalizeFontFamily(family, 'Roboto');
+    const hidden = document.getElementById('propFontFamily');
+    const search = document.getElementById('propFontFamilySearch');
+    if (hidden) hidden.value = norm;
+    if (search) search.value = norm;
+    ensureGoogleFontsLoaded([norm]);
+    closeFontDropdown();
+    updateFieldData();
 }
 
 function setupListeners() {
@@ -356,10 +470,23 @@ function setupListeners() {
 
     // 3. Properties
     const update = () => updateFieldData();
-    ['propKey', 'propSize', 'propColor', 'propAlignX', 'propRadius', 'propCircle', 'propFontFamily'].forEach(id => {
+    ['propKey', 'propSize', 'propColor', 'propAlignX', 'propRadius', 'propCircle'].forEach(id => {
         const el = document.getElementById(id);
         if(el) { el.oninput = update; el.onchange = update; }
     });
+    // Font search input filters live; selection applies via selectPickerFont.
+    // Typing an exact family name + Enter also applies it (see keydown handler).
+    const fontSearch = document.getElementById('propFontFamilySearch');
+    if (fontSearch) {
+        fontSearch.addEventListener('change', () => {
+            const hidden = document.getElementById('propFontFamily');
+            const typed = normalizeFontFamily(fontSearch.value, '');
+            if (typed && hidden && typed.toLowerCase() === hidden.value.toLowerCase()) return;
+            if (typed && allPickerFonts().some(f => f.toLowerCase() === typed.toLowerCase())) {
+                selectPickerFont(typed);
+            }
+        });
+    }
 }
 
 function addField(type, defaultKey) {
@@ -460,19 +587,17 @@ function selectField(id) {
 }
 
 function setFontSelectValue(family) {
-    const sel = document.getElementById('propFontFamily');
-    if (!sel) return;
     const norm = normalizeFontFamily(family, 'Roboto');
-    let opt = [...sel.options].find(o => o.value === norm);
-    if (!opt) {
-        // Custom / legacy family not in the curated list — add it on the fly
-        // so loading an old template never resets the designer's choice.
-        opt = document.createElement('option');
-        opt.value = norm;
-        opt.textContent = norm + ' (custom)';
-        sel.appendChild(opt);
+    // Custom / legacy family not in the curated list — remember it so it
+    // stays selectable and sorts alphabetically with everything else.
+    if (!allPickerFonts().some(f => f.toLowerCase() === norm.toLowerCase())) {
+        customFontFamilies.add(norm);
     }
-    sel.value = norm;
+    const hidden = document.getElementById('propFontFamily');
+    const search = document.getElementById('propFontFamilySearch');
+    if (hidden) hidden.value = norm;
+    if (search) search.value = norm;
+    renderFontDropdown('');
 }
 
 function updateFieldData() {

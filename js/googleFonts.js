@@ -25,6 +25,11 @@ export const GOOGLE_CERT_FONTS = [
     'Lobster', 'Pacifico', 'Caveat', 'Alfa Slab One',
 ];
 
+/** Alphabetical (case-insensitive) view of the catalogue for pickers. */
+export const SORTED_CERT_FONTS = [...new Set(GOOGLE_CERT_FONTS)].sort((a, b) =>
+    a.localeCompare(b, undefined, { sensitivity: 'base' })
+);
+
 const LINK_ID = 'google-cert-fonts';
 const loadedFamilies = new Set();
 
