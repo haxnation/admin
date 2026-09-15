@@ -327,7 +327,7 @@ export async function renderEvent(communityId, eventId) {
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="label" for="edit-ev-cap">Capacity (blank = ∞)</label>
+                        <label class="label" for="edit-ev-cap">Capacity (0 = unlimited)</label>
                         <input type="number" id="edit-ev-cap" name="capacity" value="${currentEvent.capacity ?? ''}" placeholder="e.g. 100" class="input !p-2">
                     </div>
                     <div>
@@ -821,6 +821,12 @@ window.handleEditEvent = async (e, cid, eid) => {
     const body = Object.fromEntries(fd.entries());
     body.certificateData = window.collectCertData(e.target, 'edit-cert-custom-rows');
     delete body.cert_event_name; delete body.cert_date; delete body.cert_venue;
+    // Checkboxes are absent from FormData when unchecked, but the backend
+    // preserves the stored value on absent keys — send explicit booleans so
+    // toggles can actually be turned OFF as well as on.
+    body.requiresApproval = fd.get('requiresApproval') === 'on';
+    body.enableWaitlist = fd.get('enableWaitlist') === 'on';
+    body.isCertificateOnly = fd.get('isCertificateOnly') === 'on';
     try {
         const res = await api(`/community/${cid}/event/${eid}`, 'PUT', body);
         if (res && res.success !== false) { window.closeModal('edit-event'); renderEvent(cid, eid); }
