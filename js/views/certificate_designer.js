@@ -131,6 +131,7 @@ export async function renderCertificateDesigner(type, id, communityId = null) {
                     <div class="flex gap-2">
                         <button id="btn-preview" class="btn-secondary !text-xs !px-3 !py-1.5">Preview</button>
                         <button id="btn-save" class="btn-primary !text-xs !px-3 !py-1.5">Save</button>
+                        <button id="btn-delete-template" class="btn-danger !text-xs !px-3 !py-1.5">Delete</button>
                     </div>
                 </div>
 
@@ -465,7 +466,8 @@ function setupListeners() {
     document.getElementById('btn-add-qr').onclick = () => addField('qrcode', 'certificate_link');
     
     document.getElementById('btn-save').onclick = saveTemplate;
-    document.getElementById('btn-preview').onclick = previewTemplate; 
+    document.getElementById('btn-preview').onclick = previewTemplate;
+    document.getElementById('btn-delete-template').onclick = deleteTemplate;
     document.getElementById('btn-delete').onclick = deleteSelected;
 
     // 3. Properties
@@ -769,6 +771,46 @@ function showPreviewModal(base64Img) {
     
     document.getElementById('prev-img-el').src = base64Img;
     modal.style.display = 'flex';
+}
+
+async function deleteTemplate() {
+    const label = state.targetType === 'community' ? 'community' : 'event';
+    if (!confirm(`Delete the certificate template for this ${label}? This cannot be undone.`)) return;
+
+    const btn = document.getElementById('btn-delete-template');
+    const originalText = btn ? btn.innerText : '';
+    if (btn) { btn.innerText = 'Deleting...'; btn.disabled = true; }
+
+    const endpoint = state.targetType === 'community'
+        ? `/community/${state.targetId}/certificate-template`
+        : `/event/${state.targetId}/certificate-template`;
+
+    try {
+        const res = await api(endpoint, 'DELETE');
+        if (!res || res.success === false) throw new Error(res?.error || res?.message || 'Delete failed');
+
+        // Clear local designer state + any unsaved artifacts.
+        state.fields = [];
+        state.bgImage = null;
+        state.selectedId = null;
+        if (state.pendingBlobUrl) { URL.revokeObjectURL(state.pendingBlobUrl); state.pendingBlobUrl = null; }
+        try { await clearPendingImage(`pending_bg_${state.targetType}_${state.targetId}`); } catch(e) {}
+        localStorage.removeItem('cert_backup_' + state.targetId);
+
+        document.querySelectorAll('.field-el').forEach(e => e.remove());
+        const canvasArea = document.getElementById('canvas-area');
+        if (canvasArea) { canvasArea.style.backgroundImage = ''; canvasArea.style.width = ''; canvasArea.style.height = ''; }
+        const bgUrlInput = document.getElementById('bgUrlInput');
+        if (bgUrlInput) bgUrlInput.value = '';
+        const panel = document.getElementById('propertiesPanel');
+        if (panel) panel.style.display = 'none';
+
+        alert('Certificate template deleted.');
+    } catch(e) {
+        alert('Error deleting: ' + (e.message || e));
+    } finally {
+        if (btn) { btn.innerText = originalText; btn.disabled = false; }
+    }
 }
 
 async function saveTemplate() {
