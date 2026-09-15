@@ -302,6 +302,47 @@ export async function renderEvent(communityId, eventId) {
                     <label class="label" for="edit-ev-loc">Location</label>
                     <input type="text" id="edit-ev-loc" name="location" value="${escapeHtml(currentEvent.location || '')}" class="input">
                 </div>
+                <div>
+                    <label class="label" for="edit-ev-desc">Description</label>
+                    <textarea id="edit-ev-desc" name="description" placeholder="Event description shown on the public page" class="input h-20">${escapeHtml(currentEvent.description || '')}</textarea>
+                </div>
+                ${currentEvent.eventType !== 'API_ONLY' ? `
+                <div>
+                    <label class="label" for="edit-ev-slug">Custom Link</label>
+                    <div class="flex">
+                        <span class="bg-canvas border-2 border-r-0 border-ink p-3 text-ink text-xs font-bold select-none">haxnation.org/</span>
+                        <input type="text" name="customSlug" id="edit-ev-slug" value="${escapeHtml(currentEvent.slug || '')}" placeholder="my-event-slug" class="input !border-l-0">
+                    </div>
+                    <p class="text-[11px] text-neutral-500 font-bold mt-1">Changing this moves the public URL — the old link stops working.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-3 bg-canvas border-2 border-ink p-3">
+                    <label class="flex items-center gap-2 cursor-pointer text-xs font-bold uppercase text-ink">
+                        <input type="checkbox" name="requiresApproval" ${currentEvent.settings?.requiresApproval ? 'checked' : ''} class="w-4 h-4 accent-cyan border-2 border-ink">
+                        <span>Approval Required</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer text-xs font-bold uppercase text-ink">
+                        <input type="checkbox" name="enableWaitlist" ${currentEvent.settings?.enableWaitlist ? 'checked' : ''} class="w-4 h-4 accent-cyan border-2 border-ink">
+                        <span>Enable Waitlist</span>
+                    </label>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="label" for="edit-ev-cap">Capacity (blank = ∞)</label>
+                        <input type="number" id="edit-ev-cap" name="capacity" value="${currentEvent.capacity ?? ''}" placeholder="e.g. 100" class="input !p-2">
+                    </div>
+                    <div>
+                        <label class="label" for="edit-ev-price">Ticket Price (INR, 0 = Free)</label>
+                        <input type="number" id="edit-ev-price" name="ticketPrice" value="${currentEvent.settings?.ticketPrice ?? ''}" placeholder="0" class="input !p-2">
+                    </div>
+                </div>
+                <div class="bg-canvas border-2 border-ink p-3">
+                    <label class="flex items-center gap-2 cursor-pointer text-xs font-bold uppercase text-ink">
+                        <input type="checkbox" name="isCertificateOnly" ${currentEvent.settings?.isCertificateOnly ? 'checked' : ''} class="w-4 h-4 accent-cyan border-2 border-ink">
+                        <span>Certificate-Only Event</span>
+                    </label>
+                    <p class="text-[11px] text-neutral-500 font-bold mt-1">Certificate-only events are hidden from the main site listing.</p>
+                </div>
+                ` : ''}
                 <div class="bg-warning/10 border-2 border-ink p-3">
                     <h4 class="text-xs font-black uppercase text-ink mb-1">📜 Certificate Information</h4>
                     <p class="text-[11px] text-neutral-700 mb-3">Values for certificate designer variables (<span class="font-bold">event_name, date, venue</span> + custom <span class="font-bold">{{key}}</span> placeholders). Leave blank to use event details. <span class="font-bold">name</span> is per-participant; <span class="font-bold">certificate_id / certificate_link / qr_code</span> are auto-generated.</p>
